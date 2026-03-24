@@ -1,0 +1,13 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <!-- Colores de botones -->
+    <color name="btn_call">#2dd4bf</color>
+    <color name="btn_message">#818cf8</color>
+    <color name="btn_contacts">#6d28d9</color>
+    <color name="btn_apps">#64748b</color>
+    
+    <!-- Colores del tema -->
+    <color name="white">#FFFFFF</color>
+    <color name="black">#000000</color>
+    <color name="orb_glow">#4a90e2</color>
+</resources>
