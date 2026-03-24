@@ -1,10 +1,13 @@
 package com.oasis.app
 
+import android.animation.AnimatorSet
+import android.animation.ObjectAnimator
+import android.animation.ValueAnimator
 import android.media.MediaPlayer
 import android.os.Bundle
-import android.view.View
 import android.widget.ImageView
 import android.widget.TextView
+import android.widget.Toast
 import androidx.appcompat.app.AppCompatActivity
 import com.google.android.material.button.MaterialButton
 
@@ -16,27 +19,24 @@ class MainActivity : AppCompatActivity() {
         super.onCreate(savedInstanceState)
         setContentView(R.layout.activity_main)
 
-        // Reproducir sonido de inicio
         playSound(R.raw.inicio)
-
-        // Animar orbe central
         animateOrb()
-
-        // Configurar botones
         setupButtons()
     }
 
     private fun animateOrb() {
         val orb = findViewById<ImageView>(R.id.orb_view)
         
-        orb.animate()
-            .scaleX(1.1f)
-            .scaleY(1.1f)
-            .alpha(0.9f)
-            .setDuration(1500)
-            .repeatMode(android.animation.ValueAnimator.REVERSE)
-            .repeatCount(android.animation.ValueAnimator.INFINITE)
-            .start()
+        val scaleX = ObjectAnimator.ofFloat(orb, "scaleX", 1f, 1.1f)
+        val scaleY = ObjectAnimator.ofFloat(orb, "scaleY", 1f, 1.1f)
+        val alpha = ObjectAnimator.ofFloat(orb, "alpha", 1f, 0.9f)
+        
+        val animatorSet = AnimatorSet()
+        animatorSet.playTogether(scaleX, scaleY, alpha)
+        animatorSet.duration = 1500
+        animatorSet.repeatMode = ValueAnimator.REVERSE
+        animatorSet.repeatCount = ValueAnimator.INFINITE
+        animatorSet.start()
     }
 
     private fun setupButtons() {
@@ -45,25 +45,21 @@ class MainActivity : AppCompatActivity() {
         val btnContacts = findViewById<MaterialButton>(R.id.btn_contacts)
         val btnApps = findViewById<MaterialButton>(R.id.btn_apps)
 
-        // Botón Llamar
         btnCall.setOnClickListener {
             playSound(R.raw.touch)
             showToast("Llamar")
         }
 
-        // Botón Enviar mensaje
         btnMessage.setOnClickListener {
             playSound(R.raw.touch)
             showToast("Enviar mensaje")
         }
 
-        // Botón Contactos
         btnContacts.setOnClickListener {
             playSound(R.raw.touch)
             showToast("Contactos")
         }
 
-        // Botón Apps
         btnApps.setOnClickListener {
             playSound(R.raw.touch)
             showToast("Apps")
@@ -83,6 +79,7 @@ class MainActivity : AppCompatActivity() {
     private fun showToast(message: String) {
         val greetingText = findViewById<TextView>(R.id.greeting_text)
         greetingText.text = message
+        Toast.makeText(this, message, Toast.LENGTH_SHORT).show()
         playSound(R.raw.confirmar)
     }
 
