@@ -13,12 +13,20 @@ android {
         targetSdk = 34
         versionCode = 1
         versionName = "2.0"
+        
+        // Incluir todas las arquitecturas
+        ndk {
+            abiFilters += listOf("armeabi-v7a", "arm64-v8a", "x86", "x86_64")
+        }
     }
 
     buildTypes {
         release {
             isMinifyEnabled = false
             proguardFiles(getDefaultProguardFile("proguard-android-optimize.txt"), "proguard-rules.pro")
+        }
+        debug {
+            isMinifyEnabled = false
         }
     }
 
@@ -29,6 +37,13 @@ android {
 
     kotlinOptions {
         jvmTarget = "17"
+    }
+
+    // Forzar empaquetado universal
+    packaging {
+        jniLibs {
+            useLegacyPackaging = true
+        }
     }
 }
 
