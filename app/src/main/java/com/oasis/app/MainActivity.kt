@@ -53,11 +53,37 @@ class MainActivity : AppCompatActivity() {
         }
     }
     
-    private fun openDialer() { try { startActivity(Intent(Intent.ACTION_DIAL).apply { data = android.net.Uri.parse("tel:") }) } catch(_: Exception) {} }
-    private fun openSms() { try { startActivity(Intent(Intent.ACTION_VIEW).apply { type = "vnd.android-dir/mms-sms" }) } catch(_: Exception) {} }
-    private fun openContacts() { try { startActivity(Intent(android.provider.ContactsContract.Contacts.CONTENT_URI).apply { action = Intent.ACTION_VIEW }) } catch(_: Exception) {} }
-    private fun openLauncher() { try { startActivity(Intent(Intent.ACTION_MAIN).apply { addCategory(Intent.CATEGORY_LAUNCHER) }) } catch(_: Exception) {} }
+    private fun openDialer() {
+        try {
+            val intent = Intent(Intent.ACTION_DIAL)
+            intent.data = android.net.Uri.parse("tel:")
+            startActivity(intent)
+        } catch(_: Exception) {}
+    }
     
+    private fun openSms() {
+        try {
+            val intent = Intent(Intent.ACTION_VIEW)
+            intent.type = "vnd.android-dir/mms-sms"
+            startActivity(intent)
+        } catch(_: Exception) {}
+    }
+    
+    private fun openContacts() {
+        try {
+            val intent = Intent(Intent.ACTION_VIEW)
+            intent.data = android.provider.ContactsContract.Contacts.CONTENT_URI
+            startActivity(intent)
+        } catch(_: Exception) {}
+    }
+    
+    private fun openLauncher() {
+        try {
+            val intent = Intent(Intent.ACTION_MAIN)
+            intent.addCategory(Intent.CATEGORY_LAUNCHER)
+            startActivity(intent)
+        } catch(_: Exception) {}
+    }    
     override fun onDestroy() { 
         super.onDestroy()
         sound.release()
