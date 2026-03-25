@@ -1,8 +1,6 @@
 package com.oasis.app
 
-import android.animation.AnimatorSet
-import android.animation.ObjectAnimator
-import android.animation.ValueAnimator
+import android.graphics.drawable.AnimationDrawable
 import android.media.MediaPlayer
 import android.os.Bundle
 import android.widget.ImageView
@@ -20,23 +18,15 @@ class MainActivity : AppCompatActivity() {
         setContentView(R.layout.activity_main)
 
         playSound(R.raw.inicio)
-        animateOrb()
+        startOrbAnimation()
         setupButtons()
     }
 
-    private fun animateOrb() {
+    private fun startOrbAnimation() {
         val orb = findViewById<ImageView>(R.id.orb_view)
-        
-        val scaleX = ObjectAnimator.ofFloat(orb, "scaleX", 1f, 1.1f)
-        val scaleY = ObjectAnimator.ofFloat(orb, "scaleY", 1f, 1.1f)
-        val alpha = ObjectAnimator.ofFloat(orb, "alpha", 1f, 0.9f)
-        
-        val animatorSet = AnimatorSet()
-        animatorSet.playTogether(scaleX, scaleY, alpha)
-        animatorSet.duration = 1500
-        animatorSet.repeatMode = ValueAnimator.REVERSE
-        animatorSet.repeatCount = ValueAnimator.INFINITE
-        animatorSet.start()
+        orb.setImageResource(R.drawable.orb_animate)
+        val animation = orb.drawable as AnimationDrawable
+        animation.start()
     }
 
     private fun setupButtons() {
@@ -72,7 +62,6 @@ class MainActivity : AppCompatActivity() {
             mediaPlayer = MediaPlayer.create(this, soundResId)
             mediaPlayer?.start()
         } catch (e: Exception) {
-            e.printStackTrace()
         }
     }
 
