@@ -11,6 +11,7 @@ class MainActivity : AppCompatActivity() {
     private lateinit var sound: SoundModule
     private lateinit var toast: ToastModule
     private lateinit var anim: AnimationModule
+    private lateinit var tts: TTSModule
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -20,10 +21,12 @@ class MainActivity : AppCompatActivity() {
         sound = SoundModule(this)
         toast = ToastModule(this)
         anim = AnimationModule(findViewById(R.id.orb_view))
+        tts = TTSModule(this)
         
-        // Bienvenida
-        toast.show("Bienvenido a OASIS")
-        sound.play(R.raw.inicio)
+        // Bienvenida con voz
+        findViewById<ImageView>(R.id.orb_view).postDelayed({
+            tts.speak("Bienvenido a OASIS")
+        }, 1000)
         
         // Animar orbe
         anim.pulse()
@@ -45,6 +48,7 @@ class MainActivity : AppCompatActivity() {
         findViewById<MaterialButton>(id).setOnClickListener {
             sound.play(R.raw.touch)
             toast.show(text)
+            tts.speak(text)  // ✅ Habla el nombre del botón
             action()
         }
     }
@@ -54,5 +58,9 @@ class MainActivity : AppCompatActivity() {
     private fun openContacts() { try { startActivity(Intent(android.provider.ContactsContract.Contacts.CONTENT_URI).apply { action = Intent.ACTION_VIEW }) } catch(_: Exception) {} }
     private fun openLauncher() { try { startActivity(Intent(Intent.ACTION_MAIN).apply { addCategory(Intent.CATEGORY_LAUNCHER) }) } catch(_: Exception) {} }
     
-    override fun onDestroy() { super.onDestroy(); sound.release() }
+    override fun onDestroy() { 
+        super.onDestroy()
+        sound.release()
+        tts.shutdown()  // ✅ Liberar TTS
+    }
 }
