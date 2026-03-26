@@ -24,11 +24,12 @@ class MainActivity : AppCompatActivity() {
         anim = AnimationModule(findViewById(R.id.orb_view))
         tts = TTSModule(this)
         
+        stt = STTModule(this)
+
         // Setup comandos de voz
         stt.setOnCommandListener { command ->
             runOnUiThread { processCommand(command) }
         }
-        stt = STTModule(this)
         
         // Sonido de inicio
         sound.play(R.raw.inicio)
