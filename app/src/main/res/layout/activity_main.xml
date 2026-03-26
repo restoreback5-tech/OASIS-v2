@@ -1,10 +1,12 @@
 <?xml version="1.0" encoding="utf-8"?>
-<androidx.constraintlayout.widget.ConstraintLayout 
-    xmlns:android="http://schemas.android.com/apk/res/android"
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:app="http://schemas.android.com/apk/res-auto"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
-    android:background="@drawable/background_gradient">
+    android:orientation="vertical"
+    android:background="@drawable/background_main"
+    android:padding="16dp"
+    android:gravity="center_horizontal">
 
     <!-- Reloj -->
     <TextView
@@ -13,99 +15,119 @@
         android:layout_height="wrap_content"
         android:text="9:41"
         android:textSize="48sp"
-        android:textColor="@android:color/white"
-        android:textStyle="bold"
-        app:layout_constraintTop_toTopOf="parent"
-        app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintEnd_toEndOf="parent"
+        android:textColor="#FFFFFF"
         android:layout_marginTop="32dp" />
 
     <!-- Orbe central -->
     <ImageView
         android:id="@+id/orb_view"
-        android:layout_width="180dp"
-        android:layout_height="180dp"
+        android:layout_width="150dp"
+        android:layout_height="150dp"
         android:src="@drawable/orb_center"
         android:layout_marginTop="32dp"
-        app:layout_constraintTop_toBottomOf="@id/clock_text"
-        app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintEnd_toEndOf="parent" />
+        android:layout_marginBottom="16dp" />
 
-    <!-- Texto de saludo -->
+    <!-- Texto de saludo/debug -->
     <TextView
         android:id="@+id/greeting_text"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
-        android:text="Hola, ¿en qué puedo ayudarte?"
-        android:textSize="18sp"
-        android:textColor="@android:color/white"
-        android:layout_marginTop="24dp"
-        app:layout_constraintTop_toBottomOf="@id/orb_view"
-        app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintEnd_toEndOf="parent" />
+        android:text="OASIS"
+        android:textSize="20sp"
+        android:textColor="#FFFFFF"
+        android:layout_marginBottom="32dp" />
 
-    <!-- Botones -->
-    <com.google.android.material.button.MaterialButton
-        android:id="@+id/btn_call"        android:layout_width="0dp"
-        android:layout_height="80dp"
-        android:text="Llamar"
-        android:textSize="16sp"
-        app:icon="@drawable/ic_phone"
-        app:iconGravity="textTop"
-        app:iconSize="32dp"
-        android:layout_margin="12dp"
-        app:cornerRadius="40dp"
-        app:backgroundTint="@color/btn_call"
-        app:layout_constraintTop_toBottomOf="@id/greeting_text"
-        app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintEnd_toStartOf="@id/btn_message"
-        app:layout_constraintHorizontal_chainStyle="spread" />
+    <!-- Debug text -->
+    <TextView
+        android:id="@+id/debug_text"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:text="🔍 Debug"
+        android:textColor="#00FF00"
+        android:textSize="14sp"
+        android:padding="8dp"
+        android:background="#1A1A1A"
+        android:visibility="gone"
+        android:layout_marginBottom="16dp"
+        android:gravity="center" />
 
-    <com.google.android.material.button.MaterialButton
-        android:id="@+id/btn_message"
-        android:layout_width="0dp"
-        android:layout_height="80dp"
-        android:text="Enviar mensaje"
-        android:textSize="16sp"
-        app:icon="@drawable/ic_message"
-        app:iconGravity="textTop"
-        app:iconSize="32dp"
-        android:layout_margin="12dp"
-        app:cornerRadius="40dp"
-        app:backgroundTint="@color/btn_message"
-        app:layout_constraintTop_toBottomOf="@id/greeting_text"
-        app:layout_constraintStart_toEndOf="@id/btn_call"
-        app:layout_constraintEnd_toEndOf="parent" />
+    <!-- Fila 1: Llamar y Mensaje -->
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:orientation="horizontal"
+        android:layout_marginBottom="16dp">
 
-    <com.google.android.material.button.MaterialButton
-        android:id="@+id/btn_contacts"
-        android:layout_width="0dp"
-        android:layout_height="80dp"
-        android:text="Contactos"
-        android:textSize="16sp"
-        app:icon="@drawable/ic_contacts"
-        app:iconGravity="textTop"
-        app:iconSize="32dp"
-        android:layout_margin="12dp"
-        app:cornerRadius="40dp"
-        app:backgroundTint="@color/btn_contacts"
-        app:layout_constraintTop_toBottomOf="@id/btn_call"
-        app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintEnd_toStartOf="@id/btn_apps" />
+        <com.google.android.material.button.MaterialButton
+            android:id="@+id/btn_call"
+            android:layout_width="0dp"
+            android:layout_height="70dp"
+            android:layout_weight="1"
+            android:background="@drawable/btn_call_gradient"
+            android:text="Llamar"
+            android:textSize="16sp"
+            android:textColor="#FFFFFF"
+            app:icon="@drawable/ic_phone"
+            app:iconGravity="textStart"
+            app:iconTint="#FFFFFF"
+            android:layout_marginEnd="8dp"
+            android:elevation="8dp"
+            android:stateListAnimator="@null" />
 
-    <com.google.android.material.button.MaterialButton
-        android:id="@+id/btn_apps"
-        android:layout_width="0dp"        android:layout_height="80dp"
-        android:text="apps"
-        android:textSize="16sp"
-        app:icon="@drawable/ic_apps"
-        app:iconGravity="textTop"
-        app:iconSize="32dp"
-        android:layout_margin="12dp"
-        app:cornerRadius="40dp"
-        app:backgroundTint="@color/btn_apps"
-        app:layout_constraintTop_toBottomOf="@id/btn_message"
-        app:layout_constraintStart_toEndOf="@id/btn_contacts"
-        app:layout_constraintEnd_toEndOf="parent" />
+        <com.google.android.material.button.MaterialButton
+            android:id="@+id/btn_message"
+            android:layout_width="0dp"
+            android:layout_height="70dp"
+            android:layout_weight="1"
+            android:background="@drawable/btn_message_gradient"
+            android:text="Enviar mensaje"
+            android:textSize="16sp"
+            android:textColor="#FFFFFF"
+            app:icon="@drawable/ic_message"
+            app:iconGravity="textStart"
+            app:iconTint="#FFFFFF"
+            android:layout_marginStart="8dp"
+            android:elevation="8dp"
+            android:stateListAnimator="@null" />
+    </LinearLayout>
 
-</androidx.constraintlayout.widget.ConstraintLayout>
+    <!-- Fila 2: Contactos y Apps -->
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:orientation="horizontal">
+
+        <com.google.android.material.button.MaterialButton
+            android:id="@+id/btn_contacts"
+            android:layout_width="0dp"
+            android:layout_height="70dp"
+            android:layout_weight="1"
+            android:background="@drawable/btn_contacts_gradient"
+            android:text="Contactos"
+            android:textSize="16sp"
+            android:textColor="#FFFFFF"
+            app:icon="@drawable/ic_contacts"
+            app:iconGravity="textStart"
+            app:iconTint="#FFFFFF"
+            android:layout_marginEnd="8dp"
+            android:elevation="8dp"
+            android:stateListAnimator="@null" />
+
+        <com.google.android.material.button.MaterialButton
+            android:id="@+id/btn_apps"
+            android:layout_width="0dp"
+            android:layout_height="70dp"
+            android:layout_weight="1"
+            android:background="@drawable/btn_apps_gradient"
+            android:text="Apps"
+            android:textSize="16sp"
+            android:textColor="#FFFFFF"
+            app:icon="@drawable/ic_apps"
+            app:iconGravity="textStart"
+            app:iconTint="#FFFFFF"
+            android:layout_marginStart="8dp"
+            android:elevation="8dp"
+            android:stateListAnimator="@null" />
+    </LinearLayout>
+
+</LinearLayout>
