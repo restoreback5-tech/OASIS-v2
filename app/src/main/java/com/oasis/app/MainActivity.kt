@@ -12,6 +12,7 @@ class MainActivity : AppCompatActivity() {
     private lateinit var toast: ToastModule
     private lateinit var anim: AnimationModule
     private lateinit var tts: TTSModule
+    private lateinit var stt: STTModule
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -22,6 +23,15 @@ class MainActivity : AppCompatActivity() {
         toast = ToastModule(this)
         anim = AnimationModule(findViewById(R.id.orb_view))
         tts = TTSModule(this)
+        
+        // Setup comandos de voz
+        stt.setOnCommandListener { command ->
+            runOnUiThread { processCommand(command) }
+        }
+        stt = STTModule(this)
+        
+        // Sonido de inicio
+        sound.play(R.raw.inicio)
         
         // Bienvenida con voz
         findViewById<ImageView>(R.id.orb_view).postDelayed({
@@ -34,7 +44,7 @@ class MainActivity : AppCompatActivity() {
         // Orbe click
         findViewById<ImageView>(R.id.orb_view).setOnClickListener {
             sound.play(R.raw.touch)
-            toast.show("Toca un botón")
+            toast.show("Escuchando..."); stt.startListening()
         }
         
         // Botones
@@ -77,6 +87,18 @@ class MainActivity : AppCompatActivity() {
         } catch(_: Exception) {}
     }
     
+    private fun processCommand(cmd: String) {
+        toast.show("Comando: $cmd")
+        when {
+            cmd.contains("llamar") -> openDialer()
+            cmd.contains("mensaje") -> openSms()
+            cmd.contains("contacto") -> openContacts()
+            cmd.contains("app") -> openLauncher()
+            cmd.contains("hola") -> tts.speak("Hola, soy OASIS")
+            else -> tts.speak("No entendí")
+        }
+    }
+
     private fun openLauncher() {
         try {
             val intent = Intent(Intent.ACTION_MAIN)
@@ -87,6 +109,7 @@ class MainActivity : AppCompatActivity() {
     override fun onDestroy() { 
         super.onDestroy()
         sound.release()
-        tts.shutdown()  // ✅ Liberar TTS
+        tts.shutdown()
+        stt.destroy()  // ✅ Liberar TTS
     }
 }
