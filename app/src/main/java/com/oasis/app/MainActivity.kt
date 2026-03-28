@@ -5,6 +5,11 @@ import android.os.Bundle
 import android.widget.ImageView
 import androidx.appcompat.app.AppCompatActivity
 import com.google.android.material.button.MaterialButton
+import android.os.Handler
+import android.os.Looper
+import android.widget.TextView
+import java.text.SimpleDateFormat
+import java.util.Locale
 
 class MainActivity : AppCompatActivity() {
     
@@ -40,8 +45,19 @@ class MainActivity : AppCompatActivity() {
         }, 1000)
         
         // Animar orbe
-        anim.pulse()
+        anim.startRippleAnimation()
         
+       // Reloj en tiempo real
+   val clockHandler = Handler(Looper.getMainLooper())
+   val clockRunnable = object : Runnable {
+       override fun run() {
+           val sdf = SimpleDateFormat("HH:mm", Locale.getDefault())
+           findViewById<TextView>(R.id.clock_text).text = sdf.format(System.currentTimeMillis())
+           clockHandler.postDelayed(this, 1000)
+       }
+   }
+   clockHandler.post(clockRunnable)
+
         // Orbe click
         findViewById<ImageView>(R.id.orb_view).setOnClickListener {
             sound.play(R.raw.touch)

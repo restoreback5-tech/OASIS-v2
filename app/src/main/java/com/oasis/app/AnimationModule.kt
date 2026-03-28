@@ -1,18 +1,21 @@
 package com.oasis.app
 
+import android.view.animation.AnimationUtils
 import android.widget.ImageView
 
 class AnimationModule(private val view: ImageView) {
     
-    fun pulse() {
+    fun startRippleAnimation() {
         if (!Config.ENABLE_ANIMATIONS || Config.SAFE_MODE) return
         try {
-            // Animación simple SIN repeatMode (compatible con minSdk 24)
-            view.animate()
-                .scaleX(1.05f)
-                .scaleY(1.05f)
-                .setDuration(1000)
-                .start()
-        } catch (e: Exception) { Config.SAFE_MODE = true }
+            val rippleAnim = AnimationUtils.loadAnimation(view.context, R.anim.orb_ripple)
+            view.startAnimation(rippleAnim)
+        } catch (e: Exception) { 
+            Config.SAFE_MODE = true 
+        }
+    }
+    
+    fun stopAnimation() {
+        try { view.clearAnimation() } catch(_: Exception) {}
     }
 }
