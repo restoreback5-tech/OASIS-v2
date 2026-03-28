@@ -18,6 +18,20 @@
         android:textColor="#FFFFFF"
         android:layout_marginTop="32dp" />
 
+   <!-- Icono de ajustes (engrane) -->
+   <ImageView
+    android:id="@+id/btn_settings"
+    android:layout_width="48dp"
+    android:layout_height="48dp"
+    android:src="@android:drawable/ic_menu_preferences"
+    android:contentDescription="Ajustes"
+    android:layout_alignParentEnd="true"
+    android:layout_marginTop="32dp"
+    android:layout_marginEnd="16dp"
+    android:padding="8dp"
+    android:background="?attr/selectableItemBackgroundBorderless"
+    android:tint="#FFFFFF" />
+
     <!-- Orbe central -->
     <ImageView
         android:id="@+id/orb_view"

@@ -10,6 +10,7 @@ import android.os.Looper
 import android.widget.TextView
 import java.text.SimpleDateFormat
 import java.util.Locale
+import android.content.Intent
 
 class MainActivity : AppCompatActivity() {
     
@@ -47,6 +48,14 @@ class MainActivity : AppCompatActivity() {
         // Animar orbe
         anim.startRippleAnimation()
         
+       // Icono de ajustes
+findViewById<ImageView>(R.id.btn_settings).setOnClickListener {
+    sound.play(R.raw.touch)
+    tts.speak("Ajustes")
+    startActivity(Intent(this, SettingsActivity::class.java))
+}
+
+
        // Reloj en tiempo real
    val clockHandler = Handler(Looper.getMainLooper())
    val clockRunnable = object : Runnable {
