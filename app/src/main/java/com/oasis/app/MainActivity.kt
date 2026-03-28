@@ -10,7 +10,6 @@ import android.os.Looper
 import android.widget.TextView
 import java.text.SimpleDateFormat
 import java.util.Locale
-import android.content.Intent
 
 class MainActivity : AppCompatActivity() {
     
