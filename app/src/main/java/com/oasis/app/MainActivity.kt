@@ -68,7 +68,7 @@ findViewById<ImageView>(R.id.btn_settings).setOnClickListener {
         SimpleDateFormat("hh:mm a", Locale.getDefault())
     }
     
-    findViewById<TextView>(R.id.clock_text).text = format.format(System.currentTimeMillis)
+    findViewById<TextView>(R.id.clock_text).text = format.format(System.currentTimeMillis())
     clockHandler.postDelayed(this, 1000)
 
        }
