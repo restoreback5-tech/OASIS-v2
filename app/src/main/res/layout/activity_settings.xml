@@ -94,7 +94,7 @@
         android:fontFamily="@font/googlesans_medium" />
 
     <androidx.appcompat.widget.SwitchCompat
-    android:id="@+id/btn_clock_format"
+    android:id="@+id/btn_tts_speed"
     android:layout_width="wrap_content"
     android:layout_height="wrap_content"
     android:checked="true"
@@ -123,7 +123,7 @@
         android:fontFamily="@font/googlesans_medium" />
 
     <androidx.appcompat.widget.SwitchCompat
-    android:id="@+id/btn_clock_format"
+    android:id="@+id/btn_sounds"
     android:layout_width="wrap_content"
     android:layout_height="wrap_content"
     android:checked="true"
@@ -152,7 +152,7 @@
         android:fontFamily="@font/googlesans_medium" />
 
     <androidx.appcompat.widget.SwitchCompat
-    android:id="@+id/btn_clock_format"
+    android:id="@+id/btn_animations"
     android:layout_width="wrap_content"
     android:layout_height="wrap_content"
     android:checked="true"
