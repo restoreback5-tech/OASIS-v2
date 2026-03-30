@@ -1,19 +1,19 @@
 package com.oasis.app
 
-import android.Manifest
 import android.content.Intent
-import android.content.SharedPreferences
-import android.content.pm.PackageManager
 import android.os.Bundle
+import android.widget.ImageView
+import androidx.appcompat.app.AppCompatActivity
+import com.google.android.material.button.MaterialButton
 import android.os.Handler
 import android.os.Looper
-import android.view.View
-import android.widget.ImageView
+import android.content.SharedPreferences
 import android.widget.TextView
-import androidx.appcompat.app.AppCompatActivity
-import androidx.core.app.ActivityCompat
+import android.view.View
 import androidx.core.content.ContextCompat
-import com.google.android.material.button.MaterialButton
+import android.Manifest
+import android.content.pm.PackageManager
+import androidx.core.app.ActivityCompat
 import java.text.SimpleDateFormat
 import java.util.Locale
 
@@ -30,54 +30,89 @@ class MainActivity : AppCompatActivity() {
         super.onCreate(savedInstanceState)
         setContentView(R.layout.activity_main)
 
+        // Inicializar módulos
         sound = SoundModule(this)
         toast = ToastModule(this)
         anim = AnimationModule(findViewById(R.id.orb_view))
         tts = TTSModule(this)
+
         stt = STTModule(this)
         prefs = getSharedPreferences("oasis_settings", MODE_PRIVATE)
-
         applyTheme()
         checkMicPermission()
 
+        // Setup comandos de voz
         stt.setOnCommandListener { command ->
             runOnUiThread { processCommand(command) }
         }
 
+        // Sonido de inicio
         sound.play(R.raw.inicio)
 
-        findViewById<ImageView>(R.id.orb_view).postDelayed({            tts.speak("Bienvenido a OASIS")
+        // Bienvenida con voz
+        findViewById<ImageView>(R.id.orb_view).postDelayed({
+            tts.speak("Bienvenido a OASIS")
         }, 1000)
 
+        // Animar orbe
         anim.startRippleAnimation()
 
-        findViewById<ImageView>(R.id.btn_settings).setOnClickListener {
-            sound.play(R.raw.touch)
-            tts.speak("Ajustes")
-            startActivity(Intent(this, SettingsActivity::class.java))
-        }
+       // Icono de ajustes
+findViewById<ImageView>(R.id.btn_settings).setOnClickListener {
+    sound.play(R.raw.touch)
+    tts.speak("Ajustes")
+    startActivity(Intent(this, SettingsActivity::class.java))
+}
 
-        val clockHandler = Handler(Looper.getMainLooper())
-        val clockRunnable = object : Runnable {
-            override fun run() {
-                val is24Hour = prefs.getBoolean("clock_24h", true)
-                val format = if (is24Hour) {
-                    SimpleDateFormat("HH:mm", Locale.getDefault())
-                } else {
-                    SimpleDateFormat("hh:mm a", Locale.getDefault())
-                }
-                findViewById<TextView>(R.id.clock_text).text = format.format(System.currentTimeMillis())
-                clockHandler.postDelayed(this, 1000)
-            }
-        }
-        clockHandler.post(clockRunnable)
+    // === Aplicar Tema Día/Noche ===
+    private fun applyTheme() {
+        checkMicPermission()
+        val isDayMode = prefs.getBoolean("day_mode", true)
+        val rootView = findViewById<View>(android.R.id.content)
+        val clockText = findViewById<TextView>(R.id.clock_text)
+        val statusText = findViewById<TextView>(R.id.greeting_text)
 
+        if (isDayMode) {
+            // Modo Día: Degradado turquesa
+            rootView.setBackgroundResource(R.drawable.bg_gradient_day)
+            clockText.setTextColor(ContextCompat.getColor(this, R.color.oasis_text))
+            statusText.setTextColor(ContextCompat.getColor(this, R.color.oasis_text))
+        } else {
+            // Modo Noche: AMOLED negro
+            rootView.setBackgroundResource(R.color.night_background)
+            clockText.setTextColor(ContextCompat.getColor(this, R.color.night_text))
+            statusText.setTextColor(ContextCompat.getColor(this, R.color.night_text))
+        }
+    }
+
+
+       // Reloj en tiempo real
+   val clockHandler = Handler(Looper.getMainLooper())
+   val clockRunnable = object : Runnable {
+       override fun run() {
+    val prefs = getSharedPreferences("oasis_settings", MODE_PRIVATE)
+    val is24Hour = prefs.getBoolean("clock_24h", true)
+
+    val format = if (is24Hour) {
+        SimpleDateFormat("HH:mm", Locale.getDefault())
+    } else {
+        SimpleDateFormat("hh:mm a", Locale.getDefault())
+    }
+
+    findViewById<TextView>(R.id.clock_text).text = format.format(System.currentTimeMillis())
+    clockHandler.postDelayed(this, 1000)
+
+       }
+   }
+   clockHandler.post(clockRunnable)
+
+        // Orbe click
         findViewById<ImageView>(R.id.orb_view).setOnClickListener {
             sound.play(R.raw.touch)
-            toast.show("Escuchando...")
-            stt.startListening()
+            toast.show("Escuchando..."); stt.startListening()
         }
 
+        // Botones
         setupBtn(R.id.btn_call, "Llamar") { openDialer() }
         setupBtn(R.id.btn_message, "Enviar mensaje") { openSms() }
         setupBtn(R.id.btn_contacts, "Contactos") { openContacts() }
@@ -88,32 +123,35 @@ class MainActivity : AppCompatActivity() {
         findViewById<MaterialButton>(id).setOnClickListener {
             sound.play(R.raw.touch)
             toast.show(text)
-            tts.speak(text)
+            tts.speak(text)  // ✅ Habla el nombre del botón
             action()
         }
     }
 
     private fun openDialer() {
         try {
-            val intent = Intent(Intent.ACTION_DIAL)            intent.data = android.net.Uri.parse("tel:")
+            val intent = Intent(Intent.ACTION_DIAL)
+            intent.data = android.net.Uri.parse("tel:")
             startActivity(intent)
         } catch(_: Exception) {}
     }
 
     private fun openSms() {
-        try {
-            val whatsappIntent = packageManager.getLaunchIntentForPackage("com.whatsapp")
-            if (whatsappIntent != null) {
-                startActivity(whatsappIntent)
-            } else {
-                val intent = Intent(Intent.ACTION_VIEW)
-                intent.type = "vnd.android-dir/mms-sms"
-                startActivity(intent)
-            }
-        } catch(_: Exception) {
-            toast.show("No hay app de mensajes")
+    try {
+        // Intentar abrir WhatsApp primero
+        val whatsappIntent = packageManager.getLaunchIntentForPackage("com.whatsapp")
+        if (whatsappIntent != null) {
+            startActivity(whatsappIntent)
+        } else {
+            // Si no hay WhatsApp, abrir SMS normal
+            val intent = Intent(Intent.ACTION_VIEW)
+            intent.type = "vnd.android-dir/mms-sms"
+            startActivity(intent)
         }
+    } catch(_: Exception) {
+        toast.show("No hay app de mensajes")
     }
+}
 
     private fun openContacts() {
         try {
@@ -142,23 +180,14 @@ class MainActivity : AppCompatActivity() {
             startActivity(intent)
         } catch(_: Exception) {}
     }
-
-    private fun applyTheme() {
-        val isDayMode = prefs.getBoolean("day_mode", true)        val rootView = findViewById<View>(android.R.id.content)
-        val clockText = findViewById<TextView>(R.id.clock_text)
-        val statusText = findViewById<TextView>(R.id.greeting_text)
-
-        if (isDayMode) {
-            rootView.setBackgroundResource(R.drawable.bg_gradient_day)
-            clockText.setTextColor(ContextCompat.getColor(this, R.color.oasis_text))
-            statusText.setTextColor(ContextCompat.getColor(this, R.color.oasis_text))
-        } else {
-            rootView.setBackgroundResource(R.color.night_background)
-            clockText.setTextColor(ContextCompat.getColor(this, R.color.night_text))
-            statusText.setTextColor(ContextCompat.getColor(this, R.color.night_text))
-        }
+    override fun onDestroy() {
+        super.onDestroy()
+        sound.release()
+        tts.shutdown()
+        stt.destroy()  // ✅ Liberar TTS
     }
 
+    // === Verificar Permiso de Micrófono ===
     private fun checkMicPermission() {
         if (ContextCompat.checkSelfPermission(this, Manifest.permission.RECORD_AUDIO)
             != PackageManager.PERMISSION_GRANTED) {
@@ -183,12 +212,5 @@ class MainActivity : AppCompatActivity() {
                 tts.speak("Necesito permiso de micrófono para escucharte")
             }
         }
-    }
-
-    override fun onDestroy() {
-        super.onDestroy()
-        sound.release()
-        tts.shutdown()
-        stt.destroy()
     }
 }
