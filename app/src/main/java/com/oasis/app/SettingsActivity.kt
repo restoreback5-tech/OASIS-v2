@@ -15,10 +15,6 @@ class SettingsActivity : AppCompatActivity() {
     private lateinit var sound: SoundModule
     private lateinit var prefs: SharedPreferences
 
-    private lateinit var btn_clock_format: SwitchCompat
-    private lateinit var btn_tts_speed: SwitchCompat
-    private lateinit var btn_sounds: SwitchCompat
-    private lateinit var btn_animations: SwitchCompat
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
