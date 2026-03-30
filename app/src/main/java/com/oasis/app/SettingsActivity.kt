@@ -7,12 +7,18 @@ import android.widget.TextView
 import android.widget.Toast
 import androidx.appcompat.app.AppCompatActivity
 import com.google.android.material.button.MaterialButton
+import androidx.appcompat.widget.SwitchCompat
 
 class SettingsActivity : AppCompatActivity() {
 
     private lateinit var tts: TTSModule
     private lateinit var sound: SoundModule
     private lateinit var prefs: SharedPreferences
+
+    private lateinit var btn_clock_format: SwitchCompat
+    private lateinit var btn_tts_speed: SwitchCompat
+    private lateinit var btn_sounds: SwitchCompat
+    private lateinit var btn_animations: SwitchCompat
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -67,14 +73,14 @@ class SettingsActivity : AppCompatActivity() {
     }
 
     private fun setupSetting(btnId: Int, label: String, value: String, ttsText: String, onClick: () -> Unit) {
-        val btn = findViewById<MaterialButton>(btnId)
-        btn.text = "$label: $value"
-        btn.setOnClickListener {
-            sound.play(R.raw.touch)
-            tts.speak(ttsText)
-            onClick()
-        }
+    val switch = findViewById<SwitchCompat>(btnId)
+    switch.isChecked = value == "24h" || value == "Rápida" || value == "Activados" || value == "Activadas"
+    switch.setOnCheckedChangeListener { _, isChecked ->
+        sound.play(R.raw.touch)
+        tts.speak(ttsText)
+        onClick()
     }
+}
 
     // === Formato de Reloj ===
     private fun getClockFormatText(): String {
@@ -84,7 +90,7 @@ class SettingsActivity : AppCompatActivity() {
     private fun toggleClockFormat() {
         val current = prefs.getBoolean("clock_24h", true)
         prefs.edit().putBoolean("clock_24h", !current).apply()
-        findViewById<MaterialButton>(R.id.btn_clock_format).text = "Formato de reloj: ${getClockFormatText()}"
+        
         tts.speak("Cambiado a " + getClockFormatText())
     }
 
@@ -104,7 +110,7 @@ class SettingsActivity : AppCompatActivity() {
             else -> 0.5f
         }
         prefs.edit().putFloat("tts_speed", newSpeed).apply()
-        findViewById<MaterialButton>(R.id.btn_tts_speed).text = "Velocidad de voz: ${getTtsSpeedText()}"
+        
         tts.speak("Velocidad " + getTtsSpeedText())
     }
 
@@ -116,7 +122,7 @@ class SettingsActivity : AppCompatActivity() {
     private fun toggleSounds() {
         val current = prefs.getBoolean("enable_sounds", true)
         prefs.edit().putBoolean("enable_sounds", !current).apply()
-        findViewById<MaterialButton>(R.id.btn_sounds).text = "Sonidos: ${getSoundsText()}"
+        
         tts.speak("Sonidos " + if (!current) "activados" else "desactivados")
     }
 
@@ -128,7 +134,7 @@ class SettingsActivity : AppCompatActivity() {
     private fun toggleAnimations() {
         val current = prefs.getBoolean("enable_animations", true)
         prefs.edit().putBoolean("enable_animations", !current).apply()
-        findViewById<MaterialButton>(R.id.btn_animations).text = "Animaciones: ${getAnimationsText()}"
+       
         tts.speak("Animaciones " + if (!current) "activadas" else "desactivadas")
     }
 
