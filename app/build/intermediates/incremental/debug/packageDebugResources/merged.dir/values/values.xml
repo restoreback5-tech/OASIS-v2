@@ -5,6 +5,15 @@
     <color name="btn_call">#2dd4bf</color>
     <color name="btn_contacts">#6d28d9</color>
     <color name="btn_message">#818cf8</color>
+    <color name="day_gradient_end">#E0F7FA</color>
+    <color name="day_gradient_start">#00BCD4</color>
+    <color name="night_background">#000000</color>
+    <color name="night_card">#1C1C1E</color>
+    <color name="night_text">#FFFFFF</color>
+    <color name="oasis_background">#F2F4F8</color>
+    <color name="oasis_blue">#007AFF</color>
+    <color name="oasis_card">#FFFFFF</color>
+    <color name="oasis_text">#1C1C1E</color>
     <color name="orb_glow">#4a90e2</color>
     <color name="white">#FFFFFF</color>
 </resources>

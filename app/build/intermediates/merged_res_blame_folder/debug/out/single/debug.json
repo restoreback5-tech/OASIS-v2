@@ -20,6 +20,10 @@
         "source": "com.oasis.app-main-33:/drawable/orb_center_small.xml"
     },
     {
+        "merged": "com.oasis.app-merged_res-31:/font_circular_stxt_med.ttf.flat",
+        "source": "com.oasis.app-main-33:/font/circular_stxt_med.ttf"
+    },
+    {
         "merged": "com.oasis.app-merged_res-31:/anim_orb_ripple.xml.flat",
         "source": "com.oasis.app-main-33:/anim/orb_ripple.xml"
     },
@@ -48,8 +52,16 @@
         "source": "com.oasis.app-main-33:/font/comfortaa_bold.ttf"
     },
     {
+        "merged": "com.oasis.app-merged_res-31:/color_switch_thumb_color.xml.flat",
+        "source": "com.oasis.app-main-33:/color/switch_thumb_color.xml"
+    },
+    {
         "merged": "com.oasis.app-merged_res-31:/drawable_ic_launcher.xml.flat",
         "source": "com.oasis.app-main-33:/drawable/ic_launcher.xml"
+    },
+    {
+        "merged": "com.oasis.app-merged_res-31:/font_sf_pro_display_medium.otf.flat",
+        "source": "com.oasis.app-main-33:/font/sf_pro_display_medium.otf"
     },
     {
         "merged": "com.oasis.app-merged_res-31:/font_googlesans_bold.ttf.flat",
@@ -88,6 +100,10 @@
         "source": "com.oasis.app-main-33:/raw/alerta.ogg"
     },
     {
+        "merged": "com.oasis.app-merged_res-31:/drawable_bg_gradient_day.xml.flat",
+        "source": "com.oasis.app-main-33:/drawable/bg_gradient_day.xml"
+    },
+    {
         "merged": "com.oasis.app-merged_res-31:/raw_error.ogg.flat",
         "source": "com.oasis.app-main-33:/raw/error.ogg"
     },
@@ -102,6 +118,10 @@
     {
         "merged": "com.oasis.app-merged_res-31:/raw_deslizar.ogg.flat",
         "source": "com.oasis.app-main-33:/raw/deslizar.ogg"
+    },
+    {
+        "merged": "com.oasis.app-merged_res-31:/color_switch_track_color.xml.flat",
+        "source": "com.oasis.app-main-33:/color/switch_track_color.xml"
     },
     {
         "merged": "com.oasis.app-merged_res-31:/drawable_btn_call_gradient.xml.flat",
@@ -134,6 +154,10 @@
     {
         "merged": "com.oasis.app-merged_res-31:/drawable_ic_contacts.xml.flat",
         "source": "com.oasis.app-main-33:/drawable/ic_contacts.xml"
+    },
+    {
+        "merged": "com.oasis.app-merged_res-31:/font_sf_pro_display_bold.otf.flat",
+        "source": "com.oasis.app-main-33:/font/sf_pro_display_bold.otf"
     },
     {
         "merged": "com.oasis.app-merged_res-31:/drawable_btn_contacts_gradient.xml.flat",

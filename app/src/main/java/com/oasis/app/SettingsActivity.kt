@@ -65,6 +65,14 @@ class SettingsActivity : AppCompatActivity() {
             "Animaciones",
             getAnimationsText(),
             "Animaciones de la app. " + getAnimationsText()
+
+        // Ajuste 5: Modo Día/Noche
+        setupSetting(
+            R.id.btn_day_night,
+            "Modo Día/Noche",
+            getDayNightModeText(),
+            "Modo de interfaz. Actual: " + getDayNightModeText()
+        ) { toggleDayNightMode() }
         ) { toggleAnimations() }
     }
 
@@ -128,10 +136,76 @@ class SettingsActivity : AppCompatActivity() {
     }
 
     private fun toggleAnimations() {
+
+    // === Modo Día/Noche ===
+    private fun getDayNightModeText(): String {
+        return if (prefs.getBoolean("day_mode", true)) "Día" else "Noche"
+    }
+
+    private fun toggleDayNightMode() {
+        val current = prefs.getBoolean("day_mode", true)
+        prefs.edit().putBoolean("day_mode", !current).apply()
+        tts.speak("Modo " + if (!current) "Día" else "Noche")
+    }
         val current = prefs.getBoolean("enable_animations", true)
+
+    // === Modo Día/Noche ===
+    private fun getDayNightModeText(): String {
+        return if (prefs.getBoolean("day_mode", true)) "Día" else "Noche"
+    }
+
+    private fun toggleDayNightMode() {
+        val current = prefs.getBoolean("day_mode", true)
+        prefs.edit().putBoolean("day_mode", !current).apply()
+        tts.speak("Modo " + if (!current) "Día" else "Noche")
+    }
         prefs.edit().putBoolean("enable_animations", !current).apply()
+
+    // === Modo Día/Noche ===
+    private fun getDayNightModeText(): String {
+        return if (prefs.getBoolean("day_mode", true)) "Día" else "Noche"
+    }
+
+    private fun toggleDayNightMode() {
+        val current = prefs.getBoolean("day_mode", true)
+        prefs.edit().putBoolean("day_mode", !current).apply()
+        tts.speak("Modo " + if (!current) "Día" else "Noche")
+    }
        
+
+    // === Modo Día/Noche ===
+    private fun getDayNightModeText(): String {
+        return if (prefs.getBoolean("day_mode", true)) "Día" else "Noche"
+    }
+
+    private fun toggleDayNightMode() {
+        val current = prefs.getBoolean("day_mode", true)
+        prefs.edit().putBoolean("day_mode", !current).apply()
+        tts.speak("Modo " + if (!current) "Día" else "Noche")
+    }
         tts.speak("Animaciones " + if (!current) "activadas" else "desactivadas")
+
+    // === Modo Día/Noche ===
+    private fun getDayNightModeText(): String {
+        return if (prefs.getBoolean("day_mode", true)) "Día" else "Noche"
+    }
+
+    private fun toggleDayNightMode() {
+        val current = prefs.getBoolean("day_mode", true)
+        prefs.edit().putBoolean("day_mode", !current).apply()
+        tts.speak("Modo " + if (!current) "Día" else "Noche")
+    }
+    }
+
+    // === Modo Día/Noche ===
+    private fun getDayNightModeText(): String {
+        return if (prefs.getBoolean("day_mode", true)) "Día" else "Noche"
+    }
+
+    private fun toggleDayNightMode() {
+        val current = prefs.getBoolean("day_mode", true)
+        prefs.edit().putBoolean("day_mode", !current).apply()
+        tts.speak("Modo " + if (!current) "Día" else "Noche")
     }
 
     override fun onDestroy() {

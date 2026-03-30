@@ -7,7 +7,10 @@ import androidx.appcompat.app.AppCompatActivity
 import com.google.android.material.button.MaterialButton
 import android.os.Handler
 import android.os.Looper
+import android.content.SharedPreferences
 import android.widget.TextView
+import android.view.View
+import androidx.core.content.ContextCompat
 import java.text.SimpleDateFormat
 import java.util.Locale
 
@@ -18,6 +21,7 @@ class MainActivity : AppCompatActivity() {
     private lateinit var anim: AnimationModule
     private lateinit var tts: TTSModule
     private lateinit var stt: STTModule
+    private lateinit var prefs: SharedPreferences
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -30,6 +34,9 @@ class MainActivity : AppCompatActivity() {
         tts = TTSModule(this)
         
         stt = STTModule(this)
+        prefs = getSharedPreferences("oasis_settings", MODE_PRIVATE)
+        applyTheme()
+        checkMicPermission()
 
         // Setup comandos de voz
         stt.setOnCommandListener { command ->
@@ -53,6 +60,27 @@ findViewById<ImageView>(R.id.btn_settings).setOnClickListener {
     tts.speak("Ajustes")
     startActivity(Intent(this, SettingsActivity::class.java))
 }
+
+    // === Aplicar Tema Día/Noche ===
+    private fun applyTheme() {
+        checkMicPermission()
+        val isDayMode = prefs.getBoolean("day_mode", true)
+        val rootView = findViewById<View>(android.R.id.content)
+        val clockText = findViewById<TextView>(R.id.tv_current_time)
+        val statusText = findViewById<TextView>(R.id.speech_bubble)
+        
+        if (isDayMode) {
+            // Modo Día: Degradado turquesa
+            rootView.setBackgroundResource(R.drawable.bg_gradient_day)
+            clockText.setTextColor(ContextCompat.getColor(this, R.color.oasis_text))
+            statusText.setTextColor(ContextCompat.getColor(this, R.color.oasis_text))
+        } else {
+            // Modo Noche: AMOLED negro
+            rootView.setBackgroundResource(R.color.night_background)
+            clockText.setTextColor(ContextCompat.getColor(this, R.color.night_text))
+            statusText.setTextColor(ContextCompat.getColor(this, R.color.night_text))
+        }
+    }
 
 
        // Reloj en tiempo real
@@ -154,5 +182,32 @@ findViewById<ImageView>(R.id.btn_settings).setOnClickListener {
         sound.release()
         tts.shutdown()
         stt.destroy()  // ✅ Liberar TTS
+    }
+
+    // === Verificar Permiso de Micrófono ===
+    private fun checkMicPermission() {
+        if (ContextCompat.checkSelfPermission(this, Manifest.permission.RECORD_AUDIO)
+            != PackageManager.PERMISSION_GRANTED) {
+            ActivityCompat.requestPermissions(
+                this,
+                arrayOf(Manifest.permission.RECORD_AUDIO),
+                100
+            )
+        }
+    }
+
+    override fun onRequestPermissionsResult(
+        requestCode: Int,
+        permissions: Array<out String>,
+        grantResults: IntArray
+    ) {
+        super.onRequestPermissionsResult(requestCode, permissions, grantResults)
+        if (requestCode == 100) {
+            if (grantResults.isNotEmpty() && grantResults[0] == PackageManager.PERMISSION_GRANTED) {
+                tts.speak("Permiso de micrófono concedido")
+            } else {
+                tts.speak("Necesito permiso de micrófono para escucharte")
+            }
+        }
     }
 }

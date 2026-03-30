@@ -5,4 +5,13 @@
     <color name="oasis_background">#F2F4F8</color>
     <color name="oasis_card">#FFFFFF</color>
     <color name="oasis_text">#1C1C1E</color>
+    
+    <!-- Modo Día: Degradado turquesa (Build #30) -->
+    <color name="day_gradient_start">#00BCD4</color>
+    <color name="day_gradient_end">#E0F7FA</color>
+    
+    <!-- Modo Noche: AMOLED -->
+    <color name="night_background">#000000</color>
+    <color name="night_text">#FFFFFF</color>
+    <color name="night_card">#1C1C1E</color>
 </resources>
