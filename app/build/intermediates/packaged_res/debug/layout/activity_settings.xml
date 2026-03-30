@@ -1,0 +1,104 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:orientation="vertical"
+    android:background="#FFFFFF"
+    android:padding="16dp">
+
+    <!-- Header con botón volver y título -->
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:orientation="horizontal"
+        android:gravity="center_vertical"
+        android:layout_marginBottom="32dp">
+
+        <!-- Botón volver -->
+        <ImageView
+            android:id="@+id/btn_back"
+            android:layout_width="48dp"
+            android:layout_height="48dp"
+            android:src="@android:drawable/ic_menu_revert"
+            android:contentDescription="Volver"
+            android:padding="8dp"
+            android:background="?attr/selectableItemBackgroundBorderless"
+            android:tint="#1C1C1E"  />
+
+        <!-- Título -->
+        <TextView
+            android:id="@+id/settings_title"
+            android:layout_width="0dp"
+            android:layout_height="wrap_content"
+            android:layout_weight="1"
+            android:text="Ajustes"
+            android:textSize="24sp"
+            android:textColor="#1C1C1E"
+            android:fontFamily="@font/googlesans_semibold"
+            android:gravity="center" />
+
+        <!-- Espacio vacío para balancear -->
+        <View
+            android:layout_width="48dp"
+            android:layout_height="48dp" />
+
+    </LinearLayout>
+
+    <!-- Ajuste 1: Formato de reloj -->
+    <com.google.android.material.button.MaterialButton
+        android:id="@+id/btn_clock_format"
+        android:layout_width="match_parent"
+        android:layout_height="70dp"
+        android:text="Formato de reloj: 24h"
+        android:textSize="16sp"
+        android:textColor="#FFFFFF"
+        android:fontFamily="@font/googlesans_medium"
+        android:background="@drawable/btn_settings_blue"
+        app:backgroundTint="@null"
+        android:layout_marginBottom="16dp"
+        android:elevation="8dp" />
+
+    <!-- Ajuste 2: Velocidad de voz -->
+    <com.google.android.material.button.MaterialButton
+        android:id="@+id/btn_tts_speed"
+        android:layout_width="match_parent"
+        android:layout_height="70dp"
+        android:text="Velocidad de voz: Normal"
+        android:textSize="16sp"
+        android:textColor="#FFFFFF"
+        android:fontFamily="@font/googlesans_medium"
+        android:background="@drawable/btn_settings_blue"
+        app:backgroundTint="@null"
+        android:layout_marginBottom="16dp"
+        android:elevation="8dp" />
+
+    <!-- Ajuste 3: Sonidos -->
+    <com.google.android.material.button.MaterialButton
+        android:id="@+id/btn_sounds"
+        android:layout_width="match_parent"
+        android:layout_height="70dp"
+        android:text="Sonidos: Activados"
+        android:textSize="16sp"
+        android:textColor="#FFFFFF"
+        android:fontFamily="@font/googlesans_medium"
+        android:background="@drawable/btn_settings_blue"
+        app:backgroundTint="@null"
+        android:layout_marginBottom="16dp"
+        android:elevation="8dp" />
+
+    <!-- Ajuste 4: Animaciones -->
+    <com.google.android.material.button.MaterialButton
+        android:id="@+id/btn_animations"
+        android:layout_width="match_parent"
+        android:layout_height="70dp"
+        android:text="Animaciones: Activadas"
+        android:textSize="16sp"
+        android:textColor="#FFFFFF"
+        android:fontFamily="@font/googlesans_medium"
+        android:background="@drawable/btn_settings_blue"
+        app:backgroundTint="@null"
+        android:layout_marginBottom="16dp"
+        android:elevation="8dp" />
+
+</LinearLayout>

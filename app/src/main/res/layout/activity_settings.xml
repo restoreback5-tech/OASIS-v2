@@ -4,7 +4,7 @@
     android:layout_width="match_parent"
     android:layout_height="match_parent"
     android:orientation="vertical"
-    android:background="#FFFFFF"
+    android:background="@color/oasis_background"
     android:padding="16dp">
 
     <!-- Header con botón volver y título -->
@@ -46,59 +46,119 @@
     </LinearLayout>
 
     <!-- Ajuste 1: Formato de reloj -->
-    <com.google.android.material.button.MaterialButton
-        android:id="@+id/btn_clock_format"
-        android:layout_width="match_parent"
-        android:layout_height="70dp"
+<LinearLayout
+    android:layout_width="match_parent"
+    android:layout_height="wrap_content"
+    android:orientation="horizontal"
+    android:background="@color/oasis_card"
+    android:padding="16dp"
+    android:layout_marginBottom="8dp"
+    android:gravity="center_vertical">
+
+    <TextView
+        android:layout_width="0dp"
+        android:layout_height="wrap_content"
+        android:layout_weight="1"
         android:text="Formato de reloj: 24h"
         android:textSize="16sp"
-        android:textColor="#FFFFFF"
-        android:fontFamily="@font/googlesans_medium"
-        android:background="@drawable/btn_settings_blue"
-        app:backgroundTint="@null"
-        android:layout_marginBottom="16dp"
-        android:elevation="8dp" />
+        android:textColor="@color/oasis_text"
+        android:fontFamily="@font/googlesans_medium" />
+
+    <androidx.appcompat.widget.SwitchCompat
+    android:id="@+id/btn_clock_format"
+    android:layout_width="wrap_content"
+    android:layout_height="wrap_content"
+    android:checked="true"
+    app:thumbTint="@color/switch_thumb_color"
+    app:trackTint="@color/switch_track_color" />
+
+</LinearLayout>
 
     <!-- Ajuste 2: Velocidad de voz -->
-    <com.google.android.material.button.MaterialButton
-        android:id="@+id/btn_tts_speed"
-        android:layout_width="match_parent"
-        android:layout_height="70dp"
+<LinearLayout
+    android:layout_width="match_parent"
+    android:layout_height="wrap_content"
+    android:orientation="horizontal"
+    android:background="@color/oasis_card"
+    android:padding="16dp"
+    android:layout_marginBottom="8dp"
+    android:gravity="center_vertical">
+
+    <TextView
+        android:layout_width="0dp"
+        android:layout_height="wrap_content"
+        android:layout_weight="1"
         android:text="Velocidad de voz: Normal"
         android:textSize="16sp"
-        android:textColor="#FFFFFF"
-        android:fontFamily="@font/googlesans_medium"
-        android:background="@drawable/btn_settings_blue"
-        app:backgroundTint="@null"
-        android:layout_marginBottom="16dp"
-        android:elevation="8dp" />
+        android:textColor="@color/oasis_text"
+        android:fontFamily="@font/googlesans_medium" />
+
+    <androidx.appcompat.widget.SwitchCompat
+    android:id="@+id/btn_clock_format"
+    android:layout_width="wrap_content"
+    android:layout_height="wrap_content"
+    android:checked="true"
+    app:thumbTint="@color/switch_thumb_color"
+    app:trackTint="@color/switch_track_color" />
+
+</LinearLayout>
 
     <!-- Ajuste 3: Sonidos -->
-    <com.google.android.material.button.MaterialButton
-        android:id="@+id/btn_sounds"
-        android:layout_width="match_parent"
-        android:layout_height="70dp"
+<LinearLayout
+    android:layout_width="match_parent"
+    android:layout_height="wrap_content"
+    android:orientation="horizontal"
+    android:background="@color/oasis_card"
+    android:padding="16dp"
+    android:layout_marginBottom="8dp"
+    android:gravity="center_vertical">
+
+    <TextView
+        android:layout_width="0dp"
+        android:layout_height="wrap_content"
+        android:layout_weight="1"
         android:text="Sonidos: Activados"
         android:textSize="16sp"
-        android:textColor="#FFFFFF"
-        android:fontFamily="@font/googlesans_medium"
-        android:background="@drawable/btn_settings_blue"
-        app:backgroundTint="@null"
-        android:layout_marginBottom="16dp"
-        android:elevation="8dp" />
+        android:textColor="@color/oasis_text"
+        android:fontFamily="@font/googlesans_medium" />
+
+    <androidx.appcompat.widget.SwitchCompat
+    android:id="@+id/btn_clock_format"
+    android:layout_width="wrap_content"
+    android:layout_height="wrap_content"
+    android:checked="true"
+    app:thumbTint="@color/switch_thumb_color"
+    app:trackTint="@color/switch_track_color" />
+
+</LinearLayout>
 
     <!-- Ajuste 4: Animaciones -->
-    <com.google.android.material.button.MaterialButton
-        android:id="@+id/btn_animations"
-        android:layout_width="match_parent"
-        android:layout_height="70dp"
+<LinearLayout
+    android:layout_width="match_parent"
+    android:layout_height="wrap_content"
+    android:orientation="horizontal"
+    android:background="@color/oasis_card"
+    android:padding="16dp"
+    android:layout_marginBottom="8dp"
+    android:gravity="center_vertical">
+
+    <TextView
+        android:layout_width="0dp"
+        android:layout_height="wrap_content"
+        android:layout_weight="1"
         android:text="Animaciones: Activadas"
         android:textSize="16sp"
-        android:textColor="#FFFFFF"
-        android:fontFamily="@font/googlesans_medium"
-        android:background="@drawable/btn_settings_blue"
-        app:backgroundTint="@null"
-        android:layout_marginBottom="16dp"
-        android:elevation="8dp" />
+        android:textColor="@color/oasis_text"
+        android:fontFamily="@font/googlesans_medium" />
+
+    <androidx.appcompat.widget.SwitchCompat
+    android:id="@+id/btn_clock_format"
+    android:layout_width="wrap_content"
+    android:layout_height="wrap_content"
+    android:checked="true"
+    app:thumbTint="@color/switch_thumb_color"
+    app:trackTint="@color/switch_track_color" />
+
+</LinearLayout>
 
 </LinearLayout>
