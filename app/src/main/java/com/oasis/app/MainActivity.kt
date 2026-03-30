@@ -59,9 +59,18 @@ findViewById<ImageView>(R.id.btn_settings).setOnClickListener {
    val clockHandler = Handler(Looper.getMainLooper())
    val clockRunnable = object : Runnable {
        override fun run() {
-           val sdf = SimpleDateFormat("HH:mm", Locale.getDefault())
-           findViewById<TextView>(R.id.clock_text).text = sdf.format(System.currentTimeMillis())
-           clockHandler.postDelayed(this, 1000)
+    val prefs = getSharedPreferences("oasis_settings", MODE_PRIVATE)
+    val is24Hour = prefs.getBoolean("clock_24h", true)
+    
+    val format = if (is24Hour) {
+        SimpleDateFormat("HH:mm", Locale.getDefault())
+    } else {
+        SimpleDateFormat("hh:mm a", Locale.getDefault())
+    }
+    
+    findViewById<TextView>(R.id.clock_text).text = format.format(System.currentTimeMillis)
+    clockHandler.postDelayed(this, 1000)
+
        }
    }
    clockHandler.post(clockRunnable)
@@ -97,12 +106,21 @@ findViewById<ImageView>(R.id.btn_settings).setOnClickListener {
     }
     
     private fun openSms() {
-        try {
+    try {
+        // Intentar abrir WhatsApp primero
+        val whatsappIntent = packageManager.getLaunchIntentForPackage("com.whatsapp")
+        if (whatsappIntent != null) {
+            startActivity(whatsappIntent)
+        } else {
+            // Si no hay WhatsApp, abrir SMS normal
             val intent = Intent(Intent.ACTION_VIEW)
             intent.type = "vnd.android-dir/mms-sms"
             startActivity(intent)
-        } catch(_: Exception) {}
+        }
+    } catch(_: Exception) {
+        toast.show("No hay app de mensajes")
     }
+}
     
     private fun openContacts() {
         try {
