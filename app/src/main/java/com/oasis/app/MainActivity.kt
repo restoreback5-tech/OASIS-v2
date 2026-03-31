@@ -159,9 +159,9 @@ class MainActivity : AppCompatActivity() {
             clockText.setTextColor(ContextCompat.getColor(this, R.color.oasis_text))
             statusText.setTextColor(ContextCompat.getColor(this, R.color.oasis_text))
         } else {
-            rootView.setBackgroundResource(R.color.night_background)
-            clockText.setTextColor(ContextCompat.getColor(this, R.color.night_text))
-            statusText.setTextColor(ContextCompat.getColor(this, R.color.night_text))
+        rootView.setBackgroundResource(R.color.night_background)
+        clockText.setTextColor(0xFFFFFFFF.toInt()) // Blanco puro #FFFFFF
+        statusText.setTextColor(0xFFFFFFFF.toInt()) // Blanco puro #FFFFFF
         }
     }
 
@@ -181,6 +181,12 @@ class MainActivity : AppCompatActivity() {
             }
         }
     }
+
+   override fun onResume() {
+        super.onResume()
+        // Re-aplicar tema por si cambió en SettingsActivity
+        applyTheme()
+    }   
 
     override fun onDestroy() {
         super.onDestroy()
