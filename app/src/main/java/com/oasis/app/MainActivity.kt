@@ -97,7 +97,8 @@ class MainActivity : AppCompatActivity() {
         try {
             val intent = Intent(Intent.ACTION_DIAL)            intent.data = android.net.Uri.parse("tel:")
             startActivity(intent)
-        } catch(_: Exception) {}
+        } catch(_: Exception) {
+        }
     }
 
     private fun openSms() {
@@ -120,7 +121,8 @@ class MainActivity : AppCompatActivity() {
             val intent = Intent(Intent.ACTION_VIEW)
             intent.data = android.provider.ContactsContract.Contacts.CONTENT_URI
             startActivity(intent)
-        } catch(_: Exception) {}
+        } catch(_: Exception) {
+        }
     }
 
     private fun processCommand(cmd: String) {
@@ -140,11 +142,12 @@ class MainActivity : AppCompatActivity() {
             val intent = Intent(Intent.ACTION_MAIN)
             intent.addCategory(Intent.CATEGORY_LAUNCHER)
             startActivity(intent)
-        } catch(_: Exception) {}
+        } catch(_: Exception) {
+        }
     }
-
     private fun applyTheme() {
-        val isDayMode = prefs.getBoolean("day_mode", true)        val rootView = findViewById<View>(android.R.id.content)
+        val isDayMode = prefs.getBoolean("day_mode", true)
+        val rootView = findViewById<View>(android.R.id.content)
         val clockText = findViewById<TextView>(R.id.clock_text)
         val statusText = findViewById<TextView>(R.id.greeting_text)
         if (isDayMode) {
