@@ -16,6 +16,7 @@ import androidx.core.content.ContextCompat
 import com.google.android.material.button.MaterialButton
 import java.text.SimpleDateFormat
 import java.util.Locale
+import android.graphics.Color
 
 class MainActivity : AppCompatActivity() {
 
@@ -149,19 +150,25 @@ class MainActivity : AppCompatActivity() {
         } catch(_: Exception) {
         }
     }
-    private fun applyTheme() {
+    
+   private fun applyTheme() {
         val isDayMode = prefs.getBoolean("day_mode", true)
+        
+        // DEBUG: Mostrar valor real
+        toast.show("DEBUG: day_mode = $isDayMode")
+        
         val rootView = findViewById<View>(android.R.id.content)
         val clockText = findViewById<TextView>(R.id.clock_text)
         val statusText = findViewById<TextView>(R.id.greeting_text)
+        
         if (isDayMode) {
             rootView.setBackgroundResource(R.drawable.bg_gradient_day)
             clockText.setTextColor(ContextCompat.getColor(this, R.color.oasis_text))
             statusText.setTextColor(ContextCompat.getColor(this, R.color.oasis_text))
         } else {
-        rootView.setBackgroundResource(R.color.night_background)
-        clockText.setTextColor(0xFFFFFFFF.toInt()) // Blanco puro #FFFFFF
-        statusText.setTextColor(0xFFFFFFFF.toInt()) // Blanco puro #FFFFFF
+            rootView.setBackgroundResource(R.color.night_background)
+            clockText.setTextColor(Color.WHITE)
+            statusText.setTextColor(Color.WHITE)
         }
     }
 
