@@ -154,19 +154,23 @@ class MainActivity : AppCompatActivity() {
    private fun applyTheme() {
         val isDayMode = prefs.getBoolean("day_mode", true)
         
-        // DEBUG: Mostrar valor real
+        // DEBUG
         toast.show("DEBUG: day_mode = $isDayMode")
         
-        val rootView = findViewById<View>(android.R.id.content)
+        // Cambiar fondo de la ventana completa
+        window.setBackgroundDrawableResource(
+            if (isDayMode) R.drawable.bg_gradient_day 
+            else R.color.night_background
+        )
+        
+        // Cambiar color del texto
         val clockText = findViewById<TextView>(R.id.clock_text)
         val statusText = findViewById<TextView>(R.id.greeting_text)
         
         if (isDayMode) {
-            rootView.setBackgroundResource(R.drawable.bg_gradient_day)
             clockText.setTextColor(ContextCompat.getColor(this, R.color.oasis_text))
             statusText.setTextColor(ContextCompat.getColor(this, R.color.oasis_text))
         } else {
-            rootView.setBackgroundResource(R.color.night_background)
             clockText.setTextColor(Color.WHITE)
             statusText.setTextColor(Color.WHITE)
         }
