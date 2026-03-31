@@ -96,7 +96,11 @@ class MainActivity : AppCompatActivity() {
     private fun openDialer() {
         try {
             val intent = Intent(Intent.ACTION_DIAL)
-            intent.data = android.net.Uri.parse("tel:")            startActivity(intent)
+            intent.data = android.net.Uri.parse("tel:")            
+
+
+
+    startActivity(intent)
         } catch(_: Exception) {
         }
     }
