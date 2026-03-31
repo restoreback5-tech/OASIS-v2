@@ -46,8 +46,8 @@ class MainActivity : AppCompatActivity() {
 
         sound.play(R.raw.inicio)
 
-        findViewById<ImageView>(R.id.orb_view).postDelayed({            tts.speak("Bienvenido a OASIS")
-        }, 1000)
+        findViewById<ImageView>(R.id.orb_view).postDelayed({
+            tts.speak("Bienvenido a OASIS")        }, 1000)
 
         anim.startRippleAnimation()
 
@@ -95,8 +95,8 @@ class MainActivity : AppCompatActivity() {
 
     private fun openDialer() {
         try {
-            val intent = Intent(Intent.ACTION_DIAL)            intent.data = android.net.Uri.parse("tel:")
-            startActivity(intent)
+            val intent = Intent(Intent.ACTION_DIAL)
+            intent.data = android.net.Uri.parse("tel:")            startActivity(intent)
         } catch(_: Exception) {
         }
     }
