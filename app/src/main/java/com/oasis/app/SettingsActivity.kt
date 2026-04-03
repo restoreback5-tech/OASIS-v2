@@ -80,6 +80,7 @@ class SettingsActivity : AppCompatActivity() {
                 // Botón SÍ (✓)
                 dialogView.findViewById<Button>(R.id.btn_yes).setOnClickListener {
                     dialog.dismiss()
+                    sound.play(R.raw.confirmar)
                     state = !state
                     prefs.edit().putBoolean(prefKey, state).apply()
                     updateLedColor(ledId, state)
@@ -142,7 +143,6 @@ class SettingsActivity : AppCompatActivity() {
             override fun onProgressChanged(seekBar: SeekBar?, progress: Int, fromUser: Boolean) {
                 if (fromUser) {
                     updateSpeedLabel(progress, speedLabel)
-                    prefs.edit().putInt("tts_speed", progress).apply()
                     // Actualizar velocidad real del TTS (ajusta el factor según tu implementación)
                     tts.setSpeed(0.5f + (progress / 100f)) // Rango: 0.5x a 1.5x
                 }            }
