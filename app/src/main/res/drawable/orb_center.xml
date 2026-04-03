@@ -1,34 +1,39 @@
 <?xml version="1.0" encoding="utf-8"?>
 <layer-list xmlns:android="http://schemas.android.com/apk/res/android">
-    <!-- Glow exterior -->
+    <!-- 1. Fondo profundo (Espacio neuronal oscuro para contraste) -->
     <item>
         <shape android:shape="oval">
+            <solid android:color="#050510" />
+        </shape>
+    </item>
+
+    <!-- 2. Aura azul tenue (Red neuronal) -->
+    <item android:bottom="15dp" android:top="15dp" android:left="15dp" android:right="15dp">
+        <shape android:shape="oval">
             <gradient
-                android:angle="0"
-                android:startColor="#400066ff"
-                android:endColor="#000066ff"
                 android:type="radial"
-                android:gradientRadius="120dp" />
+                android:centerColor="#1a237e"
+                android:endColor="#00000000"
+                android:gradientRadius="60dp" />
         </shape>
     </item>
-    <!-- Círculo blanco central -->
-    <item
-        android:left="20dp"
-        android:top="20dp"
-        android:right="20dp"
-        android:bottom="20dp">
+
+    <!-- 3. Anillo de datos (Tecnología Cyan) -->
+    <item android:bottom="25dp" android:top="25dp" android:left="25dp" android:right="25dp">
         <shape android:shape="oval">
-            <solid android:color="#ffffff" />
+            <stroke android:width="3dp" android:color="#00e5ff" />
+            <solid android:color="@android:color/transparent" />
         </shape>
     </item>
-    <!-- Estrella central -->
-    <item
-        android:left="70dp"
-        android:top="70dp"
-        android:right="70dp"
-        android:bottom="70dp">
+
+    <!-- 4. Núcleo de IA (Pensamiento) -->
+    <item android:bottom="45dp" android:top="45dp" android:left="45dp" android:right="45dp">
         <shape android:shape="oval">
-            <solid android:color="#4a90e2" />
+            <gradient
+                android:type="radial"
+                android:centerColor="#ffffff"
+                android:endColor="#00e5ff"
+                android:gradientRadius="30dp" />
         </shape>
     </item>
 </layer-list>
