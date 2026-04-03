@@ -185,7 +185,43 @@
         </LinearLayout>
         <View android:layout_width="match_parent" android:layout_height="1dp" android:background="#E5E5EA"/>
 
-        <!-- 5. Velocidad de voz (SeekBar al final) -->
+      <!-- 5. Asistente flotante (LED Toggle) -->
+        <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:orientation="horizontal"
+            android:gravity="center_vertical"
+            android:paddingVertical="12dp">
+
+            <FrameLayout
+                android:layout_width="48dp"
+                android:layout_height="48dp"
+                android:clickable="true"
+                android:focusable="true"
+                android:background="?attr/selectableItemBackgroundBorderless">
+
+                <ImageView
+                    android:id="@+id/led_overlay"
+                    android:layout_width="20dp"
+                    android:layout_height="20dp"
+                    android:layout_gravity="center"
+                    android:src="@drawable/led_indicator"
+                    android:contentDescription="Indicador asistente flotante"
+                    android:tint="#39FF14" />
+            </FrameLayout>
+
+            <TextView
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_marginStart="8dp"
+                android:text="Asistente flotante: Desactivado"
+                android:textSize="16sp"
+                android:textColor="#1C1C1E"
+                android:fontFamily="@font/googlesans_medium" />
+        </LinearLayout>
+        <View android:layout_width="match_parent" android:layout_height="1dp" android:background="#E5E5EA"/>
+
+        <!-- 6. Velocidad de voz (SeekBar al final) -->
         <LinearLayout
             android:layout_width="match_parent"
             android:layout_height="wrap_content"

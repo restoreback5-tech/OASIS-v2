@@ -125,6 +125,23 @@ class SettingsActivity : AppCompatActivity() {
             }
         }
 
+       // 5. Asistente flotante
+        setupLed(R.id.led_overlay, "overlay_enabled", false) { newState ->
+            if (newState) {
+                if (android.provider.Settings.canDrawOverlays(this)) {
+                    startService(android.content.Intent(this, OverlayService::class.java))
+                    tts.speak("Asistente flotante activado")
+                } else {
+                    val intent = android.content.Intent(this, OverlayPermissionActivity::class.java)
+                    startActivity(intent)
+                    tts.speak("Primero concede el permiso de superposición")
+                }
+            } else {
+                stopService(android.content.Intent(this, OverlayService::class.java))
+                tts.speak("Asistente flotante desactivado")
+            }
+        }
+
         // ==========================================
         // CONFIGURAR SEEK BAR: Velocidad de voz (AL FINAL)
         // ==========================================
