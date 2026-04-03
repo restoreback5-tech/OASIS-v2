@@ -79,7 +79,7 @@ class SettingsActivity : AppCompatActivity() {
             }
         }
 
-        // --- INICIALIZAR LOS 5 LEDs ---
+        // --- INICIALIZAR LOS 5 LEDs BINARIOS ---
         setupLed(R.id.led_clock_format, "clock_24h", true)
         setupLed(R.id.led_tts_speed, "tts_speed_normal", true)
         setupLed(R.id.led_sounds, "sounds_enabled", true)
