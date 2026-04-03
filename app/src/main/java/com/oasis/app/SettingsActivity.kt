@@ -1,7 +1,8 @@
 package com.oasis.app
 
 import android.content.SharedPreferences
-import android.graphics.ColorDrawable
+import android.graphics.Color
+import android.graphics.drawable.ColorDrawable
 import android.os.Bundle
 import android.widget.Button
 import android.widget.ImageView
