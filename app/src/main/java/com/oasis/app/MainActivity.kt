@@ -33,7 +33,6 @@ class MainActivity : AppCompatActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         setContentView(R.layout.activity_main)
-        startActivity(android.content.Intent(this, TestOrbActivity::class.java))
         // Animación neuronal del orbe
         val orb = findViewById<ImageView>(R.id.orb_view)
         val neuralAnim = android.view.animation.AnimationUtils.loadAnimation(this, R.anim.orb_neural_pulse)
