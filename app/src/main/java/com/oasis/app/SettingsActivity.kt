@@ -47,12 +47,12 @@ class SettingsActivity : AppCompatActivity() {
             updateLedColor(ledId, state)
 
             led.setOnClickListener {
-                // Inflar diálogo binario                val dialogView = layoutInflater.inflate(R.layout.dialog_binary_confirm, null)
-                val dialog = android.app.Dialog(this).apply {
-                    setContentView(dialogView)
-                    // Fondo transparente para que el borde redondeado del XML se vea bien
-                    window?.setBackgroundDrawable(ColorDrawable(android.graphics.Color.TRANSPARENT))
-                }
+                // Inflar diálogo binario
+                val dialogView = layoutInflater.inflate(R.layout.dialog_binary_confirm, null)
+                val dialog = android.app.Dialog(this)
+                dialog.setContentView(dialogView)
+                // Fondo transparente para que el borde redondeado del XML se vea bien
+                dialog.window?.setBackgroundDrawable(ColorDrawable(android.graphics.Color.TRANSPARENT))
 
                 // Configurar textos y botones
                 dialogView.findViewById<TextView>(R.id.dialog_message).text = "¿Activar función?"
@@ -63,10 +63,6 @@ class SettingsActivity : AppCompatActivity() {
                     state = !state // Invertir estado
                     prefs.edit().putBoolean(prefKey, state).apply()
                     updateLedColor(ledId, state)
-                    // Si es el reloj, avisar que se actualizó (opcional)
-                    if(prefKey == "clock_24h") {
-                         // Lógica extra si fuera necesaria
-                    }
                 }
 
                 // Botón NO (✗)
