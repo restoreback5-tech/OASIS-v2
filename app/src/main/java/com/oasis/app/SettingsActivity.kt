@@ -36,47 +36,35 @@ class SettingsActivity : AppCompatActivity() {
         setupSetting(R.id.btn_sounds, "Sonidos", getSoundsText(), "Sonidos de la app") { toggleSounds() }
         setupSetting(R.id.btn_animations, "Animaciones", getAnimationsText(), "Animaciones de la app") { toggleAnimations() }
         
-        // Selector de temas (reemplaza toggle día/noche)
-        setupThemeSelector()
-    }
-
-    private fun setupThemeSelector() {
-        val btn = findViewById<SwitchCompat>(R.id.btn_day_night)
-        val current = prefs.getString("selected_theme", "amanecer") ?: "amanecer"
-        val label = getThemeLabel(current)
-        btn.text = "Tema: " + label
-        btn.isEnabled = false
-        btn.setOnClickListener {
-            sound.play(R.raw.touch)            showThemeDialog(btn)
-        }
-    }
-
-    private fun getThemeLabel(key: String): String {
-        return when (key) {
+        // SELECTOR DE TEMAS (todo inline, sin funciones separadas)
+        val btnTheme = findViewById<SwitchCompat>(R.id.btn_day_night)
+        val currentTheme = prefs.getString("selected_theme", "amanecer") ?: "amanecer"
+        val themeLabel = when (currentTheme) {
             "caribe" -> "Mar Caribe"
             "oscuro" -> "Modo Oscuro"
             else -> "Amanecer Latino"
         }
-    }
-
-    private fun showThemeDialog(btn: SwitchCompat) {
-        val labels = arrayOf("Amanecer Latino", "Mar Caribe", "Modo Oscuro")
-        val keys = arrayOf("amanecer", "caribe", "oscuro")
-        val current = prefs.getString("selected_theme", "amanecer") ?: "amanecer"
-        val index = keys.indexOf(current)
-
-        AlertDialog.Builder(this)
-            .setTitle("Seleccionar Tema")
-            .setSingleChoiceItems(labels, index) { dialog, which ->
-                val selectedKey = keys[which]
-                val selectedLabel = labels[which]
-                prefs.edit().putString("selected_theme", selectedKey).apply()
-                btn.text = "Tema: " + selectedLabel
-                tts.speak("Tema cambiado")
-                dialog.dismiss()
-            }
-            .setNegativeButton("Cancelar", null)
-            .show()
+        btnTheme.text = "Tema: " + themeLabel
+        btnTheme.isEnabled = false
+        btnTheme.setOnClickListener {
+            sound.play(R.raw.touch)            
+            val labels = arrayOf("Amanecer Latino", "Mar Caribe", "Modo Oscuro")
+            val keys = arrayOf("amanecer", "caribe", "oscuro")
+            val currentIndex = keys.indexOf(currentTheme)
+            
+            AlertDialog.Builder(this)
+                .setTitle("Seleccionar Tema")
+                .setSingleChoiceItems(labels, currentIndex) { dialog, which ->
+                    val selectedKey = keys[which]
+                    val selectedLabel = labels[which]
+                    prefs.edit().putString("selected_theme", selectedKey).apply()
+                    btnTheme.text = "Tema: " + selectedLabel
+                    tts.speak("Tema cambiado a " + selectedLabel)
+                    dialog.dismiss()
+                }
+                .setNegativeButton("Cancelar", null)
+                .show()
+        }
     }
 
     private fun setupSetting(btnId: Int, label: String, value: String, ttsText: String, onClick: () -> Unit) {
@@ -96,7 +84,8 @@ class SettingsActivity : AppCompatActivity() {
         tts.speak("Cambiado")
     }
 
-    private fun getTtsSpeedText(): String {        return when (prefs.getFloat("tts_speed", 1.0f)) {
+    private fun getTtsSpeedText(): String {
+        return when (prefs.getFloat("tts_speed", 1.0f)) {
             0.5f -> "Lenta"
             1.5f -> "Rápida"
             else -> "Normal"
@@ -108,7 +97,6 @@ class SettingsActivity : AppCompatActivity() {
         prefs.edit().putFloat("tts_speed", n).apply()
         tts.speak("Velocidad actualizada")
     }
-
     private fun getSoundsText(): String = if (prefs.getBoolean("enable_sounds", true)) "Activados" else "Desactivados"
     private fun toggleSounds() {
         val c = prefs.getBoolean("enable_sounds", true)
