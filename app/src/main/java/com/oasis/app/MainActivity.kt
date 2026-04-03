@@ -5,6 +5,9 @@ import android.content.Intent
 import android.content.SharedPreferences
 import android.content.pm.PackageManager
 import android.os.Bundle
+import android.animation.AnimatorSet
+import android.animation.ObjectAnimator
+import android.view.View
 import android.os.Handler
 import android.os.Looper
 import android.widget.ImageView
@@ -30,6 +33,10 @@ class MainActivity : AppCompatActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         setContentView(R.layout.activity_main)
+        // Animación neuronal del orbe
+        val orb = findViewById<ImageView>(R.id.orb_view)
+        val neuralAnim = android.view.animation.AnimationUtils.loadAnimation(this, R.anim.orb_neural_pulse)
+        orb.startAnimation(neuralAnim)
 
         sound = SoundModule(this)
         toast = ToastModule(this)
@@ -88,6 +95,7 @@ class MainActivity : AppCompatActivity() {
     private fun setupBtn(id: Int, text: String, action: () -> Unit) {
         findViewById<MaterialButton>(id).setOnClickListener {
             sound.play(R.raw.touch)
+            pulseAnimation(findViewById<View>(id))
             toast.show(text)
             tts.speak(text)
             action()
@@ -191,6 +199,19 @@ class MainActivity : AppCompatActivity() {
             findViewById<MaterialButton>(btnId).backgroundTintList = ColorStateList.valueOf(color)
         }
     }
+
+
+    private fun pulseAnimation(view: View) {
+        val scaleX = ObjectAnimator.ofFloat(view, "scaleX", 1f, 0.94f, 1f)
+        val scaleY = ObjectAnimator.ofFloat(view, "scaleY", 1f, 0.94f, 1f)
+        val set = AnimatorSet()
+        set.playTogether(scaleX, scaleY)
+        set.duration = 180
+        set.interpolator = android.view.animation.DecelerateInterpolator()
+        set.start()
+    }
+
+
 
     private fun checkMicPermission() {
         if (ContextCompat.checkSelfPermission(this, Manifest.permission.RECORD_AUDIO) != PackageManager.PERMISSION_GRANTED) {            ActivityCompat.requestPermissions(this, arrayOf(Manifest.permission.RECORD_AUDIO), 100)
