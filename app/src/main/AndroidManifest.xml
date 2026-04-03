@@ -40,11 +40,6 @@
             android:screenOrientation="portrait"
             android:theme="@style/Theme.Material3.DayNight.NoActionBar" />
 
-       <activity 
-    android:exported="false"
-    android:screenOrientation="portrait"
-    android:theme="@style/Theme.Material3.DayNight.NoActionBar" />
-
        <!-- SettingsActivity -->
         <activity
             android:name=".SettingsActivity"
