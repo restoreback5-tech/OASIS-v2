@@ -7,7 +7,6 @@ import android.content.pm.PackageManager
 import android.os.Bundle
 import android.os.Handler
 import android.os.Looper
-import android.view.View
 import android.widget.ImageView
 import android.widget.TextView
 import androidx.appcompat.app.AppCompatActivity
@@ -17,6 +16,7 @@ import com.google.android.material.button.MaterialButton
 import java.text.SimpleDateFormat
 import java.util.Locale
 import android.graphics.Color
+import android.content.res.ColorStateList
 
 class MainActivity : AppCompatActivity() {
 
@@ -38,7 +38,7 @@ class MainActivity : AppCompatActivity() {
         stt = STTModule(this)
         prefs = getSharedPreferences("oasis_settings", MODE_PRIVATE)
 
-        applyTheme()
+        applyTheme() // Aplica el tema nuevo inmediatamente
         checkMicPermission()
 
         stt.setOnCommandListener { command ->
@@ -46,9 +46,9 @@ class MainActivity : AppCompatActivity() {
         }
 
         sound.play(R.raw.inicio)
-
         findViewById<ImageView>(R.id.orb_view).postDelayed({
-            tts.speak("Bienvenido a OASIS")        }, 1000)
+            tts.speak("Bienvenido a OASIS")        
+        }, 1000)
 
         anim.startRippleAnimation()
 
@@ -95,13 +95,9 @@ class MainActivity : AppCompatActivity() {
     }
 
     private fun openDialer() {
-        try {
-            val intent = Intent(Intent.ACTION_DIAL)
-            intent.data = android.net.Uri.parse("tel:")            
-
-
-
-    startActivity(intent)
+        try {            val intent = Intent(Intent.ACTION_DIAL)
+            intent.data = android.net.Uri.parse("tel:")
+            startActivity(intent)
         } catch(_: Exception) {
         }
     }
@@ -148,37 +144,56 @@ class MainActivity : AppCompatActivity() {
             intent.addCategory(Intent.CATEGORY_LAUNCHER)
             startActivity(intent)
         } catch(_: Exception) {
-        }
-    }
-    
+        }    }
+
+   // --- LÓGICA DE TEMAS NUEVA ---
    private fun applyTheme() {
-        val isDayMode = prefs.getBoolean("day_mode", true)
-        
-        // DEBUG
-        toast.show("DEBUG: day_mode = $isDayMode")
-        
-        // Cambiar fondo de la ventana completa
-        window.setBackgroundDrawableResource(
-            if (isDayMode) R.drawable.bg_gradient_day 
-            else R.color.night_background
+        // Lee el tema como texto ("amanecer", "caribe", "oscuro")
+        val selectedTheme = prefs.getString("selected_theme", "amanecer") ?: "amanecer"
+
+        // 1. Fondo de pantalla
+        val bgRes = when (selectedTheme) {
+            "caribe" -> R.color.caribe_background
+            "oscuro" -> R.color.oscuro_background
+            else -> R.color.amanecer_background
+        }
+        window.setBackgroundDrawableResource(bgRes)
+
+        // 2. Color del texto (Reloj y saludo)
+        val textColor = when (selectedTheme) {
+            "caribe" -> ContextCompat.getColor(this, R.color.caribe_text)
+            "oscuro" -> ContextCompat.getColor(this, R.color.oscuro_text)
+            else -> ContextCompat.getColor(this, R.color.amanecer_text)
+        }
+        findViewById<TextView>(R.id.clock_text).setTextColor(textColor)
+        findViewById<TextView>(R.id.greeting_text).setTextColor(textColor)
+
+        // 3. Pintar los botones con los colores del tema
+        applyButtonTints(selectedTheme)
+    }
+
+    private fun applyButtonTints(theme: String) {
+        // Lógica para cambiar el color de los 4 botones principales
+        val buttons = listOf(
+            R.id.btn_call to listOf(R.color.amanecer_btn_call, R.color.caribe_btn_call, R.color.oscuro_btn_call),
+            R.id.btn_message to listOf(R.color.amanecer_btn_message, R.color.caribe_btn_message, R.color.oscuro_btn_message),
+            R.id.btn_contacts to listOf(R.color.amanecer_btn_contacts, R.color.caribe_btn_contacts, R.color.oscuro_btn_contacts),
+            R.id.btn_apps to listOf(R.color.amanecer_btn_apps, R.color.caribe_btn_apps, R.color.oscuro_btn_apps)
         )
-        
-        // Cambiar color del texto
-        val clockText = findViewById<TextView>(R.id.clock_text)
-        val statusText = findViewById<TextView>(R.id.greeting_text)
-        
-        if (isDayMode) {
-            clockText.setTextColor(ContextCompat.getColor(this, R.color.oasis_text))
-            statusText.setTextColor(ContextCompat.getColor(this, R.color.oasis_text))
-        } else {
-            clockText.setTextColor(Color.WHITE)
-            statusText.setTextColor(Color.WHITE)
+
+        buttons.forEach { (btnId, colors) ->
+            val colorRes = when (theme) {
+                "caribe" -> colors[1]
+                "oscuro" -> colors[2]
+                else -> colors[0]
+            }
+            val color = ContextCompat.getColor(this, colorRes)
+            findViewById<MaterialButton>(btnId).backgroundTintList = ColorStateList.valueOf(color)
         }
     }
 
     private fun checkMicPermission() {
-        if (ContextCompat.checkSelfPermission(this, Manifest.permission.RECORD_AUDIO) != PackageManager.PERMISSION_GRANTED) {
-            ActivityCompat.requestPermissions(this, arrayOf(Manifest.permission.RECORD_AUDIO), 100)
+        if (ContextCompat.checkSelfPermission(this, Manifest.permission.RECORD_AUDIO) != PackageManager.PERMISSION_GRANTED) {            ActivityCompat.requestPermissions(this, arrayOf(Manifest.permission.RECORD_AUDIO), 100)
         }
     }
 
@@ -193,11 +208,11 @@ class MainActivity : AppCompatActivity() {
         }
     }
 
-   override fun onResume() {
+    override fun onResume() {
         super.onResume()
         // Re-aplicar tema por si cambió en SettingsActivity
         applyTheme()
-    }   
+    }
 
     override fun onDestroy() {
         super.onDestroy()

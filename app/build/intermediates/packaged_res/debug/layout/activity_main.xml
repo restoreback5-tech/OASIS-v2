@@ -4,7 +4,7 @@
     android:layout_width="match_parent"
     android:layout_height="match_parent"
     android:orientation="vertical"
-    android:background="@drawable/background_main"
+    android:background="@color/night_background"
     android:padding="16dp"
     android:gravity="center_horizontal">
 
@@ -15,7 +15,7 @@
         android:layout_height="wrap_content"
         android:text="9:41"
         android:textSize="64sp"
-        android:textColor="#FFFFFF"
+        
         android:fontFamily="@font/sf_pro_display_bold"
         android:layout_marginTop="32dp" />
 
@@ -49,7 +49,7 @@
         android:layout_height="wrap_content"
         android:text="OASIS"
         android:textSize="20sp"
-        android:textColor="#FFFFFF"
+        
         android:layout_marginBottom="32dp" />
 
     <!-- Debug text -->

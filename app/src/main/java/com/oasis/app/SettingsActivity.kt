@@ -6,6 +6,7 @@ import android.widget.ImageView
 import android.widget.TextView
 import androidx.appcompat.app.AppCompatActivity
 import androidx.appcompat.widget.SwitchCompat
+import androidx.appcompat.app.AlertDialog
 
 class SettingsActivity : AppCompatActivity() {
 
@@ -30,19 +31,71 @@ class SettingsActivity : AppCompatActivity() {
         title.text = "Ajustes"
         tts.speak("Ajustes de OASIS")
 
+        // Configuración del Reloj
         setupSetting(R.id.btn_clock_format, "Formato de reloj", getClockFormatText(), "Formato de reloj. Actual: " + getClockFormatText()) { toggleClockFormat() }
+        
+        // Configuración de Velocidad
         setupSetting(R.id.btn_tts_speed, "Velocidad de voz", getTtsSpeedText(), "Velocidad de voz. Actual: " + getTtsSpeedText()) { toggleTtsSpeed() }
+        
+        // Configuración de Sonidos
         setupSetting(R.id.btn_sounds, "Sonidos", getSoundsText(), "Sonidos de la app. " + getSoundsText()) { toggleSounds() }
+        
+        // Configuración de Animaciones
         setupSetting(R.id.btn_animations, "Animaciones", getAnimationsText(), "Animaciones de la app. " + getAnimationsText()) { toggleAnimations() }
-        setupSetting(R.id.btn_day_night, "Modo Día/Noche", getDayNightModeText(), "Modo de interfaz. Actual: " + getDayNightModeText()) { toggleDayNightMode() }
+        
+        // --- MODIFICACIÓN: Selector de Temas (Reemplaza Día/Noche) ---
+        // Reutilizamos el botón 'btn_day_night' existente pero cambiamos su comportamiento
+        val btnDayNight = findViewById<SwitchCompat>(R.id.btn_day_night)
+        val currentTheme = prefs.getString("selected_theme", "amanecer") ?: "amanecer"        val themeDisplayText = when(currentTheme) {
+            "caribe" -> "Mar Caribe"
+            "oscuro" -> "Modo Oscuro"
+            else -> "Amanecer Latino"
+        }
+        btnDayNight.text = "Tema Visual: $themeDisplayText"
+        
+        // Al hacer clic, abrimos el selector en lugar de cambiar un booleano
+        btnDayNight.setOnClickListener {
+            sound.play(R.raw.touch)
+            openThemeSelector()
+        }
+        // Deshabilitamos el switch para que no se mueva, funcione solo como botón
+        btnDayNight.isEnabled = false 
     }
 
+    // --- LÓGICA DEL SELECTOR DE TEMAS ---
+    private fun openThemeSelector() {
+        val themes = arrayOf("Amanecer Latino", "Mar Caribe", "Modo Oscuro")
+        val themeKeys = arrayOf("amanecer", "caribe", "oscuro")
+        val currentKey = prefs.getString("selected_theme", "amanecer") ?: "amanecer"
+        val currentIndex = themeKeys.indexOf(currentKey)
+
+        val builder = AlertDialog.Builder(this)
+        builder.setTitle("Seleccionar Tema")
+        builder.setSingleChoiceItems(themes, currentIndex) { dialog, which ->
+            val selectedKey = themeKeys[which]
+            val selectedLabel = themes[which]
+            
+            // Guardar preferencia
+            prefs.edit().putString("selected_theme", selectedKey).apply()
+            
+            // Actualizar etiqueta en pantalla
+            findViewById<SwitchCompat>(R.id.btn_day_night).text = "Tema Visual: $selectedLabel"
+            
+            // Feedback auditivo
+            tts.speak("Tema cambiado a: $selectedLabel")
+            
+            dialog.dismiss()
+        }
+        builder.setNegativeButton("Cancelar", null)
+        builder.show()
+    }
+
+    // --- Helpers existentes (sin cambios) ---
     private fun setupSetting(btnId: Int, label: String, value: String, ttsText: String, onClick: () -> Unit) {
         val switch = findViewById<SwitchCompat>(btnId)
-        switch.isChecked = value == "24h" || value == "Rápida" || value == "Activados" || value == "Activadas" || value == "Día"
+        switch.isChecked = value == "24h" || value == "Rápida" || value == "Activados" || value == "Activadas"
         switch.setOnCheckedChangeListener { _, isChecked ->
-            sound.play(R.raw.touch)
-            tts.speak(ttsText)
+            sound.play(R.raw.touch)            tts.speak(ttsText)
             onClick()
         }
     }
@@ -58,9 +111,6 @@ class SettingsActivity : AppCompatActivity() {
 
     private fun getAnimationsText(): String = if (prefs.getBoolean("enable_animations", true)) "Activadas" else "Desactivadas"
     private fun toggleAnimations() { val c = prefs.getBoolean("enable_animations", true); prefs.edit().putBoolean("enable_animations", !c).apply(); tts.speak("Animaciones " + if (!c) "activadas" else "desactivadas") }
-
-    private fun getDayNightModeText(): String = if (prefs.getBoolean("day_mode", true)) "Día" else "Noche"
-    private fun toggleDayNightMode() { val c = prefs.getBoolean("day_mode", true); prefs.edit().putBoolean("day_mode", !c).apply(); tts.speak("Modo " + if (!c) "Día" else "Noche") }
 
     override fun onDestroy() { super.onDestroy(); tts.shutdown(); sound.release() }
 }
