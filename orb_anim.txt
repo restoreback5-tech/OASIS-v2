@@ -1,4 +1,0 @@
-        // Animación neuronal del orbe
-        val orb = findViewById<ImageView>(R.id.orb_view)
-        val neuralAnim = android.view.animation.AnimationUtils.loadAnimation(this, R.anim.orb_neural_pulse)
-        orb.startAnimation(neuralAnim)

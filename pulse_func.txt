@@ -1,9 +1,0 @@
-    private fun pulseAnimation(view: View) {
-        val scaleX = ObjectAnimator.ofFloat(view, "scaleX", 1f, 0.94f, 1f)
-        val scaleY = ObjectAnimator.ofFloat(view, "scaleY", 1f, 0.94f, 1f)
-        val set = AnimatorSet()
-        set.playTogether(scaleX, scaleY)
-        set.duration = 180
-        set.interpolator = android.view.animation.DecelerateInterpolator()
-        set.start()
-    }
