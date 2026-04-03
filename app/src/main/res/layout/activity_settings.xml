@@ -52,16 +52,22 @@
             android:gravity="center_vertical"
             android:paddingVertical="12dp">
 
-            <ImageView
-                android:id="@+id/led_clock_format"
+            <FrameLayout
                 android:layout_width="48dp"
                 android:layout_height="48dp"
-                android:src="@drawable/led_indicator"
-                android:contentDescription="Indicador formato de reloj"
                 android:clickable="true"
                 android:focusable="true"
-                android:background="?attr/selectableItemBackgroundBorderless"
-                android:padding="12dp" />
+                android:background="?attr/selectableItemBackgroundBorderless">
+
+                <ImageView
+                    android:id="@+id/led_clock_format"
+                    android:layout_width="24dp"
+                    android:layout_height="24dp"
+                    android:layout_gravity="center"
+                    android:src="@drawable/led_indicator"
+                    android:contentDescription="Indicador formato de reloj"
+                    android:tint="#39FF14" /> <!-- Verde neón -->
+            </FrameLayout>
 
             <TextView
                 android:layout_width="0dp"
@@ -82,16 +88,22 @@
             android:gravity="center_vertical"
             android:paddingVertical="12dp">
 
-            <ImageView
-                android:id="@+id/led_tts_speed"
+            <FrameLayout
                 android:layout_width="48dp"
                 android:layout_height="48dp"
-                android:src="@drawable/led_indicator"
-                android:contentDescription="Indicador velocidad de voz"
                 android:clickable="true"
                 android:focusable="true"
-                android:background="?attr/selectableItemBackgroundBorderless"
-                android:padding="12dp" />
+                android:background="?attr/selectableItemBackgroundBorderless">
+
+                <ImageView
+                    android:id="@+id/led_tts_speed"
+                    android:layout_width="24dp"
+                    android:layout_height="24dp"
+                    android:layout_gravity="center"
+                    android:src="@drawable/led_indicator"
+                    android:contentDescription="Indicador velocidad de voz"
+                    android:tint="#39FF14" />
+            </FrameLayout>
 
             <TextView
                 android:layout_width="0dp"
@@ -112,16 +124,22 @@
             android:gravity="center_vertical"
             android:paddingVertical="12dp">
 
-            <ImageView
-                android:id="@+id/led_sounds"
+            <FrameLayout
                 android:layout_width="48dp"
                 android:layout_height="48dp"
-                android:src="@drawable/led_indicator"
-                android:contentDescription="Indicador sonidos"
                 android:clickable="true"
                 android:focusable="true"
-                android:background="?attr/selectableItemBackgroundBorderless"
-                android:padding="12dp" />
+                android:background="?attr/selectableItemBackgroundBorderless">
+
+                <ImageView
+                    android:id="@+id/led_sounds"
+                    android:layout_width="24dp"
+                    android:layout_height="24dp"
+                    android:layout_gravity="center"
+                    android:src="@drawable/led_indicator"
+                    android:contentDescription="Indicador sonidos"
+                    android:tint="#39FF14" />
+            </FrameLayout>
 
             <TextView
                 android:layout_width="0dp"
@@ -142,16 +160,22 @@
             android:gravity="center_vertical"
             android:paddingVertical="12dp">
 
-            <ImageView
-                android:id="@+id/led_animations"
+            <FrameLayout
                 android:layout_width="48dp"
                 android:layout_height="48dp"
-                android:src="@drawable/led_indicator"
-                android:contentDescription="Indicador animaciones"
                 android:clickable="true"
                 android:focusable="true"
-                android:background="?attr/selectableItemBackgroundBorderless"
-                android:padding="12dp" />
+                android:background="?attr/selectableItemBackgroundBorderless">
+
+                <ImageView
+                    android:id="@+id/led_animations"
+                    android:layout_width="24dp"
+                    android:layout_height="24dp"
+                    android:layout_gravity="center"
+                    android:src="@drawable/led_indicator"
+                    android:contentDescription="Indicador animaciones"
+                    android:tint="#39FF14" />
+            </FrameLayout>
 
             <TextView
                 android:layout_width="0dp"
@@ -172,16 +196,22 @@
             android:gravity="center_vertical"
             android:paddingVertical="12dp">
 
-            <ImageView
-                android:id="@+id/led_day_night"
+            <FrameLayout
                 android:layout_width="48dp"
                 android:layout_height="48dp"
-                android:src="@drawable/led_indicator"
-                android:contentDescription="Indicador modo día/noche"
                 android:clickable="true"
                 android:focusable="true"
-                android:background="?attr/selectableItemBackgroundBorderless"
-                android:padding="12dp" />
+                android:background="?attr/selectableItemBackgroundBorderless">
+
+                <ImageView
+                    android:id="@+id/led_day_night"
+                    android:layout_width="24dp"
+                    android:layout_height="24dp"
+                    android:layout_gravity="center"
+                    android:src="@drawable/led_indicator"
+                    android:contentDescription="Indicador modo día/noche"
+                    android:tint="#39FF14" />
+            </FrameLayout>
 
             <TextView
                 android:layout_width="0dp"
