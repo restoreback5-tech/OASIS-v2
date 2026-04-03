@@ -2,7 +2,7 @@
 <ScrollView xmlns:android="http://schemas.android.com/apk/res/android"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
-    android:background="#80E5E5EA"> <!-- gris traslúcido semi transparente -->
+    android:background="@drawable/bg_translucent">
 
     <LinearLayout
         android:layout_width="match_parent"
@@ -10,7 +10,6 @@
         android:orientation="vertical"
         android:padding="16dp">
 
-        <!-- Header -->
         <LinearLayout
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
@@ -44,7 +43,6 @@
                 android:layout_height="48dp" />
         </LinearLayout>
 
-        <!-- Ajuste 1: Formato de reloj -->
         <LinearLayout
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
@@ -61,18 +59,18 @@
 
                 <ImageView
                     android:id="@+id/led_clock_format"
-                    android:layout_width="24dp"
-                    android:layout_height="24dp"
+                    android:layout_width="20dp"
+                    android:layout_height="20dp"
                     android:layout_gravity="center"
                     android:src="@drawable/led_indicator"
                     android:contentDescription="Indicador formato de reloj"
-                    android:tint="#39FF14" /> <!-- Verde neón -->
+                    android:tint="#39FF14" />
             </FrameLayout>
 
             <TextView
-                android:layout_width="0dp"
+                android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
-                android:layout_weight="1"
+                android:layout_marginStart="8dp"
                 android:text="Formato de reloj: 24h"
                 android:textSize="16sp"
                 android:textColor="#1C1C1E"
@@ -80,7 +78,6 @@
         </LinearLayout>
         <View android:layout_width="match_parent" android:layout_height="1dp" android:background="#E5E5EA"/>
 
-        <!-- Ajuste 2: Velocidad de voz -->
         <LinearLayout
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
@@ -97,8 +94,8 @@
 
                 <ImageView
                     android:id="@+id/led_tts_speed"
-                    android:layout_width="24dp"
-                    android:layout_height="24dp"
+                    android:layout_width="20dp"
+                    android:layout_height="20dp"
                     android:layout_gravity="center"
                     android:src="@drawable/led_indicator"
                     android:contentDescription="Indicador velocidad de voz"
@@ -106,9 +103,9 @@
             </FrameLayout>
 
             <TextView
-                android:layout_width="0dp"
+                android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
-                android:layout_weight="1"
+                android:layout_marginStart="8dp"
                 android:text="Velocidad de voz: Normal"
                 android:textSize="16sp"
                 android:textColor="#1C1C1E"
@@ -116,7 +113,6 @@
         </LinearLayout>
         <View android:layout_width="match_parent" android:layout_height="1dp" android:background="#E5E5EA"/>
 
-        <!-- Ajuste 3: Sonidos -->
         <LinearLayout
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
@@ -133,8 +129,8 @@
 
                 <ImageView
                     android:id="@+id/led_sounds"
-                    android:layout_width="24dp"
-                    android:layout_height="24dp"
+                    android:layout_width="20dp"
+                    android:layout_height="20dp"
                     android:layout_gravity="center"
                     android:src="@drawable/led_indicator"
                     android:contentDescription="Indicador sonidos"
@@ -142,9 +138,9 @@
             </FrameLayout>
 
             <TextView
-                android:layout_width="0dp"
+                android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
-                android:layout_weight="1"
+                android:layout_marginStart="8dp"
                 android:text="Sonidos: Activados"
                 android:textSize="16sp"
                 android:textColor="#1C1C1E"
@@ -152,7 +148,6 @@
         </LinearLayout>
         <View android:layout_width="match_parent" android:layout_height="1dp" android:background="#E5E5EA"/>
 
-        <!-- Ajuste 4: Animaciones -->
         <LinearLayout
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
@@ -169,8 +164,8 @@
 
                 <ImageView
                     android:id="@+id/led_animations"
-                    android:layout_width="24dp"
-                    android:layout_height="24dp"
+                    android:layout_width="20dp"
+                    android:layout_height="20dp"
                     android:layout_gravity="center"
                     android:src="@drawable/led_indicator"
                     android:contentDescription="Indicador animaciones"
@@ -178,9 +173,9 @@
             </FrameLayout>
 
             <TextView
-                android:layout_width="0dp"
+                android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
-                android:layout_weight="1"
+                android:layout_marginStart="8dp"
                 android:text="Animaciones: Activadas"
                 android:textSize="16sp"
                 android:textColor="#1C1C1E"
@@ -188,7 +183,6 @@
         </LinearLayout>
         <View android:layout_width="match_parent" android:layout_height="1dp" android:background="#E5E5EA"/>
 
-        <!-- Ajuste 5: Modo Día/Noche -->
         <LinearLayout
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
@@ -205,8 +199,8 @@
 
                 <ImageView
                     android:id="@+id/led_day_night"
-                    android:layout_width="24dp"
-                    android:layout_height="24dp"
+                    android:layout_width="20dp"
+                    android:layout_height="20dp"
                     android:layout_gravity="center"
                     android:src="@drawable/led_indicator"
                     android:contentDescription="Indicador modo día/noche"
@@ -214,9 +208,9 @@
             </FrameLayout>
 
             <TextView
-                android:layout_width="0dp"
+                android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
-                android:layout_weight="1"
+                android:layout_marginStart="8dp"
                 android:text="Modo Día/Noche: Día"
                 android:textSize="16sp"
                 android:textColor="#1C1C1E"
