@@ -2,10 +2,8 @@
 <FrameLayout xmlns:android="http://schemas.android.com/apk/res/android"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
-    android:background="#050510">
-
+    android:background="#000000">
     <com.oasis.app.NeuralOrbView
-        android:id="@+id/neural_orb"
         android:layout_width="match_parent"
         android:layout_height="match_parent" />
 </FrameLayout>

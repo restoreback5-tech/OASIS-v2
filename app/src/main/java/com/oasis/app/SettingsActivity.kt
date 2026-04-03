@@ -4,9 +4,7 @@ import android.content.SharedPreferences
 import android.graphics.Color
 import android.graphics.drawable.ColorDrawable
 import android.os.Bundle
-import android.widget.Button
-import android.widget.ImageView
-import android.widget.TextView
+import android.widget.*
 import androidx.appcompat.app.AlertDialog
 import androidx.appcompat.app.AppCompatActivity
 import androidx.appcompat.widget.SwitchCompat
@@ -17,12 +15,18 @@ class SettingsActivity : AppCompatActivity() {
     private lateinit var sound: SoundModule
     private lateinit var prefs: SharedPreferences
 
+    // Colores LED: Neón verde cuando está activo
+    private val colorLedOn = 0xFF39FF14.toInt()
+    private val colorLedOff = 0xFF9E9E9E.toInt()
+
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         setContentView(R.layout.activity_settings)
         prefs = getSharedPreferences("oasis_settings", MODE_PRIVATE)
 
-        // Aplicar fondo según tema seleccionado
+        // ==========================================
+        // FONDO DINÁMICO SEGÚN TEMA
+        // ==========================================
         val selectedTheme = prefs.getString("selected_theme", "amanecer") ?: "amanecer"
         val bgRes = when (selectedTheme) {
             "caribe" -> R.color.caribe_background
@@ -32,59 +36,134 @@ class SettingsActivity : AppCompatActivity() {
         window.setBackgroundDrawableResource(bgRes)
 
         // ==========================================
-        // LÓGICA DE LEDs BINARIOS
+        // INICIALIZACIÓN DE MÓDULOS
         // ==========================================
+        tts = TTSModule(this)
+        sound = SoundModule(this)
 
-        // Función auxiliar para cambiar color del LED
+        // ==========================================
+        // FUNCIÓN AUXILIAR: Actualizar color LED
+        // ==========================================
         fun updateLedColor(id: Int, active: Boolean) {
-            val color = if (active) 0xFF4CAF50.toInt() else 0xFF808080.toInt() // Verde o Gris
+            val color = if (active) colorLedOn else colorLedOff
             findViewById<ImageView>(id).setColorFilter(color)
         }
-
-        // Función para configurar cada botón LED
-        fun setupLed(ledId: Int, prefKey: String, defaultVal: Boolean) {
+        // ==========================================
+        // FUNCIÓN PRINCIPAL: Configurar LED con diálogo binario
+        // ==========================================
+        fun setupLed(ledId: Int, prefKey: String, defaultVal: Boolean, onToggle: ((Boolean) -> Unit)? = null) {
             val led = findViewById<ImageView>(ledId)
             var state = prefs.getBoolean(prefKey, defaultVal)
             updateLedColor(ledId, state)
 
-            led.setOnClickListener {
-                // Inflar diálogo binario
+            // El FrameLayout padre es el que recibe el click (para efecto ripple)
+            val parent = led.parent as? FrameLayout
+            parent?.setOnClickListener {
+                sound.play(R.raw.touch)
+                
+                // Inflar diálogo binario moderno
                 val dialogView = layoutInflater.inflate(R.layout.dialog_binary_confirm, null)
                 val dialog = android.app.Dialog(this)
                 dialog.setContentView(dialogView)
-                // Fondo transparente para que el borde redondeado del XML se vea bien
-                dialog.window?.setBackgroundDrawable(ColorDrawable(android.graphics.Color.TRANSPARENT))
+                dialog.window?.setBackgroundDrawable(ColorDrawable(Color.TRANSPARENT))
 
-                // Configurar textos y botones
-                dialogView.findViewById<TextView>(R.id.dialog_message).text = "¿Activar función?"
+                // Configurar mensaje según la preferencia
+                val message = when (prefKey) {
+                    "clock_24h" -> "¿Usar formato 24 horas?"
+                    "sounds_enabled" -> "¿Activar sonidos de interfaz?"
+                    "animations_enabled" -> "¿Activar animaciones?"
+                    "theme_cycle" -> "¿Cambiar tema visual?"
+                    else -> "¿Confirmar cambio?"
+                }
+                dialogView.findViewById<TextView>(R.id.dialog_message).text = message
 
-                // Botón SI (✓)
+                // Botón SÍ (✓)
                 dialogView.findViewById<Button>(R.id.btn_yes).setOnClickListener {
                     dialog.dismiss()
-                    state = !state // Invertir estado
+                    state = !state
                     prefs.edit().putBoolean(prefKey, state).apply()
                     updateLedColor(ledId, state)
+                    onToggle?.invoke(state)
+                    
+                    // Feedback de voz
+                    val feedback = when (prefKey) {
+                        "clock_24h" -> if (state) "Formato de veinticuatro horas activado" else "Formato de doce horas activado"
+                        "sounds_enabled" -> if (state) "Sonidos activados" else "Sonidos desactivados"
+                        "animations_enabled" -> if (state) "Animaciones activadas" else "Animaciones desactivadas"
+                        else -> if (state) "Activado" else "Desactivado"
+                    }
+                    tts.speak(feedback)
                 }
 
                 // Botón NO (✗)
-                dialogView.findViewById<Button>(R.id.btn_no).setOnClickListener {
-                    dialog.dismiss()
+                dialogView.findViewById<Button>(R.id.btn_no).setOnClickListener {                    dialog.dismiss()
+                    sound.play(R.raw.cancelar)
                 }
 
                 dialog.show()
             }
         }
 
-        // --- INICIALIZAR LOS 5 LEDs BINARIOS ---
+        // ==========================================
+        // CONFIGURAR LOS 4 LEDS BINARIOS (en nuevo orden)
+        // ==========================================
+        
+        // 1. Formato de reloj
         setupLed(R.id.led_clock_format, "clock_24h", true)
-        setupLed(R.id.led_tts_speed, "tts_speed_normal", true)
+
+        // 2. Sonidos
         setupLed(R.id.led_sounds, "sounds_enabled", true)
+
+        // 3. Animaciones
         setupLed(R.id.led_animations, "animations_enabled", true)
-        setupLed(R.id.led_day_night, "dark_mode", false)
 
-        tts = TTSModule(this)
-        sound = SoundModule(this)
+        // 4. Tema (cíclico: amanecer → caribe → oscuro → amanecer)
+        setupLed(R.id.led_theme, "theme_cycle", false) { newState ->
+            if (newState) {
+                cycleTheme()
+            }
+        }
 
+        // ==========================================
+        // CONFIGURAR SEEK BAR: Velocidad de voz (AL FINAL)
+        // ==========================================
+        val seekBar = findViewById<SeekBar>(R.id.seekbar_tts_speed)
+        val speedLabel = findViewById<TextView>(R.id.text_tts_speed_value)
+        val ledTts = findViewById<ImageView>(R.id.led_tts_speed)
+
+        // Cargar valor guardado
+        val savedSpeed = prefs.getInt("tts_speed", 50)
+        seekBar.progress = savedSpeed
+        updateSpeedLabel(savedSpeed, speedLabel)
+        updateLedColor(R.id.led_tts_speed, true) // LED siempre "encendido" (es un control, no toggle)
+
+        // Listener del SeekBar
+        seekBar.setOnSeekBarChangeListener(object : SeekBar.OnSeekBarChangeListener {
+            override fun onProgressChanged(seekBar: SeekBar?, progress: Int, fromUser: Boolean) {
+                if (fromUser) {
+                    updateSpeedLabel(progress, speedLabel)
+                    prefs.edit().putInt("tts_speed", progress).apply()
+                    // Actualizar velocidad real del TTS (ajusta el factor según tu implementación)
+                    tts.setSpeed(0.5f + (progress / 100f)) // Rango: 0.5x a 1.5x
+                }            }
+            override fun onStartTrackingTouch(seekBar: SeekBar?) {}
+            override fun onStopTrackingTouch(seekBar: SeekBar?) {
+                sound.play(R.raw.confirmar)
+                tts.speak("Velocidad de voz ajustada a " + speedLabel.text)
+            }
+        })
+
+        // Click en el LED de velocidad: scroll suave hacia el SeekBar
+        (ledTts.parent as? FrameLayout)?.setOnClickListener {
+            sound.play(R.raw.touch)
+            seekBar.parent?.let { parent ->
+                (parent.parent as? ScrollView)?.smoothScrollTo(0, seekBar.top - 100)
+            }
+        }
+
+        // ==========================================
+        // BOTÓN VOLVER + TTS INICIAL
+        // ==========================================
         findViewById<ImageView>(R.id.btn_back).setOnClickListener {
             sound.play(R.raw.touch)
             finish()
@@ -93,41 +172,64 @@ class SettingsActivity : AppCompatActivity() {
         val title = findViewById<TextView>(R.id.settings_title)
         title.text = "Ajustes"
         tts.speak("Ajustes de OASIS")
-        // SELECTOR DE TEMAS - COMENTADO TEMPORALMENTE
-        // Se implementará después con LED + diálogo de 3 opciones
+    }
+
+    // ==========================================
+    // FUNCIÓN AUXILIAR: Actualizar etiqueta de velocidad
+    // ==========================================
+    private fun updateSpeedLabel(progress: Int, label: TextView) {
+        label.text = when {
+            progress < 30 -> "Lenta"
+            progress > 70 -> "Rápida"
+            else -> "Normal"
+        }
+    }
+
+    // ==========================================
+    // FUNCIÓN: Ciclar entre 3 temas
+    // ==========================================
+    private fun cycleTheme() {
+        val current = prefs.getString("selected_theme", "amanecer") ?: "amanecer"
+        val next = when (current) {
+            "amanecer" -> "caribe"
+            "caribe" -> "oscuro"
+            else -> "amanecer"
+        }        prefs.edit().putString("selected_theme", next).apply()
         
-        /*
-        val btnTheme = findViewById<SwitchCompat>(R.id.btn_day_night)
-        val currentTheme = prefs.getString("selected_theme", "amanecer") ?: "amanecer"
-        val themeLabel = when (currentTheme) {
-            "caribe" -> "Mar Caribe"
-            "oscuro" -> "Modo Oscuro"
-            else -> "Amanecer Latino"
+        // Aplicar fondo inmediatamente
+        val bgRes = when (next) {
+            "caribe" -> R.color.caribe_background
+            "oscuro" -> R.color.oscuro_background
+            else -> R.color.amanecer_background
         }
-        btnTheme.text = "Tema: " + themeLabel
-        btnTheme.isEnabled = false
-        btnTheme.setOnClickListener {
-            sound.play(R.raw.touch)
-            val labels = arrayOf("Amanecer Latino", "Mar Caribe", "Modo Oscuro")
-            val keys = arrayOf("amanecer", "caribe", "oscuro")
-            val currentIndex = keys.indexOf(currentTheme)
-
-            AlertDialog.Builder(this)
-                .setTitle("Seleccionar Tema")
-                .setSingleChoiceItems(labels, currentIndex) { dialog, which ->
-                    val selectedKey = keys[which]
-                    val selectedLabel = labels[which]
-                    prefs.edit().putString("selected_theme", selectedKey).apply()
-                    btnTheme.text = "Tema: " + selectedLabel
-                    tts.speak("Tema cambiado a " + selectedLabel)
-                    dialog.dismiss()
+        window.setBackgroundDrawableResource(bgRes)
+        
+        // Actualizar texto del LED de tema (busca el TextView hermano)
+        val ledTheme = findViewById<ImageView>(R.id.led_theme)
+        val parent = ledTheme.parent?.parent
+        if (parent is LinearLayout) {
+            for (i in 0 until parent.childCount) {
+                val child = parent.getChildAt(i)
+                if (child is TextView && child.id != R.id.led_theme) {
+                    val themeName = when (next) {
+                        "caribe" -> "Mar Caribe"
+                        "oscuro" -> "Modo Oscuro"
+                        else -> "Amanecer Latino"
+                    }
+                    child.text = "Tema: $themeName"
+                    break
                 }
-                .setNegativeButton("Cancelar", null)
-                .show()
+            }
         }
-        */
-
-    } // ← CIERRE CORRECTO DE onCreate
+        
+        // Feedback de voz
+        val themeName = when (next) {
+            "caribe" -> "Tema Mar Caribe aplicado"
+            "oscuro" -> "Tema Modo Oscuro aplicado"
+            else -> "Tema Amanecer Latino aplicado"
+        }
+        tts.speak(themeName)
+    }
 
     override fun onDestroy() {
         super.onDestroy()
