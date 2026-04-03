@@ -4,10 +4,10 @@ import android.content.SharedPreferences
 import android.os.Bundle
 import android.widget.ImageView
 import android.widget.TextView
+import android.graphics.ColorDrawable
 import androidx.appcompat.app.AppCompatActivity
 import androidx.appcompat.widget.SwitchCompat
 import androidx.appcompat.app.AlertDialog
-import android.widget.TextView
 import android.widget.Button
 
 class SettingsActivity : AppCompatActivity() {
@@ -84,7 +84,7 @@ class SettingsActivity : AppCompatActivity() {
         setupLed(R.id.led_tts_speed, "tts_speed_normal", true)
         setupLed(R.id.led_sounds, "sounds_enabled", true)
         setupLed(R.id.led_animations, "animations_enabled", true)
-        setupLed(R.id.led_day_night, "dark_mode", false) 
+        setupLed(R.id.led_day_night, "dark_mode", false)
 
         tts = TTSModule(this)
         sound = SoundModule(this)
