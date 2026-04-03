@@ -47,6 +47,12 @@ class NeuralOrbView @JvmOverloads constructor(
     override fun onDraw(canvas: Canvas) {
         super.onDraw(canvas)
         
+        // Si el view no tiene tamaño aún, no dibujar nada
+        if (width <= 0 || height <= 0) {
+            invalidate()
+            return
+        }
+        
         // Fondo oscuro para contraste
         canvas.drawColor(Color.parseColor("#050510"))
 
@@ -57,6 +63,26 @@ class NeuralOrbView @JvmOverloads constructor(
             p.update(time)
             p.draw(canvas, paintParticle)
         }
+
+        // Dibujar conexiones
+        for (i in particles.indices) {
+            for (j in i + 1 until particles.size) {
+                val p1 = particles[i]
+                val p2 = particles[j]
+                val dx = p1.x - p2.x
+                val dy = p1.y - p2.y
+                val dist = sqrt(dx * dx + dy * dy)
+
+                if (dist < connectRadius) {
+                    val alpha = (1 - dist / connectRadius) * 0.6f
+                    paintLine.alpha = (alpha * 255).toInt()
+                    canvas.drawLine(p1.x, p1.y, p2.x, p2.y, paintLine)
+                }
+            }
+        }
+
+        invalidate() // Animación continua
+    }
 
         // Dibujar conexiones
         for (i in particles.indices) {
