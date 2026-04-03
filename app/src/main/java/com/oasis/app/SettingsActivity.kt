@@ -18,6 +18,15 @@ class SettingsActivity : AppCompatActivity() {
         super.onCreate(savedInstanceState)
         setContentView(R.layout.activity_settings)
 
+        // Aplicar fondo según tema seleccionado
+        val selectedTheme = prefs.getString("selected_theme", "amanecer") ?: "amanecer"
+        val bgRes = when (selectedTheme) {
+            "caribe" -> R.color.caribe_background
+            "oscuro" -> R.color.oscuro_background
+            else -> R.color.amanecer_background
+        }
+        window.setBackgroundDrawableResource(bgRes)
+
         tts = TTSModule(this)
         sound = SoundModule(this)
         prefs = getSharedPreferences("oasis_settings", MODE_PRIVATE)
