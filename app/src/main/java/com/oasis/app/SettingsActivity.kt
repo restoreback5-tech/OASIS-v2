@@ -7,6 +7,8 @@ import android.widget.TextView
 import androidx.appcompat.app.AppCompatActivity
 import androidx.appcompat.widget.SwitchCompat
 import androidx.appcompat.app.AlertDialog
+import android.widget.TextView
+import android.widget.Button
 
 class SettingsActivity : AppCompatActivity() {
 
@@ -17,6 +19,7 @@ class SettingsActivity : AppCompatActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         setContentView(R.layout.activity_settings)
+        prefs = getSharedPreferences("oasis_settings", MODE_PRIVATE)
 
         // Aplicar fondo según tema seleccionado
         val selectedTheme = prefs.getString("selected_theme", "amanecer") ?: "amanecer"
@@ -27,9 +30,64 @@ class SettingsActivity : AppCompatActivity() {
         }
         window.setBackgroundDrawableResource(bgRes)
 
+      // ==========================================
+        // LÓGICA DE LEDs BINARIOS
+        // ==========================================
+        
+        // Función auxiliar para cambiar color del LED
+        fun updateLedColor(id: Int, active: Boolean) {
+            val color = if (active) 0xFF4CAF50.toInt() else 0xFF808080.toInt() // Verde o Gris
+            findViewById<ImageView>(id).setColorFilter(color)
+        }
+
+        // Función para configurar cada botón LED
+        fun setupLed(ledId: Int, prefKey: String, defaultVal: Boolean) {
+            val led = findViewById<ImageView>(ledId)
+            var state = prefs.getBoolean(prefKey, defaultVal)
+            updateLedColor(ledId, state)
+
+            led.setOnClickListener {
+                // Inflar diálogo binario
+                val dialogView = layoutInflater.inflate(R.layout.dialog_binary_confirm, null)
+                val dialog = android.app.Dialog(this).apply {
+                    setContentView(dialogView)
+                    // Fondo transparente para que el borde redondeado del XML se vea bien
+                    window?.setBackgroundDrawable(android.graphics.ColorDrawable(android.graphics.Color.TRANSPARENT))
+                }
+
+                // Configurar textos y botones
+                dialogView.findViewById<TextView>(R.id.dialog_message).text = "¿Activar función?"
+                
+                // Botón SI (✓)
+                dialogView.findViewById<Button>(R.id.btn_yes).setOnClickListener {
+                    dialog.dismiss()
+                    state = !state // Invertir estado
+                    prefs.edit().putBoolean(prefKey, state).apply()
+                    updateLedColor(ledId, state)
+                    // Si es el reloj, avisar que se actualizó (opcional)
+                    if(prefKey == "clock_24h") {
+                         // Lógica extra si fuera necesaria
+                    }
+                }
+
+                // Botón NO (✗)
+                dialogView.findViewById<Button>(R.id.btn_no).setOnClickListener {
+                    dialog.dismiss()
+                }
+
+                dialog.show()
+            }
+        }
+
+        // --- INICIALIZAR LOS 5 LEDs ---
+        setupLed(R.id.led_clock_format, "clock_24h", true)
+        setupLed(R.id.led_tts_speed, "tts_speed_normal", true)
+        setupLed(R.id.led_sounds, "sounds_enabled", true)
+        setupLed(R.id.led_animations, "animations_enabled", true)
+        setupLed(R.id.led_day_night, "dark_mode", false) 
+
         tts = TTSModule(this)
         sound = SoundModule(this)
-        prefs = getSharedPreferences("oasis_settings", MODE_PRIVATE)
 
         findViewById<ImageView>(R.id.btn_back).setOnClickListener {
             sound.play(R.raw.touch)

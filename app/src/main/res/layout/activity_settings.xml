@@ -45,147 +45,163 @@
     </LinearLayout>
 
     <!-- Ajuste 1: Formato de reloj -->
-<LinearLayout
-    android:layout_width="match_parent"
-    android:layout_height="wrap_content"
-    android:orientation="horizontal"
-    android:background="@color/oasis_card"
-    android:padding="16dp"
-    android:layout_marginBottom="8dp"
-    android:gravity="center_vertical">
-
-    <TextView
-        android:layout_width="0dp"
+    <LinearLayout
+        android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:layout_weight="1"
-        android:text="Formato de reloj: 24h"
-        android:textSize="16sp"
-        android:textColor="@color/oasis_text"
-        android:fontFamily="@font/googlesans_medium" />
+        android:orientation="horizontal"
+        android:background="@color/oasis_card"
+        android:padding="16dp"
+        android:layout_marginBottom="8dp"
+        android:gravity="center_vertical">
 
-    <androidx.appcompat.widget.SwitchCompat
-    android:id="@+id/btn_clock_format"
-    android:layout_width="wrap_content"
-    android:layout_height="wrap_content"
-    android:checked="true"
-    app:thumbTint="@color/switch_thumb_color"
-    app:trackTint="@color/switch_track_color" />
+        <TextView
+            android:layout_width="0dp"
+            android:layout_height="wrap_content"
+            android:layout_weight="1"
+            android:text="Formato de reloj: 24h"
+            android:textSize="16sp"
+            android:textColor="@color/oasis_text"
+            android:fontFamily="@font/googlesans_medium" />
 
-</LinearLayout>
+        <ImageView
+            android:id="@+id/led_clock_format"
+            android:layout_width="24dp"
+            android:layout_height="24dp"
+            android:src="@drawable/led_indicator"
+            android:contentDescription="Indicador formato de reloj"
+            android:clickable="true"
+            android:focusable="true"
+            android:background="?attr/selectableItemBackgroundBorderless"
+            android:padding="4dp" />
+
+    </LinearLayout>
 
     <!-- Ajuste 2: Velocidad de voz -->
-<LinearLayout
-    android:layout_width="match_parent"
-    android:layout_height="wrap_content"
-    android:orientation="horizontal"
-    android:background="@color/oasis_card"
-    android:padding="16dp"
-    android:layout_marginBottom="8dp"
-    android:gravity="center_vertical">
-
-    <TextView
-        android:layout_width="0dp"
+    <LinearLayout
+        android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:layout_weight="1"
-        android:text="Velocidad de voz: Normal"
-        android:textSize="16sp"
-        android:textColor="@color/oasis_text"
-        android:fontFamily="@font/googlesans_medium" />
+        android:orientation="horizontal"
+        android:background="@color/oasis_card"
+        android:padding="16dp"
+        android:layout_marginBottom="8dp"
+        android:gravity="center_vertical">
 
-    <androidx.appcompat.widget.SwitchCompat
-    android:id="@+id/btn_tts_speed"
-    android:layout_width="wrap_content"
-    android:layout_height="wrap_content"
-    android:checked="true"
-    app:thumbTint="@color/switch_thumb_color"
-    app:trackTint="@color/switch_track_color" />
+        <TextView
+            android:layout_width="0dp"
+            android:layout_height="wrap_content"
+            android:layout_weight="1"
+            android:text="Velocidad de voz: Normal"
+            android:textSize="16sp"
+            android:textColor="@color/oasis_text"
+            android:fontFamily="@font/googlesans_medium" />
 
-</LinearLayout>
+        <ImageView
+            android:id="@+id/led_tts_speed"
+            android:layout_width="24dp"
+            android:layout_height="24dp"
+            android:src="@drawable/led_indicator"
+            android:contentDescription="Indicador velocidad de voz"
+            android:clickable="true"
+            android:focusable="true"
+            android:background="?attr/selectableItemBackgroundBorderless"
+            android:padding="4dp" />
 
-    <!-- Ajuste 3: Sonidos -->
-<LinearLayout
-    android:layout_width="match_parent"
-    android:layout_height="wrap_content"
-    android:orientation="horizontal"
-    android:background="@color/oasis_card"
-    android:padding="16dp"
-    android:layout_marginBottom="8dp"
-    android:gravity="center_vertical">
+    </LinearLayout>
 
-    <TextView
-        android:layout_width="0dp"
+   <!-- Ajuste 3: Sonidos -->
+    <LinearLayout
+        android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:layout_weight="1"
-        android:text="Sonidos: Activados"
-        android:textSize="16sp"
-        android:textColor="@color/oasis_text"
-        android:fontFamily="@font/googlesans_medium" />
+        android:orientation="horizontal"
+        android:background="@color/oasis_card"
+        android:padding="16dp"
+        android:layout_marginBottom="8dp"
+        android:gravity="center_vertical">
 
-    <androidx.appcompat.widget.SwitchCompat
-    android:id="@+id/btn_sounds"
-    android:layout_width="wrap_content"
-    android:layout_height="wrap_content"
-    android:checked="true"
-    app:thumbTint="@color/switch_thumb_color"
-    app:trackTint="@color/switch_track_color" />
+        <TextView
+            android:layout_width="0dp"
+            android:layout_height="wrap_content"
+            android:layout_weight="1"
+            android:text="Sonidos: Activados"
+            android:textSize="16sp"
+            android:textColor="@color/oasis_text"
+            android:fontFamily="@font/googlesans_medium" />
 
-</LinearLayout>
+        <ImageView
+            android:id="@+id/led_sounds"
+            android:layout_width="24dp"
+            android:layout_height="24dp"
+            android:src="@drawable/led_indicator"
+            android:contentDescription="Indicador sonidos"
+            android:clickable="true"
+            android:focusable="true"
+            android:background="?attr/selectableItemBackgroundBorderless"
+            android:padding="4dp" />
 
-    <!-- Ajuste 4: Animaciones -->
-<LinearLayout
-    android:layout_width="match_parent"
-    android:layout_height="wrap_content"
-    android:orientation="horizontal"
-    android:background="@color/oasis_card"
-    android:padding="16dp"
-    android:layout_marginBottom="8dp"
-    android:gravity="center_vertical">
+    </LinearLayout>
 
-    <TextView
-        android:layout_width="0dp"
+   <!-- Ajuste 4: Animaciones -->
+    <LinearLayout
+        android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:layout_weight="1"
-        android:text="Animaciones: Activadas"
-        android:textSize="16sp"
-        android:textColor="@color/oasis_text"
-        android:fontFamily="@font/googlesans_medium" />
+        android:orientation="horizontal"
+        android:background="@color/oasis_card"
+        android:padding="16dp"
+        android:layout_marginBottom="8dp"
+        android:gravity="center_vertical">
 
-    <androidx.appcompat.widget.SwitchCompat
-    android:id="@+id/btn_animations"
-    android:layout_width="wrap_content"
-    android:layout_height="wrap_content"
-    android:checked="true"
-    app:thumbTint="@color/switch_thumb_color"
-    app:trackTint="@color/switch_track_color" />
+        <TextView
+            android:layout_width="0dp"
+            android:layout_height="wrap_content"
+            android:layout_weight="1"
+            android:text="Animaciones: Activadas"
+            android:textSize="16sp"
+            android:textColor="@color/oasis_text"
+            android:fontFamily="@font/googlesans_medium" />
 
-</LinearLayout>
+        <ImageView
+            android:id="@+id/led_animations"
+            android:layout_width="24dp"
+            android:layout_height="24dp"
+            android:src="@drawable/led_indicator"
+            android:contentDescription="Indicador animaciones"
+            android:clickable="true"
+            android:focusable="true"
+            android:background="?attr/selectableItemBackgroundBorderless"
+            android:padding="4dp" />
 
-    <!-- Ajuste 5: Modo Día/Noche -->
-<LinearLayout
-    android:layout_width="match_parent"
-    android:layout_height="wrap_content"
-    android:orientation="horizontal"
-    android:background="@color/oasis_card"
-    android:padding="16dp"
-    android:layout_marginBottom="8dp"
-    android:gravity="center_vertical">
+    </LinearLayout>
 
-    <TextView
-        android:layout_width="0dp"
+   <!-- Ajuste 5: Modo Día/Noche -->
+    <LinearLayout
+        android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:layout_weight="1"
-        android:text="Modo Día/Noche: Día"
-        android:textSize="16sp"
-        android:textColor="@color/oasis_text"
-        android:fontFamily="@font/googlesans_medium" />
+        android:orientation="horizontal"
+        android:background="@color/oasis_card"
+        android:padding="16dp"
+        android:layout_marginBottom="8dp"
+        android:gravity="center_vertical">
 
-    <androidx.appcompat.widget.SwitchCompat
-    android:id="@+id/btn_day_night"
-    android:layout_width="wrap_content"
-    android:layout_height="wrap_content"
-    android:checked="true"
-    app:thumbTint="@color/switch_thumb_color"
-    app:trackTint="@color/switch_track_color" />
+        <TextView
+            android:layout_width="0dp"
+            android:layout_height="wrap_content"
+            android:layout_weight="1"
+            android:text="Modo Día/Noche: Día"
+            android:textSize="16sp"
+            android:textColor="@color/oasis_text"
+            android:fontFamily="@font/googlesans_medium" />
 
-</LinearLayout>
+        <ImageView
+            android:id="@+id/led_day_night"
+            android:layout_width="24dp"
+            android:layout_height="24dp"
+            android:src="@drawable/led_indicator"
+            android:contentDescription="Indicador modo día/noche"
+            android:clickable="true"
+            android:focusable="true"
+            android:background="?attr/selectableItemBackgroundBorderless"
+            android:padding="4dp" />
+
+    </LinearLayout>
+
 </LinearLayout>
