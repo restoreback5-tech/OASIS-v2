@@ -4,124 +4,96 @@ import android.content.Context
 import android.graphics.*
 import android.util.AttributeSet
 import android.view.View
-import kotlin.math.*
+import kotlin.math.sqrt
+import kotlin.random.Random
 
 class NeuralOrbView @JvmOverloads constructor(
     context: Context, attrs: AttributeSet? = null, defStyleAttr: Int = 0
 ) : View(context, attrs, defStyleAttr) {
 
     private val paintParticle = Paint().apply {
-        color = Color.parseColor("#00e5ff") // Cyan neón
+        color = Color.parseColor("#00e5ff")
         isAntiAlias = true
     }
 
     private val paintLine = Paint().apply {
-        color = Color.parseColor("#8000e5ff") // Cyan semi-transparente
+        color = Color.parseColor("#00e5ff")
         strokeWidth = 1.5f
         isAntiAlias = true
     }
 
     private val particles = mutableListOf<Particle>()
-    private val particleCount = 150 // Menos que 500 para rendimiento inicial
-    private val connectRadius = 100f
+    private val particleCount = 100 // Reducido a 100 para máxima estabilidad
+    private val connectRadius = 120f
     private var time = 0f
 
-    init {
-        initParticles()
+    // IMPORTANTE: No inicializamos partículas aquí. Esperamos a onSizeChanged.
+
+    override fun onSizeChanged(w: Int, h: Int, oldw: Int, oldh: Int) {
+        super.onSizeChanged(w, h, oldw, oldh)
+        if (w > 0 && h > 0) {
+            initParticles(w.toFloat(), h.toFloat())
+        }
     }
 
-    private fun initParticles() {
+    private fun initParticles(w: Float, h: Float) {
         particles.clear()
-        val w = if (width > 0) width.toFloat() else 1080f
-        val h = if (height > 0) height.toFloat() else 1920f
         for (i in 0 until particleCount) {
             particles.add(Particle(w, h))
         }
     }
 
-    override fun onSizeChanged(w: Int, h: Int, oldw: Int, oldh: Int) {
-        super.onSizeChanged(w, h, oldw, oldh)
-        initParticles()
-    }
-
     override fun onDraw(canvas: Canvas) {
         super.onDraw(canvas)
-        
-        // Si el view no tiene tamaño aún, no dibujar nada
-        if (width <= 0 || height <= 0) {
-            invalidate()
+
+        // Seguridad: Si no hay partículas, no dibujar nada y esperar
+        if (particles.isEmpty()) {            invalidate()
             return
         }
-        
-        // Fondo oscuro para contraste
+
+        // Fondo
         canvas.drawColor(Color.parseColor("#050510"))
+        time += 0.016f // ~60fps
 
-        time += 0.01f
+        // Dibujar líneas primero (para que queden detrás)
+        for (i in particles.indices) {
+            val p1 = particles[i]
+            p1.update()
+            // Rebote
+            if (p1.x < 0 || p1.x > width) p1.vx *= -1
+            if (p1.y < 0 || p1.y > height) p1.vy *= -1
+            
+            for (j in i + 1 until particles.size) {
+                val p2 = particles[j]
+                val dx = p1.x - p2.x
+                val dy = p1.y - p2.y
+                val dist = sqrt(dx * dx + dy * dy)
 
-        // Actualizar y dibujar partículas
+                if (dist < connectRadius) {
+                    val alpha = ((1 - dist / connectRadius) * 0.5f * 255).toInt()
+                    paintLine.alpha = alpha.coerceIn(0, 255)
+                    canvas.drawLine(p1.x, p1.y, p2.x, p2.y, paintLine)
+                }
+            }
+        }
+
+        // Dibujar puntos
         for (p in particles) {
-            p.update(time)
-            p.draw(canvas, paintParticle)
+            canvas.drawCircle(p.x, p.y, p.radius, paintParticle)
         }
 
-        // Dibujar conexiones
-        for (i in particles.indices) {
-            for (j in i + 1 until particles.size) {
-                val p1 = particles[i]
-                val p2 = particles[j]
-                val dx = p1.x - p2.x
-                val dy = p1.y - p2.y
-                val dist = sqrt(dx * dx + dy * dy)
-
-                if (dist < connectRadius) {
-                    val alpha = (1 - dist / connectRadius) * 0.6f
-                    paintLine.alpha = (alpha * 255).toInt()
-                    canvas.drawLine(p1.x, p1.y, p2.x, p2.y, paintLine)
-                }
-            }
-        }
-
-        invalidate() // Animación continua
+        invalidate()
     }
 
-        // Dibujar conexiones
-        for (i in particles.indices) {
-            for (j in i + 1 until particles.size) {
-                val p1 = particles[i]
-                val p2 = particles[j]
-                val dx = p1.x - p2.x
-                val dy = p1.y - p2.y
-                val dist = sqrt(dx * dx + dy * dy)
+    inner class Particle(private val w: Float, private val h: Float) {
+        var x = Random.nextFloat() * w
+        var y = Random.nextFloat() * h
+        var vx = (Random.nextFloat() - 0.5f) * 2f
+        var vy = (Random.nextFloat() - 0.5f) * 2f
+        val radius = 2f + Random.nextFloat() * 2f
 
-                if (dist < connectRadius) {
-                    val alpha = (1 - dist / connectRadius) * 0.6f
-                    paintLine.alpha = (alpha * 255).toInt()
-                    canvas.drawLine(p1.x, p1.y, p2.x, p2.y, paintLine)
-                }
-            }
-        }
-
-        invalidate() // Animación continua
-    }
-
-    inner class Particle(private val viewWidth: Float, private val viewHeight: Float) {
-        var x = Math.random().toFloat() * viewWidth
-        var y = Math.random().toFloat() * viewHeight
-        private val vx = ((Math.random() - 0.5) * 1.5).toFloat()
-        private val vy = ((Math.random() - 0.5) * 1.5).toFloat()
-        private val radius = 2f + Math.random().toFloat() * 2f
-
-        fun update(t: Float) {
+        fun update() {
             x += vx
             y += vy
-
-            // Rebote en bordes
-            if (x < 0 || x > viewWidth) x = viewWidth / 2
-            if (y < 0 || y > viewHeight) y = viewHeight / 2
         }
-
-        fun draw(canvas: Canvas, paint: Paint) {
-            canvas.drawCircle(x, y, radius, paint)
-        }
-    }
-}
+    }}
