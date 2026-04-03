@@ -79,8 +79,8 @@ class NeuralOrbView @JvmOverloads constructor(
     inner class Particle(private val viewWidth: Float, private val viewHeight: Float) {
         var x = Math.random().toFloat() * viewWidth
         var y = Math.random().toFloat() * viewHeight
-        private val vx = (Math.random() - 0.5f) * 1.5f
-        private val vy = (Math.random() - 0.5f) * 1.5f
+        private val vx = ((Math.random() - 0.5) * 1.5).toFloat()
+        private val vy = ((Math.random() - 0.5) * 1.5).toFloat()
         private val radius = 2f + Math.random().toFloat() * 2f
 
         fun update(t: Float) {
