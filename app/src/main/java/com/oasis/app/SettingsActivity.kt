@@ -144,7 +144,6 @@ class SettingsActivity : AppCompatActivity() {
                 if (fromUser) {
                     updateSpeedLabel(progress, speedLabel)
                     // Actualizar velocidad real del TTS (ajusta el factor según tu implementación)
-                    tts.setSpeed(0.5f + (progress / 100f)) // Rango: 0.5x a 1.5x
                 }            }
             override fun onStartTrackingTouch(seekBar: SeekBar?) {}
             override fun onStopTrackingTouch(seekBar: SeekBar?) {
@@ -194,7 +193,8 @@ class SettingsActivity : AppCompatActivity() {
             "amanecer" -> "caribe"
             "caribe" -> "oscuro"
             else -> "amanecer"
-        }        prefs.edit().putString("selected_theme", next).apply()
+        }
+        prefs.edit().putString("selected_theme", next).apply()
         
         // Aplicar fondo inmediatamente
         val bgRes = when (next) {
