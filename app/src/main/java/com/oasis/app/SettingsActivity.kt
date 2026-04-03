@@ -97,11 +97,6 @@ class SettingsActivity : AppCompatActivity() {
         val title = findViewById<TextView>(R.id.settings_title)
         title.text = "Ajustes"
         tts.speak("Ajustes de OASIS")
-
-        setupSetting(R.id.btn_clock_format, "Formato de reloj", getClockFormatText(), "Formato de reloj") { toggleClockFormat() }
-        setupSetting(R.id.btn_tts_speed, "Velocidad de voz", getTtsSpeedText(), "Velocidad de voz") { toggleTtsSpeed() }
-        setupSetting(R.id.btn_sounds, "Sonidos", getSoundsText(), "Sonidos de la app") { toggleSounds() }
-        setupSetting(R.id.btn_animations, "Animaciones", getAnimationsText(), "Animaciones de la app") { toggleAnimations() }
         
         // SELECTOR DE TEMAS (todo inline, sin funciones separadas)
         val btnTheme = findViewById<SwitchCompat>(R.id.btn_day_night)
@@ -131,16 +126,6 @@ class SettingsActivity : AppCompatActivity() {
                 }
                 .setNegativeButton("Cancelar", null)
                 .show()
-        }
-    }
-
-    private fun setupSetting(btnId: Int, label: String, value: String, ttsText: String, onClick: () -> Unit) {
-        val switch = findViewById<SwitchCompat>(btnId)
-        switch.isChecked = value == "24h" || value == "Rápida" || value == "Activados" || value == "Activadas"
-        switch.setOnCheckedChangeListener { _, isChecked ->
-            sound.play(R.raw.touch)
-            tts.speak(ttsText)
-            onClick()
         }
     }
 
