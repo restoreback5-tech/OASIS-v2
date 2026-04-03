@@ -32,8 +32,10 @@ class NeuralOrbView @JvmOverloads constructor(
 
     private fun initParticles() {
         particles.clear()
+        val w = if (width > 0) width.toFloat() else 1080f
+        val h = if (height > 0) height.toFloat() else 1920f
         for (i in 0 until particleCount) {
-            particles.add(Particle(width.toFloat(), height.toFloat()))
+            particles.add(Particle(w, h))
         }
     }
 
