@@ -169,7 +169,7 @@ class MainActivity : AppCompatActivity() {
         findViewById<TextView>(R.id.greeting_text).setTextColor(textColor)
 
         // 3. Pintar los botones con los colores del tema
-        applyButtonTints(selectedTheme)
+        // applyButtonTints(selectedTheme) // TEMP: desactivado para prueba
     }
 
     private fun applyButtonTints(theme: String) {
