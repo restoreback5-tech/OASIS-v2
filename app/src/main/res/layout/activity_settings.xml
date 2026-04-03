@@ -1,207 +1,238 @@
 <?xml version="1.0" encoding="utf-8"?>
-<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+<ScrollView xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:app="http://schemas.android.com/apk/res-auto"
     android:layout_width="match_parent"
-    android:layout_height="match_parent"
-    android:orientation="vertical"
-    android:padding="16dp">
+    android:layout_height="match_parent">
 
-    <!-- Header con botón volver y título -->
     <LinearLayout
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:orientation="horizontal"
-        android:gravity="center_vertical"
-        android:layout_marginBottom="32dp">
+        android:orientation="vertical"
+        android:padding="16dp">
 
-        <!-- Botón volver -->
-        <ImageView
-            android:id="@+id/btn_back"
-            android:layout_width="48dp"
-            android:layout_height="48dp"
-            android:src="@android:drawable/ic_menu_revert"
-            android:contentDescription="Volver"
-            android:padding="8dp"
-            android:background="?attr/selectableItemBackgroundBorderless"
-            android:tint="#1C1C1E"  />
-
-        <!-- Título -->
-        <TextView
-            android:id="@+id/settings_title"
-            android:layout_width="0dp"
+        <!-- Header con botón volver y título -->
+        <LinearLayout
+            android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:layout_weight="1"
-            android:text="Ajustes"
-            android:textSize="24sp"
-            android:textColor="#1C1C1E"
-            android:fontFamily="@font/googlesans_semibold"
-            android:gravity="center" />
+            android:orientation="horizontal"
+            android:gravity="center_vertical"
+            android:layout_marginBottom="32dp">
 
-        <!-- Espacio vacío para balancear -->
-        <View
-            android:layout_width="48dp"
-            android:layout_height="48dp" />
+            <ImageView
+                android:id="@+id/btn_back"
+                android:layout_width="48dp"
+                android:layout_height="48dp"
+                android:src="@android:drawable/ic_menu_revert"
+                android:contentDescription="Volver"
+                android:padding="8dp"
+                android:background="?attr/selectableItemBackgroundBorderless"
+                android:tint="#1C1C1E" />
+
+            <TextView
+                android:id="@+id/settings_title"
+                android:layout_width="0dp"
+                android:layout_height="wrap_content"
+                android:layout_weight="1"
+                android:text="Ajustes"
+                android:textSize="24sp"
+                android:textColor="#1C1C1E"
+                android:fontFamily="@font/googlesans_semibold"
+                android:gravity="center" />
+
+            <View
+                android:layout_width="48dp"
+                android:layout_height="48dp" />
+        </LinearLayout>
+
+        <!-- Ajuste 1: Formato de reloj -->
+        <androidx.cardview.widget.CardView
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginBottom="12dp"
+            app:cardCornerRadius="12dp"
+            app:cardElevation="4dp"
+            android:background="@color/oasis_card">
+
+            <LinearLayout
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:orientation="horizontal"
+                android:padding="16dp"
+                android:gravity="center_vertical">
+
+                <ImageView
+                    android:id="@+id/led_clock_format"
+                    android:layout_width="24dp"
+                    android:layout_height="24dp"
+                    android:src="@drawable/led_indicator"
+                    android:contentDescription="Indicador formato de reloj"
+                    android:clickable="true"
+                    android:focusable="true"
+                    android:background="?attr/selectableItemBackgroundBorderless"
+                    android:padding="4dp" />
+
+                <TextView
+                    android:layout_width="0dp"
+                    android:layout_height="wrap_content"
+                    android:layout_weight="1"
+                    android:text="Formato de reloj: 24h"
+                    android:textSize="16sp"
+                    android:textColor="@color/oasis_text"
+                    android:fontFamily="@font/googlesans_medium" />
+            </LinearLayout>
+        </androidx.cardview.widget.CardView>
+
+        <!-- Ajuste 2: Velocidad de voz -->
+        <androidx.cardview.widget.CardView
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginBottom="12dp"
+            app:cardCornerRadius="12dp"
+            app:cardElevation="4dp"
+            android:background="@color/oasis_card">
+
+            <LinearLayout
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:orientation="horizontal"
+                android:padding="16dp"
+                android:gravity="center_vertical">
+
+                <ImageView
+                    android:id="@+id/led_tts_speed"
+                    android:layout_width="24dp"
+                    android:layout_height="24dp"
+                    android:src="@drawable/led_indicator"
+                    android:contentDescription="Indicador velocidad de voz"
+                    android:clickable="true"
+                    android:focusable="true"
+                    android:background="?attr/selectableItemBackgroundBorderless"
+                    android:padding="4dp" />
+
+                <TextView
+                    android:layout_width="0dp"
+                    android:layout_height="wrap_content"
+                    android:layout_weight="1"
+                    android:text="Velocidad de voz: Normal"
+                    android:textSize="16sp"
+                    android:textColor="@color/oasis_text"
+                    android:fontFamily="@font/googlesans_medium" />
+            </LinearLayout>
+        </androidx.cardview.widget.CardView>
+
+        <!-- Ajuste 3: Sonidos -->
+        <androidx.cardview.widget.CardView
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginBottom="12dp"
+            app:cardCornerRadius="12dp"
+            app:cardElevation="4dp"
+            android:background="@color/oasis_card">
+
+            <LinearLayout
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:orientation="horizontal"
+                android:padding="16dp"
+                android:gravity="center_vertical">
+
+                <ImageView
+                    android:id="@+id/led_sounds"
+                    android:layout_width="24dp"
+                    android:layout_height="24dp"
+                    android:src="@drawable/led_indicator"
+                    android:contentDescription="Indicador sonidos"
+                    android:clickable="true"
+                    android:focusable="true"
+                    android:background="?attr/selectableItemBackgroundBorderless"
+                    android:padding="4dp" />
+
+                <TextView
+                    android:layout_width="0dp"
+                    android:layout_height="wrap_content"
+                    android:layout_weight="1"
+                    android:text="Sonidos: Activados"
+                    android:textSize="16sp"
+                    android:textColor="@color/oasis_text"
+                    android:fontFamily="@font/googlesans_medium" />
+            </LinearLayout>
+        </androidx.cardview.widget.CardView>
+
+        <!-- Ajuste 4: Animaciones -->
+        <androidx.cardview.widget.CardView
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginBottom="12dp"
+            app:cardCornerRadius="12dp"
+            app:cardElevation="4dp"
+            android:background="@color/oasis_card">
+
+            <LinearLayout
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:orientation="horizontal"
+                android:padding="16dp"
+                android:gravity="center_vertical">
+
+                <ImageView
+                    android:id="@+id/led_animations"
+                    android:layout_width="24dp"
+                    android:layout_height="24dp"
+                    android:src="@drawable/led_indicator"
+                    android:contentDescription="Indicador animaciones"
+                    android:clickable="true"
+                    android:focusable="true"
+                    android:background="?attr/selectableItemBackgroundBorderless"
+                    android:padding="4dp" />
+
+                <TextView
+                    android:layout_width="0dp"
+                    android:layout_height="wrap_content"
+                    android:layout_weight="1"
+                    android:text="Animaciones: Activadas"
+                    android:textSize="16sp"
+                    android:textColor="@color/oasis_text"
+                    android:fontFamily="@font/googlesans_medium" />
+            </LinearLayout>
+        </androidx.cardview.widget.CardView>
+
+        <!-- Ajuste 5: Modo Día/Noche -->
+        <androidx.cardview.widget.CardView
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginBottom="12dp"
+            app:cardCornerRadius="12dp"
+            app:cardElevation="4dp"
+            android:background="@color/oasis_card">
+
+            <LinearLayout
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:orientation="horizontal"
+                android:padding="16dp"
+                android:gravity="center_vertical">
+
+                <ImageView
+                    android:id="@+id/led_day_night"
+                    android:layout_width="24dp"
+                    android:layout_height="24dp"
+                    android:src="@drawable/led_indicator"
+                    android:contentDescription="Indicador modo día/noche"
+                    android:clickable="true"
+                    android:focusable="true"
+                    android:background="?attr/selectableItemBackgroundBorderless"
+                    android:padding="4dp" />
+
+                <TextView
+                    android:layout_width="0dp"
+                    android:layout_height="wrap_content"
+                    android:layout_weight="1"
+                    android:text="Modo Día/Noche: Día"
+                    android:textSize="16sp"
+                    android:textColor="@color/oasis_text"
+                    android:fontFamily="@font/googlesans_medium" />
+            </LinearLayout>
+        </androidx.cardview.widget.CardView>
 
     </LinearLayout>
-
-    <!-- Ajuste 1: Formato de reloj -->
-    <LinearLayout
-        android:layout_width="match_parent"
-        android:layout_height="wrap_content"
-        android:orientation="horizontal"
-        android:background="@color/oasis_card"
-        android:padding="16dp"
-        android:layout_marginBottom="8dp"
-        android:gravity="center_vertical">
-
-        <TextView
-            android:layout_width="0dp"
-            android:layout_height="wrap_content"
-            android:layout_weight="1"
-            android:text="Formato de reloj: 24h"
-            android:textSize="16sp"
-            android:textColor="@color/oasis_text"
-            android:fontFamily="@font/googlesans_medium" />
-
-        <ImageView
-            android:id="@+id/led_clock_format"
-            android:layout_width="24dp"
-            android:layout_height="24dp"
-            android:src="@drawable/led_indicator"
-            android:contentDescription="Indicador formato de reloj"
-            android:clickable="true"
-            android:focusable="true"
-            android:background="?attr/selectableItemBackgroundBorderless"
-            android:padding="4dp" />
-
-    </LinearLayout>
-
-    <!-- Ajuste 2: Velocidad de voz -->
-    <LinearLayout
-        android:layout_width="match_parent"
-        android:layout_height="wrap_content"
-        android:orientation="horizontal"
-        android:background="@color/oasis_card"
-        android:padding="16dp"
-        android:layout_marginBottom="8dp"
-        android:gravity="center_vertical">
-
-        <TextView
-            android:layout_width="0dp"
-            android:layout_height="wrap_content"
-            android:layout_weight="1"
-            android:text="Velocidad de voz: Normal"
-            android:textSize="16sp"
-            android:textColor="@color/oasis_text"
-            android:fontFamily="@font/googlesans_medium" />
-
-        <ImageView
-            android:id="@+id/led_tts_speed"
-            android:layout_width="24dp"
-            android:layout_height="24dp"
-            android:src="@drawable/led_indicator"
-            android:contentDescription="Indicador velocidad de voz"
-            android:clickable="true"
-            android:focusable="true"
-            android:background="?attr/selectableItemBackgroundBorderless"
-            android:padding="4dp" />
-
-    </LinearLayout>
-
-   <!-- Ajuste 3: Sonidos -->
-    <LinearLayout
-        android:layout_width="match_parent"
-        android:layout_height="wrap_content"
-        android:orientation="horizontal"
-        android:background="@color/oasis_card"
-        android:padding="16dp"
-        android:layout_marginBottom="8dp"
-        android:gravity="center_vertical">
-
-        <TextView
-            android:layout_width="0dp"
-            android:layout_height="wrap_content"
-            android:layout_weight="1"
-            android:text="Sonidos: Activados"
-            android:textSize="16sp"
-            android:textColor="@color/oasis_text"
-            android:fontFamily="@font/googlesans_medium" />
-
-        <ImageView
-            android:id="@+id/led_sounds"
-            android:layout_width="24dp"
-            android:layout_height="24dp"
-            android:src="@drawable/led_indicator"
-            android:contentDescription="Indicador sonidos"
-            android:clickable="true"
-            android:focusable="true"
-            android:background="?attr/selectableItemBackgroundBorderless"
-            android:padding="4dp" />
-
-    </LinearLayout>
-
-   <!-- Ajuste 4: Animaciones -->
-    <LinearLayout
-        android:layout_width="match_parent"
-        android:layout_height="wrap_content"
-        android:orientation="horizontal"
-        android:background="@color/oasis_card"
-        android:padding="16dp"
-        android:layout_marginBottom="8dp"
-        android:gravity="center_vertical">
-
-        <TextView
-            android:layout_width="0dp"
-            android:layout_height="wrap_content"
-            android:layout_weight="1"
-            android:text="Animaciones: Activadas"
-            android:textSize="16sp"
-            android:textColor="@color/oasis_text"
-            android:fontFamily="@font/googlesans_medium" />
-
-        <ImageView
-            android:id="@+id/led_animations"
-            android:layout_width="24dp"
-            android:layout_height="24dp"
-            android:src="@drawable/led_indicator"
-            android:contentDescription="Indicador animaciones"
-            android:clickable="true"
-            android:focusable="true"
-            android:background="?attr/selectableItemBackgroundBorderless"
-            android:padding="4dp" />
-
-    </LinearLayout>
-
-   <!-- Ajuste 5: Modo Día/Noche -->
-    <LinearLayout
-        android:layout_width="match_parent"
-        android:layout_height="wrap_content"
-        android:orientation="horizontal"
-        android:background="@color/oasis_card"
-        android:padding="16dp"
-        android:layout_marginBottom="8dp"
-        android:gravity="center_vertical">
-
-        <TextView
-            android:layout_width="0dp"
-            android:layout_height="wrap_content"
-            android:layout_weight="1"
-            android:text="Modo Día/Noche: Día"
-            android:textSize="16sp"
-            android:textColor="@color/oasis_text"
-            android:fontFamily="@font/googlesans_medium" />
-
-        <ImageView
-            android:id="@+id/led_day_night"
-            android:layout_width="24dp"
-            android:layout_height="24dp"
-            android:src="@drawable/led_indicator"
-            android:contentDescription="Indicador modo día/noche"
-            android:clickable="true"
-            android:focusable="true"
-            android:background="?attr/selectableItemBackgroundBorderless"
-            android:padding="4dp" />
-
-    </LinearLayout>
-
-</LinearLayout>
+</ScrollView>
