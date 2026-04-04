@@ -54,24 +54,24 @@ class VoiceCommandModule(
                 override fun onEvent(eventType: Int, params: Bundle?) {}
 
                 override fun onError(error: Int) {
-                    isListening = false
-                    onListening(false)
+                    // Usamos run para asegurar el contexto correcto
+                    run {
+                        isListening = false
+                        onListening(false)
+                    }
                     val errorMsg = when (error) {
-                        SpeechRecognizer.ERROR_AUDIO -> "Error de audio"
-                        SpeechRecognizer.ERROR_CLIENT -> "Error del cliente"
-                        SpeechRecognizer.ERROR_INSUFFICIENT_PERMISSIONS -> "Permiso de micrófono denegado"
-                        SpeechRecognizer.ERROR_NETWORK -> "Sin conexión"
-                        SpeechRecognizer.ERROR_NO_MATCH -> "No entendí, intenta de nuevo"
-                        SpeechRecognizer.ERROR_RECOGNIZER_BUSY -> "Ocupado, espera un momento"
-                        SpeechRecognizer.ERROR_SERVER -> "Error del servidor"
-                        SpeechRecognizer.ERROR_SPEECH_TIMEOUT -> "Tiempo de espera agotado"
-                        else -> "Error desconocido"
+                        1 -> "Error de audio"
+                        2 -> "Error del cliente" 
+                        3 -> "Permiso denegado"
+                        4 -> "Sin conexión"
+                        5 -> "No entendí"
+                        6 -> "Ocupado"
+                        7 -> "Error del servidor"
+                        8 -> "Tiempo agotado"
+                        else -> "Error $error"
                     }
                     onError(errorMsg)
                 }
-            })
-        }
-    }
 
     fun startListening() {
         if (!isSpeechAvailable()) {
@@ -96,7 +96,8 @@ class VoiceCommandModule(
     }
 
     fun stopListening() {
-        speechRecognizer?.stopListening()        isListening = false
+        speechRecognizer?.stopListening()       
+        isListening = false
         onListening(false)
     }
 
