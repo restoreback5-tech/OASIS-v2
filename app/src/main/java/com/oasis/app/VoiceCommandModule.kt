@@ -46,7 +46,8 @@ class VoiceCommandModule(
                     
                     val matches = results?.getStringArrayList(SpeechRecognizer.RESULTS_RECOGNITION)
                     if (!matches.isNullOrEmpty()) {
-                        val commandText = matches[0].lowercase(Locale.getDefault()).trim()                        parseAndExecute(commandText)
+                      val commandText = matches[0].lowercase(Locale.getDefault()).trim()                       
+                      parseAndExecute(commandText)
                     }
                 }
 
