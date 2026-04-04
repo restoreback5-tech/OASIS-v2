@@ -9,7 +9,9 @@
     <uses-permission android:name="android.permission.READ_CONTACTS" />
     <uses-permission android:name="android.permission.SEND_SMS" />
     <uses-permission android:name="android.permission.VIBRATE" />
-    
+    <uses-permission android:name="android.permission.FOREGROUND_SERVICE" />
+    <uses-permission android:name="android.permission.FOREGROUND_SERVICE_MICROPHONE" /> 
+
     <!-- Permiso nuevo para overlay (Sección 4.1.4) -->
     <uses-permission android:name="android.permission.SYSTEM_ALERT_WINDOW" />
 

@@ -45,6 +45,26 @@ class OverlayService : Service() {
         )
 
         windowManager = getSystemService(WINDOW_SERVICE) as WindowManager
+       // 1. Crear Canal de Notificación (Obligatorio para Android 8+)
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
+            val channel = android.app.NotificationChannel(
+                "oasis_overlay_channel",
+                "OASIS Overlay",
+                android.app.NotificationManager.IMPORTANCE_LOW
+            )
+            val manager = getSystemService(android.app.NotificationManager::class.java)
+            manager?.createNotificationChannel(channel)
+        }
+
+        // 2. Crear la Notificación
+        val notification = androidx.core.app.NotificationCompat.Builder(this, "oasis_overlay_channel")
+            .setContentTitle("OASIS Activo")
+            .setContentText("Asistente flotante listo")
+            .setSmallIcon(android.R.drawable.ic_dialog_info) // Icono del sistema para evitar errores
+            .build()
+
+        // 3. Iniciar en Primer Plano (Esto activa el micrófono)
+        startForeground(1, notification)
         createFloatingButton()
     }
     override fun onStartCommand(intent: Intent?, flags: Int, startId: Int): Int {

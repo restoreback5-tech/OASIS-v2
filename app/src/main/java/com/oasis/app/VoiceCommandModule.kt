@@ -85,6 +85,7 @@ class VoiceCommandModule(
             putExtra(RecognizerIntent.EXTRA_LANGUAGE, Locale.getDefault().language)
             putExtra(RecognizerIntent.EXTRA_PROMPT, "Dime, ¿en qué puedo ayudarte?")
             putExtra(RecognizerIntent.EXTRA_MAX_RESULTS, 1)
+            putExtra(RecognizerIntent.EXTRA_CALLING_PACKAGE, context.packageName) // <--- AGREGA ESTA LÍNEA
         }
 
         try {
