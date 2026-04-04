@@ -116,7 +116,7 @@ class VoiceCommandModule(
         return activities.isNotEmpty()
     }
 
-    private fun parseCommand(command: String) {
+    internal fun parseCommand(command: String) {
         // Comandos básicos para adultos mayores (simples y claros)
         val params = mutableMapOf<String, String>()
 

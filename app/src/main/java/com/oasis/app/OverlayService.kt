@@ -16,7 +16,7 @@ import android.widget.ImageView
 import android.widget.TextView
 import android.widget.Toast
 
-class OverlayService : Service(), TextToSpeech.OnInitListener {
+class OverlayService : Service(){
 
     private lateinit var windowManager: WindowManager
     private lateinit var sound: SoundModule
@@ -145,6 +145,29 @@ class OverlayService : Service(), TextToSpeech.OnInitListener {
     // El cerebro: ejecuta lo que dice el usuario
     private fun handleCommand(command: String, params: Map<String, String>) {
         when (command) {
+            "call" -> {
+                val contact = params["contact"] ?: "contacto"
+                tts?.speak("Llamando a $contact")
+            }
+            "message" -> {
+                val contact = params["contact"] ?: "contacto"
+                tts?.speak("Preparando mensaje para $contact")
+            }
+            "open_app" -> {
+                val appName = params["app"] ?: "la aplicación"
+                tts?.speak("Abriendo $appName")
+            }
+            "cancel" -> {
+                tts?.speak("Cancelado")
+            }
+            "help" -> {
+                tts?.speak("Puedo llamar, enviar mensajes o abrir aplicaciones. Dime, ¿qué necesitas?")
+            }
+            else -> {
+                tts?.speak("No entendí el comando")
+            }
+        }
+    } 
             "call" -> {
                 val name = params["contact"] ?: "contacto"                tts?.speak("Llamando a $name")
                 // TODO: Implementar intento de llamada real aquí
