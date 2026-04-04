@@ -145,7 +145,8 @@ class OverlayService : Service() {
                     true
                 }
                 MotionEvent.ACTION_UP -> {
-                    v.alpha = 1.0f                    if (!isDragging) {
+                    v.alpha = 1.0f                    
+                    if (!isDragging) {
                         sound.play(R.raw.touch)
                         // Lanzar actividad invisible para micrófono
                         val intent = Intent(this, VoiceCaptureActivity::class.java).apply {
@@ -194,7 +195,8 @@ class OverlayService : Service() {
             commandText.contains("llamar") || commandText.contains("llama a") -> {
                 command = "call"
                 params["contact"] = extractName(commandText, listOf("llamar", "llama a", "telefonear"))
-            }            commandText.contains("mensaje") || commandText.contains("mandar") || commandText.contains("enviar") -> {
+            }           
+                commandText.contains("mensaje") || commandText.contains("mandar") || commandText.contains("enviar") -> {
                 command = "message"
                 params["contact"] = extractName(commandText, listOf("mensaje", "mandar", "enviar", "a"))
             }
