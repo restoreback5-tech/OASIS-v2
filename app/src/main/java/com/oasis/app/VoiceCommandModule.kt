@@ -46,22 +46,19 @@ class VoiceCommandModule(
                     
                     val matches = results?.getStringArrayList(SpeechRecognizer.RESULTS_RECOGNITION)
                     if (!matches.isNullOrEmpty()) {
-                        val commandText = matches[0].lowercase(Locale.getDefault()).trim()
-                        parseAndExecute(commandText)                    }
+                        val commandText = matches[0].lowercase(Locale.getDefault()).trim()                        parseAndExecute(commandText)
+                    }
                 }
 
                 override fun onPartialResults(partialResults: Bundle?) {}
                 override fun onEvent(eventType: Int, params: Bundle?) {}
 
                 override fun onError(error: Int) {
-                    // Usamos run para asegurar el contexto correcto
-                    run {
-                        isListening = false
-                        onListening(false)
-                    }
+                    isListening = false
+                    onListening(false)
                     val errorMsg = when (error) {
                         1 -> "Error de audio"
-                        2 -> "Error del cliente" 
+                        2 -> "Error del cliente"
                         3 -> "Permiso denegado"
                         4 -> "Sin conexión"
                         5 -> "No entendí"
@@ -72,10 +69,13 @@ class VoiceCommandModule(
                     }
                     onError(errorMsg)
                 }
+            })
+        }
+    }
 
     fun startListening() {
         if (!isSpeechAvailable()) {
-            onError("Reconocimiento de voz no disponible. Instala Google Voice Search.")
+            onError("Reconocimiento de voz no disponible")
             return
         }
 
@@ -95,8 +95,7 @@ class VoiceCommandModule(
         }
     }
 
-    fun stopListening() {
-        speechRecognizer?.stopListening()       
+    fun stopListening() {        speechRecognizer?.stopListening()
         isListening = false
         onListening(false)
     }
@@ -115,7 +114,6 @@ class VoiceCommandModule(
         return activities.isNotEmpty()
     }
 
-    // 🔹 NUEVA LÓGICA DE PARSEO (LIMPIA, SIN DUPLICADOS)
     private fun parseAndExecute(commandText: String) {
         val params = mutableMapOf<String, String>()
         var command = ""
@@ -140,7 +138,7 @@ class VoiceCommandModule(
                 command = "help"
             }
             else -> {
-                onError("No entendí. Prueba: 'Llamar a mamá', 'Abrir WhatsApp', 'Enviar mensaje'")
+                onError("No entendí. Prueba: 'Llamar a mamá', 'Abrir WhatsApp'")
                 return
             }
         }
@@ -149,7 +147,6 @@ class VoiceCommandModule(
             onCommandDetected(command, params)        }
     }
 
-    // 🔹 EXTRACCIÓN DE NOMBRE (UNA SOLA VEZ, OPTIMIZADA)
     private fun extractName(text: String, keywords: List<String>): String {
         var result = text
         for (kw in keywords) {
