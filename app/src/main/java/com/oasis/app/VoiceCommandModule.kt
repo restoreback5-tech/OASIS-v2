@@ -1,6 +1,5 @@
 package com.oasis.app
 
-import android.content.ComponentName
 import android.content.Context
 import android.content.Intent
 import android.content.pm.PackageManager
@@ -8,8 +7,7 @@ import android.os.Bundle
 import android.speech.RecognitionListener
 import android.speech.RecognizerIntent
 import android.speech.SpeechRecognizer
-import android.widget.Toast
-import java.util.*
+import java.util.Locale
 
 class VoiceCommandModule(
     private val context: Context,
@@ -36,6 +34,7 @@ class VoiceCommandModule(
                 override fun onBeginningOfSpeech() {}
                 override fun onRmsChanged(rmsdB: Float) {}
                 override fun onBufferReceived(buffer: ByteArray?) {}
+                
                 override fun onEndOfSpeech() {
                     isListening = false
                     onListening(false)
@@ -47,8 +46,8 @@ class VoiceCommandModule(
                     
                     val matches = results?.getStringArrayList(SpeechRecognizer.RESULTS_RECOGNITION)
                     if (!matches.isNullOrEmpty()) {
-                        val command = matches[0].lowercase(Locale.getDefault()).trim()                        parseCommand(command)
-                    }
+                        val commandText = matches[0].lowercase(Locale.getDefault()).trim()
+                        parseAndExecute(commandText)                    }
                 }
 
                 override fun onPartialResults(partialResults: Bundle?) {}
@@ -66,7 +65,7 @@ class VoiceCommandModule(
                         SpeechRecognizer.ERROR_RECOGNIZER_BUSY -> "Ocupado, espera un momento"
                         SpeechRecognizer.ERROR_SERVER -> "Error del servidor"
                         SpeechRecognizer.ERROR_SPEECH_TIMEOUT -> "Tiempo de espera agotado"
-                        else -> "Error desconocido: $error"
+                        else -> "Error desconocido"
                     }
                     onError(errorMsg)
                 }
@@ -84,8 +83,7 @@ class VoiceCommandModule(
             putExtra(RecognizerIntent.EXTRA_LANGUAGE_MODEL, RecognizerIntent.LANGUAGE_MODEL_FREE_FORM)
             putExtra(RecognizerIntent.EXTRA_LANGUAGE, Locale.getDefault().language)
             putExtra(RecognizerIntent.EXTRA_PROMPT, "Dime, ¿en qué puedo ayudarte?")
-            putExtra(RecognizerIntent.EXTRA_PARTIAL_RESULTS, true)
-            putExtra(RecognizerIntent.EXTRA_MAX_RESULTS, 3)
+            putExtra(RecognizerIntent.EXTRA_MAX_RESULTS, 1)
         }
 
         try {
@@ -93,12 +91,12 @@ class VoiceCommandModule(
         } catch (e: SecurityException) {
             onError("Permiso de micrófono no concedido")
         } catch (e: Exception) {
-            onError("Error al iniciar escucha: ${e.message}")
+            onError("Error al iniciar escucha")
         }
     }
+
     fun stopListening() {
-        speechRecognizer?.stopListening()
-        isListening = false
+        speechRecognizer?.stopListening()        isListening = false
         onListening(false)
     }
 
@@ -116,64 +114,46 @@ class VoiceCommandModule(
         return activities.isNotEmpty()
     }
 
-    internal fun parseCommand(command: String) {
-        // Comandos básicos para adultos mayores (simples y claros)
+    // 🔹 NUEVA LÓGICA DE PARSEO (LIMPIA, SIN DUPLICADOS)
+    private fun parseAndExecute(commandText: String) {
         val params = mutableMapOf<String, String>()
+        var command = ""
 
         when {
-            // 📞 LLAMADAS
-            command.contains("llamar") || command.contains("llama a") || command.contains("telefonear") -> {
-                val name = extractName(command, listOf("llamar", "llama a", "telefonear"))
-                if (name.isNotEmpty()) {
-                    params["contact"] = name
-                    onCommandDetected("call", params)
-                } else {
-                    onError("¿A quién quieres llamar?")
-                }
+            commandText.contains("llamar") || commandText.contains("llama a") -> {
+                command = "call"
+                params["contact"] = extractName(commandText, listOf("llamar", "llama a", "telefonear"))
             }
-
-            // 💬 MENSAJES
-            command.contains("mensaje") || command.contains("mandar") || command.contains("enviar") -> {
-                val name = extractName(command, listOf("mensaje", "mandar", "enviar", "a"))
-                params["contact"] = name
-                onCommandDetected("message", params)
+            commandText.contains("mensaje") || commandText.contains("mandar") || commandText.contains("enviar") -> {
+                command = "message"
+                params["contact"] = extractName(commandText, listOf("mensaje", "mandar", "enviar", "a"))
             }
-
-            // 📱 ABRIR APPS
-            command.contains("abrir") || command.contains("abre") -> {
-                val app = extractName(command, listOf("abrir", "abre", "la app", "el"))
-                if (app.isNotEmpty()) {
-                    params["app"] = app
-                    onCommandDetected("open_app", params)
-                }            }
-
-            // ❌ CANCELAR / DETENER
-            command.contains("cancelar") || command.contains("detener") || command.contains("parar") -> {
-                onCommandDetected("cancel", emptyMap())
+            commandText.contains("abrir") -> {
+                command = "open_app"
+                params["app"] = extractName(commandText, listOf("abrir", "abre", "la app", "el"))
             }
-
-            // ❓ AYUDA
-            command.contains("ayuda") || command.contains("qué puedes hacer") -> {
-                onCommandDetected("help", emptyMap())
+            commandText.contains("cancelar") || commandText.contains("detener") || commandText.contains("parar") -> {
+                command = "cancel"
             }
-
-            // 🔄 REPETIR
-            command.contains("repetir") || command.contains("otra vez") -> {
-                onCommandDetected("repeat", emptyMap())
+            commandText.contains("ayuda") || commandText.contains("qué puedes hacer") -> {
+                command = "help"
             }
-
             else -> {
                 onError("No entendí. Prueba: 'Llamar a mamá', 'Abrir WhatsApp', 'Enviar mensaje'")
+                return
             }
         }
+
+        if (command.isNotEmpty()) {
+            onCommandDetected(command, params)        }
     }
 
-    private fun extractName(command: String, keywords: List<String>): String {
-        var result = command
+    // 🔹 EXTRACCIÓN DE NOMBRE (UNA SOLA VEZ, OPTIMIZADA)
+    private fun extractName(text: String, keywords: List<String>): String {
+        var result = text
         for (kw in keywords) {
             result = result.replace(kw, "").trim()
         }
-        // Limpiar artículos y preposiciones comunes
         result = result.replace(Regex("\\b(el|la|los|las|un|una|a|de|del|para)\\b"), "").trim()
         return result.replace(Regex("[^a-zA-ZáéíóúÁÉÍÓÚñÑ\\s]"), "").trim()
     }
