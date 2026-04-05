@@ -79,8 +79,8 @@ class SettingsActivity : AppCompatActivity() {
 
                 // Botón SÍ (✓)
                 dialogView.findViewById<Button>(R.id.btn_yes).setOnClickListener {
-                    dialog.dismiss()
                     sound.play(R.raw.confirmar)
+		    dialog.dismiss()
                     state = !state
                     prefs.edit().putBoolean(prefKey, state).apply()
                     updateLedColor(ledId, state)
@@ -99,6 +99,7 @@ class SettingsActivity : AppCompatActivity() {
                 // Botón NO (✗)
                 dialogView.findViewById<Button>(R.id.btn_no).setOnClickListener {                    dialog.dismiss()
                     sound.play(R.raw.cancelar)
+		    dialog.dismiss()
                 }
 
                 dialog.show()

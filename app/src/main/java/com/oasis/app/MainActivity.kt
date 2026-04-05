@@ -39,6 +39,12 @@ class MainActivity : AppCompatActivity() {
         orb.startAnimation(neuralAnim)
 
         sound = SoundModule(this)
+
+	// Precargar sonidos críticos para respuesta inmediata
+        sound.preload(
+            R.raw.cancelar,
+            R.raw.confirmar
+        )
         toast = ToastModule(this)
         anim = AnimationModule(findViewById(R.id.orb_view))
         tts = TTSModule(this)
