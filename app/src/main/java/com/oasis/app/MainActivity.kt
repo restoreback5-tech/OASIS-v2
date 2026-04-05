@@ -141,16 +141,155 @@ class MainActivity : AppCompatActivity() {
     }
 
     private fun processCommand(cmd: String) {
-        toast.show("Comando: $cmd")
-        when {
-            cmd.contains("llamar") -> openDialer()
-            cmd.contains("mensaje") -> openSms()
-            cmd.contains("contacto") -> openContacts()
-            cmd.contains("app") -> openLauncher()
-            cmd.contains("hola") -> tts.speak("Hola, soy OASIS")
-            else -> tts.speak("No entendí")
+    val cmdLower = cmd.lowercase().trim()
+    toast.show("Comando: $cmd")
+
+    when {
+        // --- ABRIR APPS ESPECÍFICAS ---
+        cmdLower.contains("abrir") || cmdLower.contains("abre") || cmdLower.contains("lanza") -> {
+            val appName = extractAppName(cmdLower)
+            if (appName.isNotEmpty()) {
+                openSpecificApp(appName)
+            } else {
+                tts.speak("¿Qué aplicación quieres abrir?")
+            }
         }
+
+        // --- LLAMAR ---
+        cmdLower.contains("llamar") || cmdLower.contains("llama a") -> {
+            val contactName = extractContactName(cmdLower)
+            if (contactName.isNotEmpty()) {
+                // Si es un número, marca directo
+                if (contactName.any { it.isDigit() }) {
+                    dialNumber(contactName)
+                } else {
+                    // Si es un nombre, abre el dialer con búsqueda (o intenta buscar contacto)
+                    tts.speak("Buscando a $contactName")
+                    openDialer()
+                    // Nota: Para buscar contacto por nombre real, necesitas implementar ContactsContract
+                }
+            } else {
+                tts.speak("¿A quién quieres llamar?")
+            }
+        }
+
+        // --- ENVIAR MENSAJE ---
+        cmdLower.contains("mensaje") || cmdLower.contains("mandar") || cmdLower.contains("enviar") -> {
+            val contactName = extractContactName(cmdLower)
+            if (contactName.isNotEmpty()) {
+                openSmsToContact(contactName)
+            } else {
+                openSms()
+            }
+        }
+
+        // --- CONTACTOS ---
+        cmdLower.contains("contacto") -> openContacts()
+
+        // --- ABRIR LAUNCHER/APPS ---
+        cmdLower.contains("app") || cmdLower.contains("menú") -> openLauncher()
+
+        // --- SALUDO ---        cmdLower.contains("hola") -> tts.speak("Hola, soy OASIS. ¿En qué puedo ayudarte?")
+
+        // --- AYUDA ---
+        cmdLower.contains("ayuda") || cmdLower.contains("qué puedes hacer") -> {
+            tts.speak("Puedo abrir aplicaciones como WhatsApp o YouTube, hacer llamadas, enviar mensajes, o ayudarte con ajustes.")
+        }
+
+        // --- NO ENTENDIÓ ---
+        else -> tts.speak("No entendí. Prueba decir: 'Abre WhatsApp', 'Llama a mamá', o 'Envía mensaje'")
     }
+}
+
+// Extrae el nombre de la app del comando
+private fun extractAppName(cmd: String): String {
+    var result = cmd
+    // Eliminar palabras clave
+    listOf("abrir", "abre", "lanza", "inicia", "la app", "el", "la", "aplicación").forEach { kw ->
+        result = result.replace(kw, "").trim()
+    }
+    // Eliminar artículos y preposiciones
+    result = result.replace(Regex("\\b(el|la|los|las|un|una|a|de|del|para|por)\\b"), "").trim()
+    return result.replace(Regex("[^a-zA-ZáéíóúÁÉÍÓÚñÑ\\s]"), "").trim()
+}
+
+// Extrae el nombre del contacto
+private fun extractContactName(cmd: String): String {
+    var result = cmd
+    listOf("llamar", "llama a", "mensaje", "mandar", "enviar", "a").forEach { kw ->
+        result = result.replace(kw, "").trim()
+    }
+    result = result.replace(Regex("\\b(el|la|los|las|un|una|de|del|para|por)\\b"), "").trim()
+    return result.replace(Regex("[^a-zA-ZáéíóúÁÉÍÓÚñÑ\\s]"), "").trim()
+}
+
+// Abre una app específica por nombre
+private fun openSpecificApp(appName: String) {
+    val normalizedApp = appName.lowercase()
+    
+    val packageName = when {
+        normalizedApp.contains("whatsapp") || normalizedApp.contains("wasap") -> "com.whatsapp"
+        normalizedApp.contains("facebook") || normalizedApp.contains("fb") -> "com.facebook.katana"
+        normalizedApp.contains("instagram") || normalizedApp.contains("insta") -> "com.instagram.android"
+        normalizedApp.contains("youtube") || normalizedApp.contains("tubo") -> "com.google.android.youtube"
+        normalizedApp.contains("chrome") || normalizedApp.contains("navegador") -> "com.android.chrome"
+        normalizedApp.contains("camara") || normalizedApp.contains("cámara") -> "com.android.camera2"
+        normalizedApp.contains("ajustes") || normalizedApp.contains("configuración") -> "com.android.settings"
+        normalizedApp.contains("reloj") -> "com.google.android.deskclock"
+        normalizedApp.contains("calculadora") -> "com.android.calculator2"
+        normalizedApp.contains("spotify") -> "com.spotify.music"
+        normalizedApp.contains("maps") || normalizedApp.contains("mapas") -> "com.google.android.apps.maps"        normalizedApp.contains("telegram") -> "org.telegram.messenger"
+        normalizedApp.contains("twitter") || normalizedApp.contains("x") -> "com.twitter.android"
+        else -> null
+    }
+
+    if (packageName != null) {
+        try {
+            val intent = packageManager.getLaunchIntentForPackage(packageName)
+            if (intent != null) {
+                intent.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK)
+                startActivity(intent)
+                tts.speak("Abriendo $appName")
+            } else {
+                tts.speak("No tengo instalada la aplicación $appName")
+            }
+        } catch (e: Exception) {
+            tts.speak("Error al abrir $appName")
+        }
+    } else {
+        tts.speak("No reconozco la aplicación $appName. Prueba con WhatsApp, YouTube o Facebook.")
+    }
+}
+
+// Marca un número telefónico
+private fun dialNumber(number: String) {
+    try {
+        val intent = Intent(Intent.ACTION_DIAL)
+        intent.data = android.net.Uri.parse("tel:$number")
+        startActivity(intent)
+        tts.speak("Marcando $number")
+    } catch (e: Exception) {
+        tts.speak("Error al marcar")
+    }
+}
+
+// Abre SMS preparado para un contacto
+private fun openSmsToContact(contactName: String) {
+    try {
+        // Abre la app de mensajes (WhatsApp si existe, sino SMS normal)
+        val whatsappIntent = packageManager.getLaunchIntentForPackage("com.whatsapp")
+        if (whatsappIntent != null && contactName.lowercase().contains("whatsapp")) {
+            startActivity(whatsappIntent)
+            tts.speak("Abriendo WhatsApp")
+        } else {
+            val intent = Intent(Intent.ACTION_VIEW)
+            intent.type = "vnd.android-dir/mms-sms"
+            startActivity(intent)
+            tts.speak("Abriendo mensajes para $contactName")
+        }
+    } catch (e: Exception) {        toast.show("No hay app de mensajes")
+    }
+}
 
     private fun openLauncher() {
         try {
