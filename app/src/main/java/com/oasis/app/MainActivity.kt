@@ -225,41 +225,43 @@ private fun extractContactName(cmd: String): String {
 
 // Abre una app específica por nombre
 private fun openSpecificApp(appName: String) {
-    val normalizedApp = appName.lowercase()
-    
-    val packageName = when {
-        normalizedApp.contains("whatsapp") || normalizedApp.contains("wasap") -> "com.whatsapp"
-        normalizedApp.contains("facebook") || normalizedApp.contains("fb") -> "com.facebook.katana"
-        normalizedApp.contains("instagram") || normalizedApp.contains("insta") -> "com.instagram.android"
-        normalizedApp.contains("youtube") || normalizedApp.contains("tubo") -> "com.google.android.youtube"
-        normalizedApp.contains("chrome") || normalizedApp.contains("navegador") -> "com.android.chrome"
-        normalizedApp.contains("camara") || normalizedApp.contains("cámara") -> "com.android.camera2"
-        normalizedApp.contains("ajustes") || normalizedApp.contains("configuración") -> "com.android.settings"
-        normalizedApp.contains("reloj") -> "com.google.android.deskclock"
-        normalizedApp.contains("calculadora") -> "com.android.calculator2"
-        normalizedApp.contains("spotify") -> "com.spotify.music"
-        normalizedApp.contains("maps") || normalizedApp.contains("mapas") -> "com.google.android.apps.maps"        normalizedApp.contains("telegram") -> "org.telegram.messenger"
-        normalizedApp.contains("twitter") || normalizedApp.contains("x") -> "com.twitter.android"
-        else -> null
-    }
-
-    if (packageName != null) {
-        try {
-            val intent = packageManager.getLaunchIntentForPackage(packageName)
-            if (intent != null) {
-                intent.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK)
-                startActivity(intent)
-                tts.speak("Abriendo $appName")
-            } else {
-                tts.speak("No tengo instalada la aplicación $appName")
-            }
-        } catch (e: Exception) {
-            tts.speak("Error al abrir $appName")
+        // Normalizar el nombre para comparación (minúsculas y sin espacios extra)
+        val normalizedApp = appName.lowercase().trim()
+        
+        val packageName = when {
+            normalizedApp.contains("whatsapp") || normalizedApp.contains("wasap") -> "com.whatsapp"
+            normalizedApp.contains("facebook") || normalizedApp.contains("fb") -> "com.facebook.katana"
+            normalizedApp.contains("instagram") || normalizedApp.contains("insta") -> "com.instagram.android"
+            normalizedApp.contains("youtube") || normalizedApp.contains("tubo") -> "com.google.android.youtube"
+            normalizedApp.contains("chrome") || normalizedApp.contains("navegador") -> "com.android.chrome"
+            normalizedApp.contains("camara") || normalizedApp.contains("cámara") -> "com.android.camera2"
+            normalizedApp.contains("ajustes") || normalizedApp.contains("configuración") -> "com.android.settings"
+            normalizedApp.contains("reloj") -> "com.google.android.deskclock"
+            normalizedApp.contains("calculadora") -> "com.android.calculator2"
+            normalizedApp.contains("spotify") -> "com.spotify.music"
+            normalizedApp.contains("maps") || normalizedApp.contains("mapas") -> "com.google.android.apps.maps"
+            normalizedApp.contains("telegram") -> "org.telegram.messenger"
+            normalizedApp.contains("twitter") || normalizedApp.contains("x") -> "com.twitter.android"
+            else -> null
         }
-    } else {
-        tts.speak("No reconozco la aplicación $appName. Prueba con WhatsApp, YouTube o Facebook.")
+
+        if (packageName != null) {
+            try {
+                val intent = packageManager.getLaunchIntentForPackage(packageName)
+                if (intent != null) {
+                    intent.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK)
+                    startActivity(intent)
+                    tts.speak("Abriendo $appName")
+                } else {
+                    tts.speak("No tengo instalada la aplicación $appName")
+                }
+            } catch (e: Exception) {
+                tts.speak("Error al abrir $appName")
+            }
+        } else {
+            tts.speak("No reconozco la aplicación $appName. Prueba con WhatsApp, YouTube o Facebook.")
+        }
     }
-}
 
 // Marca un número telefónico
 private fun dialNumber(number: String) {
