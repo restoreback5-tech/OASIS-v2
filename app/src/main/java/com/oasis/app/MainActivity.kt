@@ -158,20 +158,23 @@ class MainActivity : AppCompatActivity() {
     }
 
     private fun openSms() {
-        try {
-            // Intenta abrir WhatsApp primero, si no, abre SMS nativo
-            val whatsappIntent = packageManager.getLaunchIntentForPackage("com.whatsapp")
-            if (whatsappIntent != null) {
-                startActivity(whatsappIntent)
-            } else {
-                val intent = Intent(Intent.ACTION_VIEW)
-                intent.type = "vnd.android-dir/mms-sms"
-                startActivity(intent)
-            }
-        } catch(_: Exception) {
-            toast.show("No hay app de mensajes")
+    try {
+        // Primero intenta abrir WhatsApp
+        val whatsappIntent = packageManager.getLaunchIntentForPackage("com.whatsapp")
+        if (whatsappIntent != null) {
+            startActivity(whatsappIntent)
+            tts.speak("Abriendo WhatsApp.")
+        } else {
+            // Si no hay WhatsApp, abre la app de SMS nativa
+            val intent = Intent(Intent.ACTION_MAIN)
+            intent.addCategory(Intent.CATEGORY_APP_MESSAGING)
+            startActivity(intent)
+            tts.speak("Abriendo mensajes.")
         }
+    } catch (e: Exception) {
+        toast.show("No se encontró ninguna app de mensajes")
     }
+}
 
     private fun openContacts() {
         try {
@@ -269,12 +272,13 @@ class MainActivity : AppCompatActivity() {
         return result.replace(Regex("[^a-zA-ZáéíóúÁÉÍÓÚñÑ\\s]"), "").trim()
     }
 
-    // === LANZADOR DE APPS ESPECÍFICAS (El cerebro que faltaba) ===
-
+    // === LANZADOR DE APPS ESPECÍFICAS ===
+    // Recibe el nombre limpio (ej: "whatsapp") y lo convierte en acción real
     private fun openSpecificApp(appName: String) {
+        // Normalizar: minúsculas y sin espacios extra
         val normalizedApp = appName.lowercase().trim()
         
-        // Mapeo de nombres hablados a Paquetes de Android
+        // Mapeo: nombre hablado → paquete de Android
         val packageName = when {
             normalizedApp.contains("whatsapp") || normalizedApp.contains("wasap") -> "com.whatsapp"
             normalizedApp.contains("facebook") || normalizedApp.contains("fb") -> "com.facebook.katana"
@@ -283,58 +287,73 @@ class MainActivity : AppCompatActivity() {
             normalizedApp.contains("chrome") || normalizedApp.contains("navegador") -> "com.android.chrome"
             normalizedApp.contains("camara") || normalizedApp.contains("cámara") -> "com.android.camera2"
             normalizedApp.contains("ajustes") || normalizedApp.contains("configuración") -> "com.android.settings"
-            normalizedApp.contains("reloj") -> "com.google.android.deskclock"
+            normalizedApp.contains("reloj") || normalizedApp.contains("alarma") -> "com.google.android.deskclock"
             normalizedApp.contains("calculadora") -> "com.android.calculator2"
             normalizedApp.contains("spotify") -> "com.spotify.music"
-            normalizedApp.contains("maps") || normalizedApp.contains("mapas") -> "com.google.android.apps.maps"
+            normalizedApp.contains("maps") || normalizedApp.contains("mapas") || normalizedApp.contains("google maps") -> "com.google.android.apps.maps"
             normalizedApp.contains("telegram") -> "org.telegram.messenger"
             normalizedApp.contains("twitter") || normalizedApp.contains("x") -> "com.twitter.android"
+            normalizedApp.contains("tiktok") -> "com.zhiliaoapp.musically"
+            normalizedApp.contains("gmail") || normalizedApp.contains("correo") -> "com.google.android.gm"
+            normalizedApp.contains("galeria") || normalizedApp.contains("fotos") -> "com.google.android.photos"
             else -> null
         }
 
+        // Intentar abrir la app si encontramos su paquete
         if (packageName != null) {
-            try {                val intent = packageManager.getLaunchIntentForPackage(packageName)
+            try {
+                val intent = packageManager.getLaunchIntentForPackage(packageName)
                 if (intent != null) {
                     intent.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK)
                     startActivity(intent)
-                    tts.speak("Abriendo $appName ahora.")
+                    tts.speak("Abriendo $appName")
                 } else {
-                    tts.speak("La aplicación $appName no está instalada.")
+                    tts.speak("Esta aplicación no está instalada")
                 }
             } catch (e: Exception) {
-                tts.speak("Error al abrir $appName.")
+                tts.speak("No se pudo abrir esta aplicación")
             }
         } else {
-            tts.speak("No reconozco esa aplicación. Prueba con WhatsApp, YouTube o Facebook.")
+            // Si no reconocemos el nombre, damos opciones claras
+            tts.speak("No reconozco esa aplicación. Intenta con: WhatsApp, YouTube, Facebook o Chrome")
         }
     }
 
+    // === MARCAR NÚMERO TELEFÓNICO ===
     private fun dialNumber(number: String) {
         try {
-            val intent = Intent(Intent.ACTION_DIAL)
-            intent.data = android.net.Uri.parse("tel:$number")
+            val intent = Intent(Intent.ACTION_DIAL).apply {
+                data = android.net.Uri.parse("tel:$number")
+            }
             startActivity(intent)
-            tts.speak("Marcando $number.")
+            tts.speak("Iniciando llamada")
         } catch (e: Exception) {
-            tts.speak("No fue posible marcar.")
+            tts.speak("No se pudo iniciar la llamada")
         }
     }
 
+    // === ENVIAR MENSAJE A CONTACTO ===
     private fun openSmsToContact(contactName: String) {
         try {
-            // Si dice "WhatsApp", abre WhatsApp, sino SMS normal
-            val whatsappIntent = packageManager.getLaunchIntentForPackage("com.whatsapp")
-            if (whatsappIntent != null && contactName.lowercase().contains("whatsapp")) {
-                startActivity(whatsappIntent)
-                tts.speak("Abriendo WhatsApp.")
+            // Si menciona WhatsApp, prioriza esa app
+            if (contactName.lowercase().contains("whatsapp") || contactName.lowercase().contains("wasap")) {
+                val whatsappIntent = packageManager.getLaunchIntentForPackage("com.whatsapp")
+                if (whatsappIntent != null) {
+                    startActivity(whatsappIntent)
+                    tts.speak("Abriendo WhatsApp")
+                } else {
+                    tts.speak("WhatsApp no está instalado")
+                }
             } else {
-                val intent = Intent(Intent.ACTION_VIEW)
-                intent.type = "vnd.android-dir/mms-sms"
+                // Abrir app de mensajes genérica
+                val intent = Intent(Intent.ACTION_SENDTO).apply {
+                    data = android.net.Uri.parse("smsto:")
+                }
                 startActivity(intent)
-                tts.speak("Abriendo mensajes para $contactName.")
+                tts.speak("Abriendo aplicación de mensajes")
             }
         } catch (e: Exception) {
-            toast.show("Error al abrir mensajes.")
+            toast.show("No se encontró aplicación de mensajes")
         }
     }
 
