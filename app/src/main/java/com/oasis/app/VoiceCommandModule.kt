@@ -185,7 +185,7 @@ class VoiceCommandModule(
             }
 
             else -> {
-                onError("No entendí. Prueba: 'Abre WhatsApp', 'Llama a mamá'")
+                onError("No entendí. Intenta: 'Abre una aplicación', 'Haz una llamada'")
                 return
             }
         }

@@ -1,7 +1,7 @@
 <manifest xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:tools="http://schemas.android.com/tools">
 
-    <!-- Permisos existentes (6) -->
+    <!-- Permisos existentes -->
     <uses-permission android:name="android.permission.INTERNET" />
     <uses-permission android:name="android.permission.RECORD_AUDIO" />
     <uses-permission android:name="android.permission.CALL_PHONE" />
@@ -11,19 +11,52 @@
     <uses-permission android:name="android.permission.FOREGROUND_SERVICE" />
     <uses-permission android:name="android.permission.FOREGROUND_SERVICE_MICROPHONE" />
 
-    <!-- Permiso nuevo para overlay (Sección 4.1.4) -->
+    <!-- Permiso para overlay -->
     <uses-permission android:name="android.permission.SYSTEM_ALERT_WINDOW" />
+
+    <!-- ============================================ -->
+    <!-- QUERIES: Permitir consultar apps externas (Android 11+) -->
+    <!-- ============================================ -->
+    <queries>
+        <!-- Mensajería -->
+        <package android:name="com.whatsapp" />
+        <package android:name="org.telegram.messenger" />
+        
+        <!-- Redes sociales -->
+        <package android:name="com.facebook.katana" />
+        <package android:name="com.instagram.android" />
+        <package android:name="com.twitter.android" />
+        
+        <!-- Multimedia -->
+        <package android:name="com.google.android.youtube" />
+        <package android:name="com.spotify.music" />
+        <package android:name="com.zhiliaoapp.musically" />
+
+	<!-- Netflix -->
+	<package android:name="com.netflix.mediaclient" />
+        
+        <!-- Navegación y utilidades -->
+        <package android:name="com.android.chrome" />
+        <package android:name="com.google.android.apps.maps" />
+        <package android:name="com.android.camera2" />
+        <package android:name="com.google.android.deskclock" />
+        <package android:name="com.android.calculator2" />
+        
+        <!-- Sistema -->
+        <package android:name="com.android.settings" />
+        <package android:name="com.google.android.gm" />
+    </queries>
+    <!-- ============================================ -->
 
     <application
         android:allowBackup="true"
-        android:icon="@drawable/ic_launcher"
-        android:label="OASIS"
+        android:icon="@drawable/ic_launcher"        android:label="OASIS"
         android:roundIcon="@drawable/ic_launcher"
         android:supportsRtl="true"
         android:theme="@style/Theme.Material3.DayNight.NoActionBar"
         tools:targetApi="34">
 
-        <!-- SplashActivity: Nueva pantalla de inicio -->
+        <!-- SplashActivity -->
         <activity
             android:name=".SplashActivity"
             android:exported="true"
@@ -34,14 +67,14 @@
             </intent-filter>
         </activity>
 
-        <!-- MainActivity: Sin cambios funcionales -->
+        <!-- MainActivity -->
         <activity
             android:name=".MainActivity"
             android:exported="false"
             android:screenOrientation="portrait"
             android:theme="@style/Theme.Material3.DayNight.NoActionBar" />
 
-        <!-- OverlayService: Declaración ÚNICA con foregroundServiceType -->
+        <!-- OverlayService -->
         <service
             android:name=".OverlayService"
             android:enabled="true"
@@ -55,19 +88,18 @@
             android:screenOrientation="portrait"
             android:theme="@style/Theme.Material3.DayNight.NoActionBar" />
 
-        <activity 
-            android:name=".OverlayPermissionActivity" 
-            android:exported="false" 
+        <activity
+            android:name=".OverlayPermissionActivity"
+            android:exported="false"
             android:theme="@style/Theme.Material3.DayNight.NoActionBar" />
 
-       <!-- VoiceCaptureActivity: Actividad invisible para captura de voz -->
-       <activity
+        <!-- VoiceCaptureActivity -->
+        <activity
             android:name=".VoiceCaptureActivity"
             android:exported="false"
             android:theme="@style/Theme.Material3.DayNight.NoActionBar"
             android:excludeFromRecents="true"
-            android:noHistory="true"
-            android:taskAffinity="" /> 
+            android:noHistory="true"            android:taskAffinity="" />
 
     </application>
 </manifest>

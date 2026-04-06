@@ -198,7 +198,9 @@ class MainActivity : AppCompatActivity() {
         val cmdLower = cmd.lowercase().trim()
         toast.show("Comando: $cmd")
 
-        when {            // --- CASO 1: ABRIR APPS ESPECÍFICAS ---
+        when {           
+	   
+	    // --- CASO 1: ABRIR APPS ESPECÍFICAS ---
             // Detecta: "Abre WhatsApp", "Lanza YouTube", "Abre la cámara"
             cmdLower.contains("abrir") || cmdLower.contains("abre") || cmdLower.contains("lanza") -> {
                 val appName = extractAppName(cmdLower) // Extrae solo el nombre (ej: "whatsapp")

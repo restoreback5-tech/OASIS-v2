@@ -211,7 +211,7 @@ class OverlayService : Service() {
                 command = "help"
             }
             else -> {
-                tts?.speak("No entendí. Prueba: 'Llamar a mamá', 'Abrir WhatsApp'")
+                tts?.speak("No entendí. Intenta: 'Abre WhatsApp', 'Haz una llamada'")
                 return
             }
         }
