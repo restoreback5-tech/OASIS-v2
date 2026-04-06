@@ -36,7 +36,7 @@ class MainActivity : AppCompatActivity() {
 
         // 1. Animación del Orbe (UI Visual)
         val orb = findViewById<ImageView>(R.id.orb_view)
-        val neuralAnim = android.view.animation.AnimationUtils.loadAnimation(this, R.anim.orb_enhanced_pulse)
+        val neuralAnim = android.view.animation.AnimationUtils.loadAnimation(this, R.anim.orb_neural_pulse)
         orb.startAnimation(neuralAnim)
 
         // 2. Inicialización de Módulos
