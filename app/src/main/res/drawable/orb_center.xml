@@ -1,24 +1,24 @@
 <?xml version="1.0" encoding="utf-8"?>
 <layer-list xmlns:android="http://schemas.android.com/apk/res/android">
-    <!-- 1. Fondo profundo (Espacio neuronal oscuro para contraste) -->
+    <!-- 1. Fondo profundo (Espacio neuronal oscuro) -->
     <item>
         <shape android:shape="oval">
             <solid android:color="#050510" />
         </shape>
     </item>
 
-    <!-- 2. Aura dorada tenue (Red neuronal cálida) -->
+    <!-- 2. Aura Cálida (Fuego suave) -->
     <item android:bottom="15dp" android:top="15dp" android:left="15dp" android:right="15dp">
         <shape android:shape="oval">
             <gradient
                 android:type="radial"
-                android:centerColor="#FF8C00"
+                android:centerColor="#FF8C00" 
                 android:endColor="#00000000"
                 android:gradientRadius="60dp" />
         </shape>
     </item>
 
-    <!-- 3. Anillo de datos (Tecnología Dorada) -->
+    <!-- 3. Anillo de Energía (Dorado Brillante) -->
     <item android:bottom="25dp" android:top="25dp" android:left="25dp" android:right="25dp">
         <shape android:shape="oval">
             <stroke android:width="3dp" android:color="#FFD700" />
@@ -26,12 +26,12 @@
         </shape>
     </item>
 
-    <!-- 4. Núcleo de IA (Pensamiento cálido) -->
+    <!-- 4. Núcleo de IA (Blanco caliente) -->
     <item android:bottom="45dp" android:top="45dp" android:left="45dp" android:right="45dp">
         <shape android:shape="oval">
             <gradient
                 android:type="radial"
-                android:centerColor="#ffffff"
+                android:centerColor="#FFFFFF"
                 android:endColor="#FFA500"
                 android:gradientRadius="30dp" />
         </shape>
