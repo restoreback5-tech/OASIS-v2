@@ -47,7 +47,8 @@ class MainActivity : AppCompatActivity() {
         toast = ToastModule(this)
         anim = AnimationModule(findViewById(R.id.orb_view))
         tts = TTSModule(this)
-        stt = STTModule(this)        prefs = getSharedPreferences("oasis_settings", MODE_PRIVATE)
+        stt = STTModule(this)        
+        prefs = getSharedPreferences("oasis_settings", MODE_PRIVATE)
 
         // 3. Aplicar Tema y Permisos al inicio
         applyTheme() 
