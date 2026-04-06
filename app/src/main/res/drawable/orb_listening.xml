@@ -1,0 +1,43 @@
+<?xml version="1.0" encoding="utf-8"?>
+<layer-list xmlns:android="http://schemas.android.com/apk/res/android">
+<!-- 1. Aura Exterior (Océano Profundo - Azul difuso) -->
+<item>
+<shape android:shape="oval">
+<gradient
+android:type="radial"
+android:centerColor="#66006699"
+android:endColor="#00000000"
+android:gradientRadius="120dp" />
+</shape>
+</item>
+
+<!-- 2. Capa Intermedia (Agua Turquesa) -->
+<item android:bottom="10dp" android:top="10dp" android:left="10dp" android:right="10dp">
+<shape android:shape="oval">
+<gradient
+android:type="radial"
+android:centerColor="#0099CC"
+android:endColor="#00000000"
+android:gradientRadius="80dp" />
+</shape>
+</item>
+
+<!-- 3. Espuma Blanca (Anillo exterior - como olas) -->
+<item android:bottom="25dp" android:top="25dp" android:left="25dp" android:right="25dp">
+<shape android:shape="oval">
+<stroke android:width="6dp" android:color="#80FFFFFF" />
+<solid android:color="#00000000" />
+</shape>
+</item>
+
+<!-- 4. Núcleo (Espuma Blanca Brillante) -->
+<item android:bottom="45dp" android:top="45dp" android:left="45dp" android:right="45dp">
+<shape android:shape="oval">
+<gradient
+android:type="radial"
+android:centerColor="#FFFFFF"
+android:endColor="#66CCFF"
+android:gradientRadius="35dp" />
+</shape>
+</item>
+</layer-list>

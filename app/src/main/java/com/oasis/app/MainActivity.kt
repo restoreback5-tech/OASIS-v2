@@ -21,6 +21,10 @@ import java.util.Locale
 import android.content.res.ColorStateList
 
 class MainActivity : AppCompatActivity() {
+    // === ORBE VIVO - VARIABLES ===
+    private var orbState = "idle"
+    private lateinit var orbBreatheAnim: android.view.animation.Animation
+    private lateinit var orbFastAnim: android.view.animation.Animation
 
     // === DECLARACIÓN DE MÓDULOS ===
     private lateinit var sound: SoundModule
@@ -36,8 +40,13 @@ class MainActivity : AppCompatActivity() {
 
         // 1. Animación del Orbe (UI Visual)
         val orb = findViewById<ImageView>(R.id.orb_view)
-        val neuralAnim = android.view.animation.AnimationUtils.loadAnimation(this, R.anim.orb_neural_pulse)
-        orb.startAnimation(neuralAnim)
+        // Inicializar animaciones del orbe vivo
+        orbBreatheAnim = android.view.animation.AnimationUtils.loadAnimation(this, R.anim.orb_breathe)
+        orbFastAnim = android.view.animation.AnimationUtils.loadAnimation(this, R.anim.orb_fast_pulse)
+        
+        // Iniciar en estado reposo (Océano)
+        orb.setImageResource(R.drawable.orb_listening)
+        orb.startAnimation(orbBreatheAnim)
 
         // 2. Inicialización de Módulos
         sound = SoundModule(this)
@@ -88,7 +97,16 @@ class MainActivity : AppCompatActivity() {
         orb.setOnClickListener {
             sound.play(R.raw.touch)
             toast.show("Escuchando...")
+            
+            // CAMBIAR A ESTADO ACTIVO (VERDE)
+            orbState = "active"
+            orb.setImageResource(R.drawable.orb_active)
+            orb.clearAnimation()
+            orb.startAnimation(orbFastAnim)
+            
+            // INICIAR ESCUCHA
             stt.startListening()
+        }
         }
 
         // 9. Configurar Botones Principales
@@ -249,6 +267,10 @@ class MainActivity : AppCompatActivity() {
             }
             
             else -> tts.speak("No logré entenderte. Prueba con: 'Abre WhatsApp', 'Haz una llamada' o 'Envía un mensaje'.")
+        }
+        
+        // RESETEAR ORBE DESPUÉS DE PROCESAR
+        resetOrbToIdle()
         }    }
 
     // === FUNCIONES DE EXTRACCIÓN DE NOMBRES (Limpieza de texto) ===
@@ -387,5 +409,15 @@ class MainActivity : AppCompatActivity() {
         sound.release()
         tts.shutdown()
         stt.destroy()
+    }
+    // === RESETEAR ORBE A REPOSO ===
+    private fun resetOrbToIdle() {
+        if (orbState == "active") {
+            orbState = "idle"
+            val orb = findViewById<ImageView>(R.id.orb_view)
+            orb.setImageResource(R.drawable.orb_listening)
+            orb.clearAnimation()
+            orb.startAnimation(orbBreatheAnim)
+        }
     }
 }
