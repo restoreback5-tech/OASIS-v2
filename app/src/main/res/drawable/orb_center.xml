@@ -2,9 +2,9 @@
 <layer-list xmlns:android="http://schemas.android.com/apk/res/android">
 
     <!-- ============================================
-         NÚCLEO DEL ORB (Esfera central)
+         NÚCLEO DEL ORB (Centro brillante)
          ============================================ -->
-    <item android:bottom="45dp" android:top="45dp" android:left="45dp" android:right="45dp">
+    <item android:bottom="50dp" android:top="50dp" android:left="50dp" android:right="50dp">
         <shape android:shape="oval">
             <gradient
                 android:type="radial"
@@ -15,121 +15,62 @@
     </item>
 
     <!-- ============================================
-         PARTÍCULAS FLOTANTES (Densa nube de puntos)
+         ANILLO INTERNO DE PARTÍCULAS (16 puntos - Turquesa)
+         Tamaño: 4dp | Radio: ~70dp del centro
          ============================================ -->
     
-    <!-- Partículas Capa 1 (Cerca del centro - Turquesa) -->
-    <item android:bottom="20dp" android:top="60dp" android:left="35dp" android:right="65dp">
-        <shape android:shape="oval">
-            <solid android:color="#00E5FF" />
-            <size android:width="6dp" android:height="6dp" />
-        </shape>
-    </item>
-    
-    <item android:bottom="35dp" android:top="45dp" android:left="65dp" android:right="35dp">
-        <shape android:shape="oval">
-            <solid android:color="#00E5FF" />
-            <size android:width="5dp" android:height="5dp" />
-        </shape>
-    </item>
-    
-    <item android:bottom="65dp" android:top="20dp" android:left="45dp" android:right="55dp">
-        <shape android:shape="oval">
-            <solid android:color="#00ACC1" />
-            <size android:width="6dp" android:height="6dp" />
-        </shape>
-    </item>
-    
-    <item android:bottom="50dp" android:top="35dp" android:left="25dp" android:right="75dp">
-        <shape android:shape="oval">
-            <solid android:color="#4DD0E5" />
-            <size android:width="5dp" android:height="5dp" />
-        </shape>
-    </item>
-    <!-- Partículas Capa 2 (Media distancia - Magenta/Púrpura) -->
-    <item android:bottom="10dp" android:top="75dp" android:left="50dp" android:right="50dp">
-        <shape android:shape="oval">
-            <solid android:color="#AB47BC" />
-            <size android:width="5dp" android:height="5dp" />
-        </shape>
-    </item>
-    
-    <item android:bottom="75dp" android:top="10dp" android:left="60dp" android:right="40dp">
-        <shape android:shape="oval">
-            <solid android:color="#BA68C8" />
-            <size android:width="4dp" android:height="4dp" />
-        </shape>
-    </item>
-    
-    <item android:bottom="40dp" android:top="45dp" android:left="10dp" android:right="90dp">
-        <shape android:shape="oval">
-            <solid android:color="#AB47BC" />
-            <size android:width="5dp" android:height="5dp" />
-        </shape>
-    </item>
-    
-    <item android:bottom="45dp" android:top="40dp" android:left="90dp" android:right="10dp">
-        <shape android:shape="oval">
-            <solid android:color="#4DD0E5" />
-            <size android:width="4dp" android:height="4dp" />
-        </shape>
-    </item>
+    <!-- Grupo 1: Norte/Sur/Este/Oeste -->
+    <item android:bottom="10dp" android:top="90dp" android:left="78dp" android:right="78dp"><shape android:shape="oval"><solid android:color="#00E5FF"/><size android:width="4dp" android:height="4dp"/></shape></item>
+    <item android:bottom="90dp" android:top="10dp" android:left="78dp" android:right="78dp"><shape android:shape="oval"><solid android:color="#00E5FF"/><size android:width="4dp" android:height="4dp"/></shape></item>
+    <item android:bottom="78dp" android:top="78dp" android:left="10dp" android:right="90dp"><shape android:shape="oval"><solid android:color="#00E5FF"/><size android:width="4dp" android:height="4dp"/></shape></item>
+    <item android:bottom="78dp" android:top="78dp" android:left="90dp" android:right="10dp"><shape android:shape="oval"><solid android:color="#00E5FF"/><size android:width="4dp" android:height="4dp"/></shape></item>
 
-    <!-- Partículas Capa 3 (Exteriores - Más dispersas) -->
-    <item android:bottom="5dp" android:top="80dp" android:left="25dp" android:right="75dp">
-        <shape android:shape="oval">
-            <solid android:color="#8000E5FF" />
-            <size android:width="4dp" android:height="4dp" />
-        </shape>
-    </item>
-    
-    <item android:bottom="80dp" android:top="5dp" android:left="75dp" android:right="25dp">
-        <shape android:shape="oval">
-            <solid android:color="#80AB47BC" />
-            <size android:width="4dp" android:height="4dp" />
-        </shape>
-    </item>
-    
-    <item android:bottom="15dp" android:top="70dp" android:left="80dp" android:right="20dp">
-        <shape android:shape="oval">
-            <solid android:color="#6600E5FF" />
-            <size android:width="5dp" android:height="5dp" />
-        </shape>
-    </item>    
-    <item android:bottom="70dp" android:top="15dp" android:left="15dp" android:right="85dp">
-        <shape android:shape="oval">
-            <solid android:color="#66AB47BC" />
-            <size android:width="5dp" android:height="5dp" />
-        </shape>
-    </item>
+    <!-- Grupo 2: Diagonales Principales -->
+    <item android:bottom="25dp" android:top="75dp" android:left="25dp" android:right="75dp"><shape android:shape="oval"><solid android:color="#4DD0E1"/><size android:width="4dp" android:height="4dp"/></shape></item>
+    <item android:bottom="75dp" android:top="25dp" android:left="25dp" android:right="75dp"><shape android:shape="oval"><solid android:color="#4DD0E1"/><size android:width="4dp" android:height="4dp"/></shape></item>
+    <item android:bottom="25dp" android:top="75dp" android:left="75dp" android:right="25dp"><shape android:shape="oval"><solid android:color="#4DD0E1"/><size android:width="4dp" android:height="4dp"/></shape></item>
+    <item android:bottom="75dp" android:top="25dp" android:left="75dp" android:right="25dp"><shape android:shape="oval"><solid android:color="#4DD0E1"/><size android:width="4dp" android:height="4dp"/></shape></item>
 
-    <!-- Partículas adicionales (Densidad extra) -->
-    <item android:bottom="30dp" android:top="55dp" android:left="70dp" android:right="30dp">
-        <shape android:shape="oval">
-            <solid android:color="#4DC1FF" />
-            <size android:width="3dp" android:height="3dp" />
-        </shape>
-    </item>
-    
-    <item android:bottom="55dp" android:top="30dp" android:left="30dp" android:right="70dp">
-        <shape android:shape="oval">
-            <solid android:color="#4DAB47BC" />
-            <size android:width="3dp" android:height="3dp" />
-        </shape>
-    </item>
-    
-    <item android:bottom="25dp" android:top="60dp" android:left="55dp" android:right="45dp">
-        <shape android:shape="oval">
-            <solid android:color="#8000BFFF" />
-            <size android:width="4dp" android:height="4dp" />
-        </shape>
-    </item>
-    
-    <item android:bottom="60dp" android:top="25dp" android:left="40dp" android:right="60dp">
-        <shape android:shape="oval">
-            <solid android:color="#8000E5FF" />
-            <size android:width="4dp" android:height="4dp" />
-        </shape>
-    </item>
+    <!-- Grupo 3: Intermedios (Más densidad) -->
+    <item android:bottom="15dp" android:top="85dp" android:left="50dp" android:right="50dp"><shape android:shape="oval"><solid android:color="#00ACC1"/><size android:width="3dp" android:height="3dp"/></shape></item>
+    <item android:bottom="85dp" android:top="15dp" android:left="50dp" android:right="50dp"><shape android:shape="oval"><solid android:color="#00ACC1"/><size android:width="3dp" android:height="3dp"/></shape></item>
+    <item android:bottom="50dp" android:top="50dp" android:left="15dp" android:right="85dp"><shape android:shape="oval"><solid android:color="#00ACC1"/><size android:width="3dp" android:height="3dp"/></shape></item>
+    <item android:bottom="50dp" android:top="50dp" android:left="85dp" android:right="15dp"><shape android:shape="oval"><solid android:color="#00ACC1"/><size android:width="3dp" android:height="3dp"/></shape></item>
+
+    <!-- Grupo 4: Resto de diagonales internas -->
+    <item android:bottom="35dp" android:top="65dp" android:left="35dp" android:right="65dp"><shape android:shape="oval"><solid android:color="#80DEEA"/><size android:width="3dp" android:height="3dp"/></shape></item>
+    <item android:bottom="65dp" android:top="35dp" android:left="35dp" android:right="65dp"><shape android:shape="oval"><solid android:color="#80DEEA"/><size android:width="3dp" android:height="3dp"/></shape></item>
+    <item android:bottom="35dp" android:top="65dp" android:left="65dp" android:right="35dp"><shape android:shape="oval"><solid android:color="#80DEEA"/><size android:width="3dp" android:height="3dp"/></shape></item>
+    <item android:bottom="65dp" android:top="35dp" android:left="65dp" android:right="35dp"><shape android:shape="oval"><solid android:color="#80DEEA"/><size android:width="3dp" android:height="3dp"/></shape></item>
+
+
+    <!-- ============================================
+         ANILLO EXTERNO DE PARTÍCULAS (16 puntos - Magenta/Púrpura)
+         Tamaño: 3dp | Radio: ~95dp del centro
+         ============================================ -->
+
+    <!-- Grupo 5: Norte/Sur/Este/Oeste Exteriores -->
+    <item android:bottom="-5dp" android:top="105dp" android:left="98dp" android:right="98dp"><shape android:shape="oval"><solid android:color="#AB47BC"/><size android:width="3dp" android:height="3dp"/></shape></item>
+    <item android:bottom="105dp" android:top="-5dp" android:left="98dp" android:right="98dp"><shape android:shape="oval"><solid android:color="#BA68C8"/><size android:width="3dp" android:height="3dp"/></shape></item>
+    <item android:bottom="98dp" android:top="98dp" android:left="-5dp" android:right="105dp"><shape android:shape="oval"><solid android:color="#AB47BC"/><size android:width="3dp" android:height="3dp"/></shape></item>
+    <item android:bottom="98dp" android:top="98dp" android:left="105dp" android:right="-5dp"><shape android:shape="oval"><solid android:color="#BA68C8"/><size android:width="3dp" android:height="3dp"/></shape></item>
+
+    <!-- Grupo 6: Diagonales Exteriores -->
+    <item android:bottom="15dp" android:top="85dp" android:left="15dp" android:right="85dp"><shape android:shape="oval"><solid android:color="#CE93D8"/><size android:width="3dp" android:height="3dp"/></shape></item>
+    <item android:bottom="85dp" android:top="15dp" android:left="15dp" android:right="85dp"><shape android:shape="oval"><solid android:color="#CE93D8"/><size android:width="3dp" android:height="3dp"/></shape></item>
+    <item android:bottom="15dp" android:top="85dp" android:left="85dp" android:right="15dp"><shape android:shape="oval"><solid android:color="#CE93D8"/><size android:width="3dp" android:height="3dp"/></shape></item>
+    <item android:bottom="85dp" android:top="15dp" android:left="85dp" android:right="15dp"><shape android:shape="oval"><solid android:color="#CE93D8"/><size android:width="3dp" android:height="3dp"/></shape></item>
+
+    <!-- Grupo 7: Intermedios Exteriores -->
+    <item android:bottom="5dp" android:top="95dp" android:left="50dp" android:right="50dp"><shape android:shape="oval"><solid android:color="#80AB47BC"/><size android:width="3dp" android:height="3dp"/></shape></item>
+    <item android:bottom="95dp" android:top="5dp" android:left="50dp" android:right="50dp"><shape android:shape="oval"><solid android:color="#80AB47BC"/><size android:width="3dp" android:height="3dp"/></shape></item>
+    <item android:bottom="50dp" android:top="50dp" android:left="5dp" android:right="95dp"><shape android:shape="oval"><solid android:color="#80AB47BC"/><size android:width="3dp" android:height="3dp"/></shape></item>
+    <item android:bottom="50dp" android:top="50dp" android:left="95dp" android:right="5dp"><shape android:shape="oval"><solid android:color="#80AB47BC"/><size android:width="3dp" android:height="3dp"/></shape></item>
+
+    <!-- Grupo 8: Resto de diagonales externas -->
+    <item android:bottom="25dp" android:top="75dp" android:left="25dp" android:right="75dp"><shape android:shape="oval"><solid android:color="#66AB47BC"/><size android:width="3dp" android:height="3dp"/></shape></item>
+    <item android:bottom="75dp" android:top="25dp" android:left="25dp" android:right="75dp"><shape android:shape="oval"><solid android:color="#66AB47BC"/><size android:width="3dp" android:height="3dp"/></shape></item>
+    <item android:bottom="25dp" android:top="75dp" android:left="75dp" android:right="25dp"><shape android:shape="oval"><solid android:color="#66AB47BC"/><size android:width="3dp" android:height="3dp"/></shape></item>
+    <item android:bottom="75dp" android:top="25dp" android:left="75dp" android:right="25dp"><shape android:shape="oval"><solid android:color="#66AB47BC"/><size android:width="3dp" android:height="3dp"/></shape></item>
 
 </layer-list>
