@@ -10,9 +10,11 @@
     <color name="white">#FFFFFF</color>
     <color name="black">#000000</color>
     <color name="orb_glow">#4a90e2</color>
-</resources>
 
-    <!-- Colores nuevos para Orb V2 -->
+   <!-- Colores nuevos para Orb V2 -->
     <color name="orb_oscuro_primary">#4FACFE</color>
     <color name="orb_oscuro_secondary">#00F2FE</color>
     <color name="orb_oscuro_glow">#0052D4</color>
+
+</resources>
+
