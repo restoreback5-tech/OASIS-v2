@@ -2,9 +2,9 @@ name: Android CI
 
 on:
   push:
-    branches: [ "main", "master" ] # Cambia esto si tu rama principal tiene otro nombre
+    branches: [ "**" ] # Cambia esto si tu rama principal tiene otro nombre
   pull_request:
-    branches: [ "main", "master" ]
+    branches: [ "**" ]
   workflow_dispatch: # Permite ejecutarlo manualmente desde la web
 
 jobs:
