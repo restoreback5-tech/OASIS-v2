@@ -1,0 +1,25 @@
+<?xml version="1.0" encoding="utf-8"?>
+<layer-list xmlns:android="http://schemas.android.com/apk/res/android">
+    
+    <!-- Fondo Base Oscuro -->
+    <item>
+        <color android:color="#050510"/>
+    </item>
+
+    <!-- Ola 1 (Fondo, lenta, transparente) -->
+    <item>
+        <bitmap
+            android:src="@drawable/wave_shape"
+            android:gravity="bottom|center_horizontal"
+            android:alpha="0.3" />
+    </item>
+
+    <!-- Ola 2 (Frente, más rápida, color turquesa) -->
+    <item>
+        <bitmap
+            android:src="@drawable/wave_shape"
+            android:gravity="bottom|center_horizontal"
+            android:alpha="0.6" />
+    </item>
+
+</layer-list>
