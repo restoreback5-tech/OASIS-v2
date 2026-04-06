@@ -1,27 +1,43 @@
 <?xml version="1.0" encoding="utf-8"?>
 <layer-list xmlns:android="http://schemas.android.com/apk/res/android">
-    
-    <!-- Partículas Exteriores (Cian Roto) -->
+    <!-- 1. Aura Exterior (Glow Púrpura/Azul difuso) -->
+    <item android:bottom="0dp" android:top="0dp" android:left="0dp" android:right="0dp">
+        <shape android:shape="oval">
+            <gradient
+                android:type="radial"
+                android:centerColor="#80AB47BC" 
+                android:endColor="#00000000"
+                android:gradientRadius="120dp" />
+        </shape>
+    </item>
+
+    <!-- 2. Capa Intermedia (Azul Profundo) -->
     <item android:bottom="15dp" android:top="15dp" android:left="15dp" android:right="15dp">
         <shape android:shape="oval">
-            <stroke android:width="4dp" android:color="#00E5FF" 
-                android:dashWidth="6dp" android:dashGap="10dp" />
+            <gradient
+                android:type="radial"
+                android:centerColor="#00E5FF"
+                android:endColor="#00000000"
+                android:gradientRadius="80dp" />
         </shape>
     </item>
 
-    <!-- Partículas Intermedias (Magenta Roto) -->
-    <item android:bottom="25dp" android:top="25dp" android:left="25dp" android:right="25dp">
+    <!-- 3. Anillo de Energía (Borde brillante Cian) -->
+    <item android:bottom="35dp" android:top="35dp" android:left="35dp" android:right="35dp">
         <shape android:shape="oval">
-            <stroke android:width="3dp" android:color="#AB47BC" 
-                android:dashWidth="4dp" android:dashGap="15dp" />
+            <stroke android:width="4dp" android:color="#00FFFF" />
+            <solid android:color="#00000000" />
         </shape>
     </item>
 
-    <!-- Núcleo Sólido (El ojo) -->
-    <item android:bottom="45dp" android:top="45dp" android:left="45dp" android:right="45dp">
+    <!-- 4. Núcleo (Ojo Blanco Brillante) -->
+    <item android:bottom="50dp" android:top="50dp" android:left="50dp" android:right="50dp">
         <shape android:shape="oval">
-            <solid android:color="#FFFFFF" />
+            <gradient
+                android:type="radial"
+                android:centerColor="#FFFFFF"
+                android:endColor="#00BFFF"
+                android:gradientRadius="40dp" />
         </shape>
     </item>
-
 </layer-list>
