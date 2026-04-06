@@ -1,43 +1,43 @@
 <?xml version="1.0" encoding="utf-8"?>
 <layer-list xmlns:android="http://schemas.android.com/apk/res/android">
+    <!-- 1. Aura Exterior (Glow Púrpura/Azul difuso) -->
+    <item android:bottom="0dp" android:top="0dp" android:left="0dp" android:right="0dp">
+        <shape android:shape="oval">
+            <gradient
+                android:type="radial"
+                android:centerColor="#80AB47BC" 
+                android:endColor="#00000000"
+                android:gradientRadius="120dp" />
+        </shape>
+    </item>
 
-    <!-- Núcleo brillante -->
+    <!-- 2. Capa Intermedia (Azul Profundo) -->
+    <item android:bottom="15dp" android:top="15dp" android:left="15dp" android:right="15dp">
+        <shape android:shape="oval">
+            <gradient
+                android:type="radial"
+                android:centerColor="#00E5FF"
+                android:endColor="#00000000"
+                android:gradientRadius="80dp" />
+        </shape>
+    </item>
+
+    <!-- 3. Anillo de Energía (Borde brillante Cian) -->
+    <item android:bottom="35dp" android:top="35dp" android:left="35dp" android:right="35dp">
+        <shape android:shape="oval">
+            <stroke android:width="4dp" android:color="#00FFFF" />
+            <solid android:color="#00000000" />
+        </shape>
+    </item>
+
+    <!-- 4. Núcleo (Ojo Blanco Brillante) -->
     <item android:bottom="50dp" android:top="50dp" android:left="50dp" android:right="50dp">
         <shape android:shape="oval">
             <gradient
                 android:type="radial"
                 android:centerColor="#FFFFFF"
                 android:endColor="#00BFFF"
-                android:gradientRadius="100%" />
+                android:gradientRadius="40dp" />
         </shape>
     </item>
-
-    <!-- Partículas internas -->
-    <item android:bottom="78dp" android:top="78dp" android:left="10dp" android:right="90dp">
-        <shape android:shape="oval">
-            <solid android:color="#80FFFFFF"/> <!-- blanco translúcido -->
-            <size android:width="2dp" android:height="2dp"/>
-        </shape>
-    </item>
-    <item android:bottom="25dp" android:top="75dp" android:left="75dp" android:right="25dp">
-        <shape android:shape="oval">
-            <solid android:color="#8000E5FF"/> <!-- turquesa translúcido -->
-            <size android:width="2dp" android:height="2dp"/>
-        </shape>
-    </item>
-
-    <!-- Partículas externas -->
-    <item android:bottom="95dp" android:top="5dp" android:left="50dp" android:right="50dp">
-        <shape android:shape="oval">
-            <solid android:color="#66AB47BC"/> <!-- púrpura tenue -->
-            <size android:width="2dp" android:height="2dp"/>
-        </shape>
-    </item>
-    <item android:bottom="25dp" android:top="75dp" android:left="25dp" android:right="75dp">
-        <shape android:shape="oval">
-            <solid android:color="#66BA68C8"/> <!-- magenta translúcido -->
-            <size android:width="2dp" android:height="2dp"/>
-        </shape>
-    </item>
-
 </layer-list>
