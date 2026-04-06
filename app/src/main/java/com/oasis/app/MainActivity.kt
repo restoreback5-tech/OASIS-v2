@@ -33,21 +33,26 @@ class MainActivity : AppCompatActivity() {
         setContentView(R.layout.activity_main)
 
         val orb = findViewById<ImageView>(R.id.orb_view)
-        val neuralAnim = android.view.animation.AnimationUtils.loadAnimation(this, R.anim.orb_neural_pulse)
+        val neuralAnim = android.view.animation.AnimationUtils.loadAnimation(
+            this, R.anim.orb_neural_pulse
+        )
         orb.startAnimation(neuralAnim)
 
         sound = SoundModule(this)
-        sound.preload(R.raw.cancelar, R.raw.confirmar, R.raw.inicio, R.raw.touch, R.raw.alerta, R.raw.error, R.raw.escuchando, R.raw.burbuja, R.raw.deslizar)
+        sound.preload(
+            R.raw.cancelar, R.raw.confirmar, R.raw.inicio, R.raw.touch,
+            R.raw.alerta, R.raw.error, R.raw.escuchando, R.raw.burbuja, R.raw.deslizar
+        )
         toast = ToastModule(this)
         anim = AnimationModule(findViewById(R.id.orb_view))
         tts = TTSModule(this)
         stt = STTModule(this)
         prefs = getSharedPreferences("oasis_settings", MODE_PRIVATE)
-
         applyTheme()
         checkMicPermission()
 
-        stt.setOnCommandListener { command ->            runOnUiThread { processCommand(command) }
+        stt.setOnCommandListener { command ->
+            runOnUiThread { processCommand(command) }
         }
 
         sound.play(R.raw.inicio)
@@ -64,9 +69,14 @@ class MainActivity : AppCompatActivity() {
         val clockRunnable = object : Runnable {
             override fun run() {
                 val is24Hour = prefs.getBoolean("clock_24h", true)
-                val format = if (is24Hour) SimpleDateFormat("HH:mm", Locale.getDefault())
-                else SimpleDateFormat("hh:mm a", Locale.getDefault())
-                findViewById<TextView>(R.id.clock_text).text = format.format(System.currentTimeMillis())
+                val format = if (is24Hour) {
+                    SimpleDateFormat("HH:mm", Locale.getDefault())
+                } else {
+                    SimpleDateFormat("hh:mm a", Locale.getDefault())
+                }
+                findViewById<TextView>(R.id.clock_text).text = format.format(
+                    System.currentTimeMillis()
+                )
                 clockHandler.postDelayed(this, 1000)
             }
         }
@@ -86,8 +96,7 @@ class MainActivity : AppCompatActivity() {
     }
 
     private fun setupBtn(id: Int, text: String, action: () -> Unit) {
-        findViewById<MaterialButton>(id).setOnClickListener {
-            sound.play(R.raw.touch)
+        findViewById<MaterialButton>(id).setOnClickListener {            sound.play(R.raw.touch)
             pulseAnimation(findViewById<View>(id))
             toast.show(text)
             tts.speak(text)
@@ -96,8 +105,8 @@ class MainActivity : AppCompatActivity() {
     }
 
     private fun pulseAnimation(view: View) {
-        val scaleX = ObjectAnimator.ofFloat(view, "scaleX", 1f, 0.94f, 1f)        
-	val scaleY = ObjectAnimator.ofFloat(view, "scaleY", 1f, 0.94f, 1f)
+        val scaleX = ObjectAnimator.ofFloat(view, "scaleX", 1f, 0.94f, 1f)
+        val scaleY = ObjectAnimator.ofFloat(view, "scaleY", 1f, 0.94f, 1f)
         val set = AnimatorSet()
         set.playTogether(scaleX, scaleY)
         set.duration = 180
@@ -136,8 +145,7 @@ class MainActivity : AppCompatActivity() {
             if (whatsappIntent != null) {
                 startActivity(whatsappIntent)
                 tts.speak("Abriendo WhatsApp.")
-            } else {
-                val intent = Intent(Intent.ACTION_MAIN)
+            } else {                val intent = Intent(Intent.ACTION_MAIN)
                 intent.addCategory(Intent.CATEGORY_APP_MESSAGING)
                 startActivity(intent)
                 tts.speak("Abriendo mensajes.")
@@ -146,6 +154,7 @@ class MainActivity : AppCompatActivity() {
             toast.show("No se encontró ninguna app de mensajes")
         }
     }
+
     private fun openContacts() {
         try {
             val intent = Intent(Intent.ACTION_VIEW)
@@ -166,7 +175,8 @@ class MainActivity : AppCompatActivity() {
         val cmdLower = cmd.lowercase().trim()
         toast.show("Comando: $cmd")
         when {
-            cmdLower.contains("abrir") || cmdLower.contains("abre") || cmdLower.contains("lanza") -> {
+            cmdLower.contains("abrir") || cmdLower.contains("abre") || 
+            cmdLower.contains("lanza") -> {
                 val appName = extractAppName(cmdLower)
                 if (appName.isNotEmpty()) {
                     openSpecificApp(appName)
@@ -184,10 +194,10 @@ class MainActivity : AppCompatActivity() {
                         openDialer()
                     }
                 } else {
-                    tts.speak("¿A quién deseas llamar?")
-                }
+                    tts.speak("¿A quién deseas llamar?")                }
             }
-            cmdLower.contains("mensaje") || cmdLower.contains("mandar") || cmdLower.contains("enviar") -> {
+            cmdLower.contains("mensaje") || cmdLower.contains("mandar") || 
+            cmdLower.contains("enviar") -> {
                 val contactName = extractContactName(cmdLower)
                 if (contactName.isNotEmpty()) {
                     openSmsToContact(contactName)
@@ -195,8 +205,8 @@ class MainActivity : AppCompatActivity() {
                     openSms()
                 }
             }
-            cmdLower.contains("contacto") -> openContacts()           
-	    cmdLower.contains("app") || cmdLower.contains("menú") -> openLauncher()
+            cmdLower.contains("contacto") -> openContacts()
+            cmdLower.contains("app") || cmdLower.contains("menú") -> openLauncher()
             cmdLower.contains("hola") -> {
                 sound.play(R.raw.burbuja)
                 tts.speak("Hola, soy OASIS. Estoy listo para ayudarte.")
@@ -222,40 +232,68 @@ class MainActivity : AppCompatActivity() {
 
     private fun extractAppName(cmd: String): String {
         var result = cmd
-        listOf("abrir", "abre", "lanza", "inicia", "la app", "el", "la", "aplicación").forEach { kw ->
+        listOf(
+            "abrir", "abre", "lanza", "inicia", "la app", "el", "la", "aplicación"
+        ).forEach { kw ->
             result = result.replace(kw, "").trim()
         }
-        result = result.replace(Regex("\\b(el|la|los|las|un|una|a|de|del|para|por)\\b"), "").trim()
-        return result.replace(Regex("[^a-zA-ZáéíóúÁÉÍÓÚñÑ\\s]"), "").trim()
+        result = result.replace(
+            Regex("\\b(el|la|los|las|un|una|a|de|del|para|por)\\b"), ""
+        ).trim()
+        return result.replace(
+            Regex("[^a-zA-ZáéíóúÁÉÍÓÚñÑ\\s]"), ""
+        ).trim()
     }
-
     private fun extractContactName(cmd: String): String {
         var result = cmd
-        listOf("llamar", "llama a", "mensaje", "mandar", "enviar", "a").forEach { kw ->
+        listOf(
+            "llamar", "llama a", "mensaje", "mandar", "enviar", "a"
+        ).forEach { kw ->
             result = result.replace(kw, "").trim()
         }
-        result = result.replace(Regex("\\b(el|la|los|las|un|una|de|del|para|por)\\b"), "").trim()
-        return result.replace(Regex("[^a-zA-ZáéíóúÁÉÍÓÚñÑ\\s]"), "").trim()
+        result = result.replace(
+            Regex("\\b(el|la|los|las|un|una|de|del|para|por)\\b"), ""
+        ).trim()
+        return result.replace(
+            Regex("[^a-zA-ZáéíóúÁÉÍÓÚñÑ\\s]"), ""
+        ).trim()
     }
 
     private fun openSpecificApp(appName: String) {
         val normalizedApp = appName.lowercase().trim()
         val packageName = when {
-            normalizedApp.contains("whatsapp") || normalizedApp.contains("wasap") -> "com.whatsapp"
-            normalizedApp.contains("facebook") || normalizedApp.contains("fb") -> "com.facebook.katana"
-            normalizedApp.contains("instagram") || normalizedApp.contains("insta") -> "com.instagram.android"
-            normalizedApp.contains("youtube") || normalizedApp.contains("tubo") -> "com.google.android.youtube"
-            normalizedApp.contains("chrome") || normalizedApp.contains("navegador") -> "com.android.chrome"            normalizedApp.contains("camara") || normalizedApp.contains("cámara") -> "com.android.camera2"
-            normalizedApp.contains("ajustes") || normalizedApp.contains("configuración") -> "com.android.settings"
-            normalizedApp.contains("reloj") || normalizedApp.contains("alarma") -> "com.google.android.deskclock"
-            normalizedApp.contains("calculadora") -> "com.android.calculator2"
-            normalizedApp.contains("spotify") -> "com.spotify.music"
-            normalizedApp.contains("maps") || normalizedApp.contains("mapas") || normalizedApp.contains("google maps") -> "com.google.android.apps.maps"
-            normalizedApp.contains("telegram") -> "org.telegram.messenger"
-            normalizedApp.contains("twitter") || normalizedApp.contains("x") -> "com.twitter.android"
-            normalizedApp.contains("tiktok") -> "com.zhiliaoapp.musically"
-            normalizedApp.contains("gmail") || normalizedApp.contains("correo") -> "com.google.android.gm"
-            normalizedApp.contains("galeria") || normalizedApp.contains("fotos") -> "com.google.android.photos"
+            normalizedApp.contains("whatsapp") || normalizedApp.contains("wasap") -> 
+                "com.whatsapp"
+            normalizedApp.contains("facebook") || normalizedApp.contains("fb") -> 
+                "com.facebook.katana"
+            normalizedApp.contains("instagram") || normalizedApp.contains("insta") -> 
+                "com.instagram.android"
+            normalizedApp.contains("youtube") || normalizedApp.contains("tubo") -> 
+                "com.google.android.youtube"
+            normalizedApp.contains("chrome") || normalizedApp.contains("navegador") -> 
+                "com.android.chrome"
+            normalizedApp.contains("camara") || normalizedApp.contains("cámara") -> 
+                "com.android.camera2"
+            normalizedApp.contains("ajustes") || normalizedApp.contains("configuración") -> 
+                "com.android.settings"
+            normalizedApp.contains("reloj") || normalizedApp.contains("alarma") -> 
+                "com.google.android.deskclock"
+            normalizedApp.contains("calculadora") -> 
+                "com.android.calculator2"
+            normalizedApp.contains("spotify") -> 
+                "com.spotify.music"
+            normalizedApp.contains("maps") || normalizedApp.contains("mapas") || 
+            normalizedApp.contains("google maps") -> 
+                "com.google.android.apps.maps"
+            normalizedApp.contains("telegram") -> 
+                "org.telegram.messenger"
+            normalizedApp.contains("twitter") || normalizedApp.contains("x") -> 
+                "com.twitter.android"
+            normalizedApp.contains("tiktok") -> 
+                "com.zhiliaoapp.musically"
+            normalizedApp.contains("gmail") || normalizedApp.contains("correo") -> 
+                "com.google.android.gm"            normalizedApp.contains("galeria") || normalizedApp.contains("fotos") -> 
+                "com.google.android.photos"
             else -> null
         }
         if (packageName != null) {
@@ -294,15 +332,16 @@ class MainActivity : AppCompatActivity() {
 
     private fun openSmsToContact(contactName: String) {
         try {
-            if (contactName.lowercase().contains("whatsapp") || contactName.lowercase().contains("wasap")) {                val whatsappIntent = packageManager.getLaunchIntentForPackage("com.whatsapp")
+            if (contactName.lowercase().contains("whatsapp") || 
+                contactName.lowercase().contains("wasap")) {
+                val whatsappIntent = packageManager.getLaunchIntentForPackage("com.whatsapp")
                 if (whatsappIntent != null) {
                     startActivity(whatsappIntent)
                     tts.speak("Abriendo WhatsApp")
                 } else {
                     sound.play(R.raw.error)
                     tts.speak("WhatsApp no está instalado")
-                }
-            } else {
+                }            } else {
                 val intent = Intent(Intent.ACTION_SENDTO).apply {
                     data = android.net.Uri.parse("smsto:")
                 }
@@ -316,15 +355,26 @@ class MainActivity : AppCompatActivity() {
     }
 
     private fun checkMicPermission() {
-        if (ContextCompat.checkSelfPermission(this, Manifest.permission.RECORD_AUDIO) != PackageManager.PERMISSION_GRANTED) {
-            ActivityCompat.requestPermissions(this, arrayOf(Manifest.permission.RECORD_AUDIO), 100)
+        if (ContextCompat.checkSelfPermission(
+                this, Manifest.permission.RECORD_AUDIO
+            ) != PackageManager.PERMISSION_GRANTED
+        ) {
+            ActivityCompat.requestPermissions(
+                this, arrayOf(Manifest.permission.RECORD_AUDIO), 100
+            )
         }
     }
 
-    override fun onRequestPermissionsResult(requestCode: Int, permissions: Array<out String>, grantResults: IntArray) {
+    override fun onRequestPermissionsResult(
+        requestCode: Int,
+        permissions: Array<out String>,
+        grantResults: IntArray
+    ) {
         super.onRequestPermissionsResult(requestCode, permissions, grantResults)
         if (requestCode == 100) {
-            if (grantResults.isNotEmpty() && grantResults[0] == PackageManager.PERMISSION_GRANTED) {
+            if (grantResults.isNotEmpty() && 
+                grantResults[0] == PackageManager.PERMISSION_GRANTED
+            ) {
                 sound.play(R.raw.confirmar)
                 tts.speak("Permiso de micrófono concedido")
             } else {
@@ -340,8 +390,8 @@ class MainActivity : AppCompatActivity() {
     }
 
     override fun onDestroy() {
-        super.onDestroy()
-        sound.release()
+        super.onDestroy()        sound.release()
         tts.shutdown()
-        stt.destroy()    }
+        stt.destroy()
+    }
 }
