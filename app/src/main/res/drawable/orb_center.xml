@@ -1,39 +1,39 @@
 <?xml version="1.0" encoding="utf-8"?>
 <layer-list xmlns:android="http://schemas.android.com/apk/res/android">
-    <!-- 1. Fondo profundo (Espacio neuronal oscuro) -->
+    <!-- 1. Fondo oscuro -->
     <item>
         <shape android:shape="oval">
             <solid android:color="#050510" />
         </shape>
     </item>
 
-    <!-- 2. Aura Cálida (Fuego suave) -->
-    <item android:bottom="15dp" android:top="15dp" android:left="15dp" android:right="15dp">
+    <!-- 2. Aura Turquesa-Magenta (Difusa) -->
+    <item android:bottom="10dp" android:top="10dp" android:left="10dp" android:right="10dp">
         <shape android:shape="oval">
             <gradient
                 android:type="radial"
-                android:centerColor="#FF8C00" 
-                android:endColor="#00000000"
-                android:gradientRadius="60dp" />
+                android:centerColor="#00ACC1" 
+                android:endColor="#AB47BC"
+                android:gradientRadius="70dp" />
         </shape>
     </item>
 
-    <!-- 3. Anillo de Energía (Dorado Brillante) -->
+    <!-- 3. Anillo Turquesa Eléctrico -->
     <item android:bottom="25dp" android:top="25dp" android:left="25dp" android:right="25dp">
         <shape android:shape="oval">
-            <stroke android:width="3dp" android:color="#FFD700" />
+            <stroke android:width="3dp" android:color="#00E5FF" />
             <solid android:color="@android:color/transparent" />
         </shape>
     </item>
 
-    <!-- 4. Núcleo de IA (Blanco caliente) -->
+    <!-- 4. Núcleo (Blanco a Turquesa Marino) -->
     <item android:bottom="45dp" android:top="45dp" android:left="45dp" android:right="45dp">
         <shape android:shape="oval">
             <gradient
                 android:type="radial"
                 android:centerColor="#FFFFFF"
-                android:endColor="#FFA500"
-                android:gradientRadius="30dp" />
+                android:endColor="#1DE9B6"
+                android:gradientRadius="35dp" />
         </shape>
     </item>
 </layer-list>
