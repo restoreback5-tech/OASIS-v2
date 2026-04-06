@@ -18,7 +18,6 @@ import androidx.core.content.ContextCompat
 import com.google.android.material.button.MaterialButton
 import java.text.SimpleDateFormat
 import java.util.Locale
-import android.content.res.ColorStateList
 
 class MainActivity : AppCompatActivity() {
 
@@ -30,39 +29,28 @@ class MainActivity : AppCompatActivity() {
     private lateinit var stt: STTModule
     private lateinit var prefs: SharedPreferences
 
-    // === ORBE VIVO - VARIABLES ===
-    private var orbState = "idle"
-    private lateinit var orbBreatheAnim: android.view.animation.Animation
-    private lateinit var orbFastAnim: android.view.animation.Animation
-
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         setContentView(R.layout.activity_main)
 
-        // 1. Animación del Orbe (UI Visual) - ORBE VIVO
+        // 1. Animación del Orbe
         val orb = findViewById<ImageView>(R.id.orb_view)
-        
-        // Inicializar animaciones del orbe vivo
-        orbBreatheAnim = android.view.animation.AnimationUtils.loadAnimation(this, R.anim.orb_breathe)
-        orbFastAnim = android.view.animation.AnimationUtils.loadAnimation(this, R.anim.orb_fast_pulse)
-        
-        // Iniciar en estado reposo (Océano)        orb.setImageResource(R.drawable.orb_listening)
-        orb.startAnimation(orbBreatheAnim)
+        val neuralAnim = android.view.animation.AnimationUtils.loadAnimation(this, R.anim.orb_neural_pulse)
+        orb.startAnimation(neuralAnim)
 
         // 2. Inicialización de Módulos
         sound = SoundModule(this)
-        sound.preload(R.raw.cancelar, R.raw.confirmar)
+        sound.preload(R.raw.cancelar, R.raw.confirmar, R.raw.inicio, R.raw.touch, R.raw.alerta, R.raw.error, R.raw.escuchando, R.raw.burbuja, R.raw.deslizar)
         toast = ToastModule(this)
         anim = AnimationModule(findViewById(R.id.orb_view))
         tts = TTSModule(this)
         stt = STTModule(this)
         prefs = getSharedPreferences("oasis_settings", MODE_PRIVATE)
 
-        // 3. Aplicar Tema y Permisos al inicio
-        applyTheme()
+        // 3. Aplicar Tema y Permisos        applyTheme()
         checkMicPermission()
 
-        // 4. Configurar el Listener de Voz
+        // 4. Listener de Voz
         stt.setOnCommandListener { command ->
             runOnUiThread { processCommand(command) }
         }
@@ -92,17 +80,11 @@ class MainActivity : AppCompatActivity() {
         }
         clockHandler.post(clockRunnable)
 
-        // 8. Click en el Orbe para Escuchar - ORBE VIVO
+        // 8. Click en el Orbe para Escuchar
         orb.setOnClickListener {
             sound.play(R.raw.touch)
-            toast.show("Escuchando...")            
-            // CAMBIAR A ESTADO ACTIVO (VERDE)
-            orbState = "active"
-            orb.setImageResource(R.drawable.orb_active)
-            orb.clearAnimation()
-            orb.startAnimation(orbFastAnim)
-            
-            // INICIAR ESCUCHA
+            sound.play(R.raw.escuchando)
+            toast.show("Escuchando...")
             stt.startListening()
         }
 
@@ -114,8 +96,7 @@ class MainActivity : AppCompatActivity() {
     }
 
     // === FUNCIONES AUXILIARES DE UI ===
-    private fun setupBtn(id: Int, text: String, action: () -> Unit) {
-        findViewById<MaterialButton>(id).setOnClickListener {
+    private fun setupBtn(id: Int, text: String, action: () -> Unit) {        findViewById<MaterialButton>(id).setOnClickListener {
             sound.play(R.raw.touch)
             pulseAnimation(findViewById<View>(id))
             toast.show(text)
@@ -144,7 +125,8 @@ class MainActivity : AppCompatActivity() {
         }
         window.setBackgroundDrawableResource(bgRes)
         val textColor = when (selectedTheme) {
-            "caribe" -> ContextCompat.getColor(this, R.color.caribe_text)            "oscuro" -> ContextCompat.getColor(this, R.color.oscuro_text)
+            "caribe" -> ContextCompat.getColor(this, R.color.caribe_text)
+            "oscuro" -> ContextCompat.getColor(this, R.color.oscuro_text)
             else -> ContextCompat.getColor(this, R.color.amanecer_text)
         }
         findViewById<TextView>(R.id.clock_text).setTextColor(textColor)
@@ -163,8 +145,7 @@ class MainActivity : AppCompatActivity() {
     private fun openSms() {
         try {
             val whatsappIntent = packageManager.getLaunchIntentForPackage("com.whatsapp")
-            if (whatsappIntent != null) {
-                startActivity(whatsappIntent)
+            if (whatsappIntent != null) {                startActivity(whatsappIntent)
                 tts.speak("Abriendo WhatsApp.")
             } else {
                 val intent = Intent(Intent.ACTION_MAIN)
@@ -193,7 +174,8 @@ class MainActivity : AppCompatActivity() {
         } catch(_: Exception) { }
     }
 
-    // === CEREBRO DE VOZ: PROCESAR COMANDOS ===    private fun processCommand(cmd: String) {
+    // === CEREBRO DE VOZ: PROCESAR COMANDOS ===
+    private fun processCommand(cmd: String) {
         val cmdLower = cmd.lowercase().trim()
         toast.show("Comando: $cmd")
         when {
@@ -212,8 +194,7 @@ class MainActivity : AppCompatActivity() {
                         dialNumber(contactName)
                     } else {
                         tts.speak("Buscando el contacto $contactName…")
-                        openDialer()
-                    }
+                        openDialer()                    }
                 } else {
                     tts.speak("¿A quién deseas llamar?")
                 }
@@ -228,28 +209,41 @@ class MainActivity : AppCompatActivity() {
             }
             cmdLower.contains("contacto") -> openContacts()
             cmdLower.contains("app") || cmdLower.contains("menú") -> openLauncher()
-            cmdLower.contains("hola") -> tts.speak("Hola, soy OASIS. Estoy listo para ayudarte.")
+            cmdLower.contains("hola") -> {
+                sound.play(R.raw.burbuja)
+                tts.speak("Hola, soy OASIS. Estoy listo para ayudarte.")
+            }
             cmdLower.contains("ayuda") || cmdLower.contains("qué puedes hacer") -> {
                 tts.speak("Puedo abrir aplicaciones como WhatsApp o YouTube, realizar llamadas, enviar mensajes y ayudarte con configuraciones.")
             }
-            else -> tts.speak("No logré entenderte. Prueba con: 'Abre WhatsApp', 'Haz una llamada' o 'Envía un mensaje'.")
+            cmdLower.contains("salir") || cmdLower.contains("cerrar") -> {
+                sound.play(R.raw.deslizar)
+                tts.speak("Hasta luego.")
+                finish()
+            }
+            cmdLower.contains("error") || cmdLower.contains("problema") -> {
+                sound.play(R.raw.error)
+                tts.speak("Reportando el problema a los desarrolladores.")
+            }
+            else -> {
+                sound.play(R.raw.alerta)
+                tts.speak("No logré entenderte. Prueba con: 'Abre WhatsApp', 'Haz una llamada' o 'Envía un mensaje'.")
+            }
         }
-        // RESETEAR ORBE DESPUÉS DE PROCESAR
-        resetOrbToIdle()
     }
 
     // === FUNCIONES DE EXTRACCIÓN ===
     private fun extractAppName(cmd: String): String {
         var result = cmd
         listOf("abrir", "abre", "lanza", "inicia", "la app", "el", "la", "aplicación").forEach { kw ->
-            result = result.replace(kw, "").trim()        }
+            result = result.replace(kw, "").trim()
+        }
         result = result.replace(Regex("\\b(el|la|los|las|un|una|a|de|del|para|por)\\b"), "").trim()
         return result.replace(Regex("[^a-zA-ZáéíóúÁÉÍÓÚñÑ\\s]"), "").trim()
     }
 
     private fun extractContactName(cmd: String): String {
-        var result = cmd
-        listOf("llamar", "llama a", "mensaje", "mandar", "enviar", "a").forEach { kw ->
+        var result = cmd        listOf("llamar", "llama a", "mensaje", "mandar", "enviar", "a").forEach { kw ->
             result = result.replace(kw, "").trim()
         }
         result = result.replace(Regex("\\b(el|la|los|las|un|una|de|del|para|por)\\b"), "").trim()
@@ -286,15 +280,19 @@ class MainActivity : AppCompatActivity() {
                     startActivity(intent)
                     tts.speak("Abriendo $appName")
                 } else {
+                    sound.play(R.raw.error)
                     tts.speak("Esta aplicación no está instalada")
                 }
             } catch (e: Exception) {
+                sound.play(R.raw.error)
                 tts.speak("No se pudo abrir esta aplicación")
             }
-        } else {            tts.speak("No reconozco esa aplicación. Intenta con: WhatsApp, YouTube, Facebook o Chrome")
+        } else {
+            sound.play(R.raw.alerta)
+            tts.speak("No reconozco esa aplicación. Intenta con: WhatsApp, YouTube, Facebook o Chrome")
         }
     }
-
+    // === MARCAR NÚMERO ===
     private fun dialNumber(number: String) {
         try {
             val intent = Intent(Intent.ACTION_DIAL).apply {
@@ -303,10 +301,12 @@ class MainActivity : AppCompatActivity() {
             startActivity(intent)
             tts.speak("Iniciando llamada")
         } catch (e: Exception) {
+            sound.play(R.raw.error)
             tts.speak("No se pudo iniciar la llamada")
         }
     }
 
+    // === ENVIAR MENSAJE A CONTACTO ===
     private fun openSmsToContact(contactName: String) {
         try {
             if (contactName.lowercase().contains("whatsapp") || contactName.lowercase().contains("wasap")) {
@@ -315,6 +315,7 @@ class MainActivity : AppCompatActivity() {
                     startActivity(whatsappIntent)
                     tts.speak("Abriendo WhatsApp")
                 } else {
+                    sound.play(R.raw.error)
                     tts.speak("WhatsApp no está instalado")
                 }
             } else {
@@ -325,11 +326,12 @@ class MainActivity : AppCompatActivity() {
                 tts.speak("Abriendo aplicación de mensajes")
             }
         } catch (e: Exception) {
+            sound.play(R.raw.error)
             toast.show("No se encontró aplicación de mensajes")
         }
     }
 
-    // === GESTIÓN DE PERMISOS Y CICLO DE VIDA ===
+    // === PERMISOS Y CICLO DE VIDA ===
     private fun checkMicPermission() {
         if (ContextCompat.checkSelfPermission(this, Manifest.permission.RECORD_AUDIO) != PackageManager.PERMISSION_GRANTED) {
             ActivityCompat.requestPermissions(this, arrayOf(Manifest.permission.RECORD_AUDIO), 100)
@@ -339,8 +341,10 @@ class MainActivity : AppCompatActivity() {
     override fun onRequestPermissionsResult(requestCode: Int, permissions: Array<out String>, grantResults: IntArray) {
         super.onRequestPermissionsResult(requestCode, permissions, grantResults)
         if (requestCode == 100) {
-            if (grantResults.isNotEmpty() && grantResults[0] == PackageManager.PERMISSION_GRANTED) {
-                tts.speak("Permiso de micrófono concedido")            } else {
+            if (grantResults.isNotEmpty() && grantResults[0] == PackageManager.PERMISSION_GRANTED) {                sound.play(R.raw.confirmar)
+                tts.speak("Permiso de micrófono concedido")
+            } else {
+                sound.play(R.raw.cancelar)
                 tts.speak("Necesito permiso de micrófono para escucharte")
             }
         }
@@ -357,16 +361,4 @@ class MainActivity : AppCompatActivity() {
         tts.shutdown()
         stt.destroy()
     }
-
-    // === RESETEAR ORBE A REPOSO ===
-    private fun resetOrbToIdle() {
-        if (orbState == "active") {
-            orbState = "idle"
-            val orb = findViewById<ImageView>(R.id.orb_view)
-            orb.setImageResource(R.drawable.orb_listening)
-            orb.clearAnimation()
-            orb.startAnimation(orbBreatheAnim)
-        }
-    }
 }
-
