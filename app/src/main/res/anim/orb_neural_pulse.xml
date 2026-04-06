@@ -2,154 +2,26 @@
 <set xmlns:android="http://schemas.android.com/apk/res/android"
     android:shareInterpolator="false">
     
-    <!-- ============================================
-         CONFIGURACIÓN DE PARTÍCULAS
-         ============================================
-         INTENSIDAD: Ajusta 'toXScale' y 'toYScale' 
-         - 1.15 = Baja (partículas cortas)
-         - 1.25 = Media (partículas moderadas)  
-         - 1.40 = Alta (partículas explosivas)
-         
-         VELOCIDAD: Ajusta 'duration'
-         - 800 = Rápido
-         - 1200 = Normal
-         - 1600 = Lento
-         
-         CANTIDAD: Agrega o quita bloques <item> abajo
-         Cada <item> es una partícula adicional
-         ============================================ -->
-    
-    <!-- Núcleo del Orbe (Respiración base) -->
+    <!-- Escala (Respiración) -->
     <scale
-        android:interpolator="@android:anim/decelerate_interpolator"
+        android:interpolator="@android:anim/accelerate_decelerate_interpolator"
         android:fromXScale="1.0"
-        android:toXScale="1.10"
+        android:toXScale="1.15"
         android:fromYScale="1.0"
-        android:toYScale="1.10"
+        android:toYScale="1.15"
         android:pivotX="50%"
         android:pivotY="50%"
-        android:duration="1200"
+        android:duration="2000"
         android:repeatCount="infinite"
         android:repeatMode="reverse"/>
 
-    <!-- ============================================
-         PARTÍCULAS (Cada item es una partícula)
-         ============================================ -->
-    
-    <!-- Partícula 1 -->
-    <item>
-        <scale
-            android:interpolator="@android:anim/accelerate_interpolator"
-            android:fromXScale="0.8"
-            android:toXScale="1.30"
-            android:fromYScale="0.8"
-            android:toYScale="1.30"
-            android:pivotX="50%"
-            android:pivotY="50%"
-            android:duration="1000"            android:repeatCount="infinite"
-            android:repeatMode="restart"
-            android:startOffset="0"/>
-        <alpha
-            android:fromAlpha="1.0"
-            android:toAlpha="0.0"
-            android:duration="1000"
-            android:repeatCount="infinite"
-            android:repeatMode="restart"
-            android:startOffset="0"/>
-    </item>
-
-    <!-- Partícula 2 -->
-    <item>
-        <scale
-            android:interpolator="@android:anim/accelerate_interpolator"
-            android:fromXScale="0.85"
-            android:toXScale="1.25"
-            android:fromYScale="0.85"
-            android:toYScale="1.25"
-            android:pivotX="50%"
-            android:pivotY="50%"
-            android:duration="1100"
-            android:repeatCount="infinite"
-            android:repeatMode="restart"
-            android:startOffset="200"/>
-        <alpha
-            android:fromAlpha="0.9"
-            android:toAlpha="0.0"
-            android:duration="1100"
-            android:repeatCount="infinite"
-            android:repeatMode="restart"
-            android:startOffset="200"/>
-    </item>
-
-    <!-- Partícula 3 -->
-    <item>
-        <scale
-            android:interpolator="@android:anim/accelerate_interpolator"
-            android:fromXScale="0.9"
-            android:toXScale="1.20"
-            android:fromYScale="0.9"
-            android:toYScale="1.20"
-            android:pivotX="50%"
-            android:pivotY="50%"
-            android:duration="1050"
-            android:repeatCount="infinite"
-            android:repeatMode="restart"
-            android:startOffset="400"/>
-        <alpha            android:fromAlpha="0.8"
-            android:toAlpha="0.0"
-            android:duration="1050"
-            android:repeatCount="infinite"
-            android:repeatMode="restart"
-            android:startOffset="400"/>
-    </item>
-
-    <!-- Partícula 4 (Descomenta para más cantidad) -->
-    <!--
-    <item>
-        <scale
-            android:interpolator="@android:anim/accelerate_interpolator"
-            android:fromXScale="0.88"
-            android:toXScale="1.28"
-            android:fromYScale="0.88"
-            android:toYScale="1.28"
-            android:pivotX="50%"
-            android:pivotY="50%"
-            android:duration="1150"
-            android:repeatCount="infinite"
-            android:repeatMode="restart"
-            android:startOffset="600"/>
-        <alpha
-            android:fromAlpha="0.85"
-            android:toAlpha="0.0"
-            android:duration="1150"
-            android:repeatCount="infinite"
-            android:repeatMode="restart"
-            android:startOffset="600"/>
-    </item>
-    -->
-
-    <!-- Partícula 5 (Descomenta para más cantidad) -->
-    <!--
-    <item>
-        <scale
-            android:interpolator="@android:anim/accelerate_interpolator"
-            android:fromXScale="0.92"
-            android:toXScale="1.22"
-            android:fromYScale="0.92"
-            android:toYScale="1.22"
-            android:pivotX="50%"
-            android:pivotY="50%"
-            android:duration="1080"
-            android:repeatCount="infinite"
-            android:repeatMode="restart"
-            android:startOffset="800"/>
-        <alpha
-            android:fromAlpha="0.75"            android:toAlpha="0.0"
-            android:duration="1080"
-            android:repeatCount="infinite"
-            android:repeatMode="restart"
-            android:startOffset="800"/>
-    </item>
-    -->
-    
+    <!-- Rotación (Giro de partículas) -->
+    <rotate
+        android:fromDegrees="0"
+        android:toDegrees="360"
+        android:pivotX="50%"
+        android:pivotY="50%"
+        android:duration="8000"
+        android:repeatCount="infinite"
+        android:interpolator="@android:anim/linear_interpolator"/>
 </set>

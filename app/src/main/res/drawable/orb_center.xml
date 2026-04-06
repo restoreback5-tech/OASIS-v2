@@ -1,39 +1,27 @@
 <?xml version="1.0" encoding="utf-8"?>
 <layer-list xmlns:android="http://schemas.android.com/apk/res/android">
-    <!-- 1. Fondo oscuro -->
-    <item>
+    
+    <!-- Partículas Exteriores (Cian Roto) -->
+    <item android:bottom="15dp" android:top="15dp" android:left="15dp" android:right="15dp">
         <shape android:shape="oval">
-            <solid android:color="#050510" />
+            <stroke android:width="4dp" android:color="#00E5FF" 
+                android:dashWidth="6dp" android:dashGap="10dp" />
         </shape>
     </item>
 
-    <!-- 2. Aura Turquesa-Magenta (Difusa) -->
-    <item android:bottom="10dp" android:top="10dp" android:left="10dp" android:right="10dp">
-        <shape android:shape="oval">
-            <gradient
-                android:type="radial"
-                android:centerColor="#00ACC1" 
-                android:endColor="#AB47BC"
-                android:gradientRadius="70dp" />
-        </shape>
-    </item>
-
-    <!-- 3. Anillo Turquesa Eléctrico -->
+    <!-- Partículas Intermedias (Magenta Roto) -->
     <item android:bottom="25dp" android:top="25dp" android:left="25dp" android:right="25dp">
         <shape android:shape="oval">
-            <stroke android:width="3dp" android:color="#00E5FF" />
-            <solid android:color="@android:color/transparent" />
+            <stroke android:width="3dp" android:color="#AB47BC" 
+                android:dashWidth="4dp" android:dashGap="15dp" />
         </shape>
     </item>
 
-    <!-- 4. Núcleo (Blanco a Turquesa Marino) -->
+    <!-- Núcleo Sólido (El ojo) -->
     <item android:bottom="45dp" android:top="45dp" android:left="45dp" android:right="45dp">
         <shape android:shape="oval">
-            <gradient
-                android:type="radial"
-                android:centerColor="#FFFFFF"
-                android:endColor="#1DE9B6"
-                android:gradientRadius="35dp" />
+            <solid android:color="#FFFFFF" />
         </shape>
     </item>
+
 </layer-list>
