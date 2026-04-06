@@ -2,9 +2,10 @@ name: Android CI
 
 on:
   push:
-    branches: [ "**" ]
+    branches: [ "main", "master" ] # Cambia esto si tu rama principal tiene otro nombre
   pull_request:
-    branches: [ "**" ]
+    branches: [ "main", "master" ]
+  workflow_dispatch: # Permite ejecutarlo manualmente desde la web
 
 jobs:
   build:
@@ -12,30 +13,39 @@ jobs:
 
     steps:
     - uses: actions/checkout@v4
-    
+
     - name: Set up JDK 17
       uses: actions/setup-java@v4
       with:
         java-version: '17'
         distribution: 'temurin'
-        
+        cache: gradle
+
     - name: Grant execute permission for gradlew
       run: chmod +x gradlew
-      
-    - name: Build universal debug APK
-      run: ./gradlew assembleDebug
-      
-    - name: Build universal release APK
-      run: ./gradlew assembleRelease
-      
-    - name: Upload Debug APK
-      uses: actions/upload-artifact@v4
-      with:
-        name: app-debug-universal
-        path: app/build/outputs/apk/debug/app-debug.apk
+
+    - name: Setup local.properties with Secrets
+      run: |
+        # Crea o limpia el archivo local.properties
+        echo "sdk.dir=${ANDROID_HOME}" > local.properties
         
-    - name: Upload Release APK
+        # Inyecta la API Key de Alibaba desde los Secretos de GitHub
+        if [ ! -z "${{ secrets.ALIBABA_API_KEY }}" ]; then
+          echo "alibaba.api.key=${{ secrets.ALIBABA_API_KEY }}" >> local.properties
+          echo "✅ API Key inyectada correctamente."
+        else
+          echo "⚠️ ADVERTENCIA: No se encontró el secreto ALIBABA_API_KEY. La app podría no conectar."
+        fi
+        
+        # Muestra el contenido para debug (opcional, oculta la clave real por seguridad en logs)
+        cat local.properties | grep -v "key="
+
+    - name: Build Debug APK
+      run: ./gradlew assembleDebug --stacktrace
+
+    - name: Upload Debug APK Artifact
       uses: actions/upload-artifact@v4
       with:
-        name: app-release-unsigned
-        path: app/build/outputs/apk/release/app-release-unsigned.apk
+        name: OASIS-v2-debug-apk
+        path: app/build/outputs/apk/debug/app-debug.apk
+        retention-days: 7
