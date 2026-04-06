@@ -22,6 +22,7 @@ import android.content.res.ColorStateList
 
 class MainActivity : AppCompatActivity() {
 
+    // === DECLARACIÓN DE MÓDULOS ===
     private lateinit var sound: SoundModule
     private lateinit var toast: ToastModule
     private lateinit var anim: AnimationModule
@@ -33,70 +34,73 @@ class MainActivity : AppCompatActivity() {
         super.onCreate(savedInstanceState)
         setContentView(R.layout.activity_main)
 
-        // Animación neuronal del orbe
+        // 1. Animación del Orbe (UI Visual)
         val orb = findViewById<ImageView>(R.id.orb_view)
         val neuralAnim = android.view.animation.AnimationUtils.loadAnimation(this, R.anim.orb_neural_pulse)
         orb.startAnimation(neuralAnim)
 
-        // Inicializar módulos
+        // 2. Inicialización de Módulos
         sound = SoundModule(this)
+        // Precargamos sonidos críticos para que suenen SIN delay (instantáneos)
         sound.preload(R.raw.cancelar, R.raw.confirmar)
+        
         toast = ToastModule(this)
         anim = AnimationModule(findViewById(R.id.orb_view))
         tts = TTSModule(this)
-        stt = STTModule(this)
-        prefs = getSharedPreferences("oasis_settings", MODE_PRIVATE)
+        stt = STTModule(this)        prefs = getSharedPreferences("oasis_settings", MODE_PRIVATE)
 
-        applyTheme()        checkMicPermission()
+        // 3. Aplicar Tema y Permisos al inicio
+        applyTheme() 
+        checkMicPermission()
 
-        // Listener de comandos de voz
+        // 4. Configurar el Listener de Voz (Cuando hablas, ejecuta processCommand)
         stt.setOnCommandListener { command ->
             runOnUiThread { processCommand(command) }
         }
 
+        // 5. Secuencia de Inicio
         sound.play(R.raw.inicio)
         orb.postDelayed({ tts.speak("Bienvenido a OASIS") }, 1000)
         anim.startRippleAnimation()
 
-        // Botón de ajustes
+        // 6. Botón de Ajustes
         findViewById<ImageView>(R.id.btn_settings).setOnClickListener {
             sound.play(R.raw.touch)
             tts.speak("Ajustes")
             startActivity(Intent(this, SettingsActivity::class.java))
         }
 
-        // Reloj en tiempo real
+        // 7. Reloj en Tiempo Real
         val clockHandler = Handler(Looper.getMainLooper())
         val clockRunnable = object : Runnable {
             override fun run() {
                 val is24Hour = prefs.getBoolean("clock_24h", true)
-                val format = if (is24Hour) {
-                    SimpleDateFormat("HH:mm", Locale.getDefault())
-                } else {
-                    SimpleDateFormat("hh:mm a", Locale.getDefault())
-                }
+                val format = if (is24Hour) SimpleDateFormat("HH:mm", Locale.getDefault())
+                else SimpleDateFormat("hh:mm a", Locale.getDefault())
                 findViewById<TextView>(R.id.clock_text).text = format.format(System.currentTimeMillis())
                 clockHandler.postDelayed(this, 1000)
             }
         }
         clockHandler.post(clockRunnable)
 
-        // Orbe: escuchar comando de voz
+        // 8. Click en el Orbe para Escuchar
         orb.setOnClickListener {
             sound.play(R.raw.touch)
             toast.show("Escuchando...")
             stt.startListening()
         }
 
-        // Botones principales
+        // 9. Configurar Botones Principales
         setupBtn(R.id.btn_call, "Llamar") { openDialer() }
         setupBtn(R.id.btn_message, "Enviar mensaje") { openSms() }
         setupBtn(R.id.btn_contacts, "Contactos") { openContacts() }
         setupBtn(R.id.btn_apps, "Apps") { openLauncher() }
     }
+    // === FUNCIONES AUXILIARES DE UI ===
 
-    // Configurar botones con animación y feedback
-    private fun setupBtn(id: Int, text: String, action: () -> Unit) {        findViewById<MaterialButton>(id).setOnClickListener {
+    // Configura los botones con animación y sonido táctil
+    private fun setupBtn(id: Int, text: String, action: () -> Unit) {
+        findViewById<MaterialButton>(id).setOnClickListener {
             sound.play(R.raw.touch)
             pulseAnimation(findViewById<View>(id))
             toast.show(text)
@@ -105,7 +109,44 @@ class MainActivity : AppCompatActivity() {
         }
     }
 
-    // === FUNCIONES DE ACCIÓN BÁSICAS ===
+    // Animación de pulso suave al tocar botones
+    private fun pulseAnimation(view: View) {
+        val scaleX = ObjectAnimator.ofFloat(view, "scaleX", 1f, 0.94f, 1f)
+        val scaleY = ObjectAnimator.ofFloat(view, "scaleY", 1f, 0.94f, 1f)
+        val set = AnimatorSet()
+        set.playTogether(scaleX, scaleY)
+        set.duration = 180
+        set.interpolator = android.view.animation.DecelerateInterpolator()
+        set.start()
+    }
+
+    // === LÓGICA DE TEMAS (Respetada del Backup Original) ===
+
+    private fun applyTheme() {
+        // Lee el tema guardado ("amanecer", "caribe", "oscuro")
+        val selectedTheme = prefs.getString("selected_theme", "amanecer") ?: "amanecer"
+        
+        // 1. Cambiar Fondo
+        val bgRes = when (selectedTheme) {
+            "caribe" -> R.color.caribe_background
+            "oscuro" -> R.color.oscuro_background
+            else -> R.color.amanecer_background
+        }
+        window.setBackgroundDrawableResource(bgRes)
+
+        // 2. Cambiar Color de Texto (Reloj y Saludo)
+        val textColor = when (selectedTheme) {
+            "caribe" -> ContextCompat.getColor(this, R.color.caribe_text)
+            "oscuro" -> ContextCompat.getColor(this, R.color.oscuro_text)
+            else -> ContextCompat.getColor(this, R.color.amanecer_text)
+        }
+        findViewById<TextView>(R.id.clock_text).setTextColor(textColor)
+        findViewById<TextView>(R.id.greeting_text).setTextColor(textColor)
+        
+        // Nota: Si tienes colores específicos para botones en themes.xml, se aplican automáticamente.
+        // Si usabas applyButtonTints antes, puedes descomentarlo aquí si lo necesitas.
+    }
+    // === ACCIONES BÁSICAS (Abrir Apps Genéricas) ===
 
     private fun openDialer() {
         try {
@@ -117,6 +158,7 @@ class MainActivity : AppCompatActivity() {
 
     private fun openSms() {
         try {
+            // Intenta abrir WhatsApp primero, si no, abre SMS nativo
             val whatsappIntent = packageManager.getLaunchIntentForPackage("com.whatsapp")
             if (whatsappIntent != null) {
                 startActivity(whatsappIntent)
@@ -145,37 +187,42 @@ class MainActivity : AppCompatActivity() {
             startActivity(intent)
         } catch(_: Exception) { }
     }
-    // === PROCESAR COMANDOS DE VOZ MEJORADO ===
+
+    // === CEREBRO DE VOZ: PROCESAR COMANDOS INTELIGENTES ===
 
     private fun processCommand(cmd: String) {
         val cmdLower = cmd.lowercase().trim()
         toast.show("Comando: $cmd")
 
-        when {
-            // Abrir apps específicas
+        when {            // --- CASO 1: ABRIR APPS ESPECÍFICAS ---
+            // Detecta: "Abre WhatsApp", "Lanza YouTube", "Abre la cámara"
             cmdLower.contains("abrir") || cmdLower.contains("abre") || cmdLower.contains("lanza") -> {
-                val appName = extractAppName(cmdLower)
+                val appName = extractAppName(cmdLower) // Extrae solo el nombre (ej: "whatsapp")
                 if (appName.isNotEmpty()) {
-                    openSpecificApp(appName)
+                    openSpecificApp(appName) // Lanza la app correspondiente
                 } else {
                     tts.speak("¿Cuál aplicación deseas abrir?")
                 }
             }
-            // Llamar
+
+            // --- CASO 2: LLAMAR ---
+            // Detecta: "Llama a mamá", "Llamar al 555..."
             cmdLower.contains("llamar") || cmdLower.contains("llama a") -> {
                 val contactName = extractContactName(cmdLower)
                 if (contactName.isNotEmpty()) {
                     if (contactName.any { it.isDigit() }) {
-                        dialNumber(contactName)
+                        dialNumber(contactName) // Si es número, marca directo
                     } else {
                         tts.speak("Buscando el contacto $contactName…")
-                        openDialer()
+                        openDialer() // Abre el teclado de marcado
                     }
                 } else {
                     tts.speak("¿A quién deseas llamar?")
                 }
             }
-            // Enviar mensaje
+
+            // --- CASO 3: ENVIAR MENSAJE ---
+            // Detecta: "Manda mensaje a Juan", "Envía WhatsApp"
             cmdLower.contains("mensaje") || cmdLower.contains("mandar") || cmdLower.contains("enviar") -> {
                 val contactName = extractContactName(cmdLower)
                 if (contactName.isNotEmpty()) {
@@ -184,27 +231,34 @@ class MainActivity : AppCompatActivity() {
                     openSms()
                 }
             }
-            // Otros comandos
+
+            // --- CASOS SIMPLES ---
             cmdLower.contains("contacto") -> openContacts()
             cmdLower.contains("app") || cmdLower.contains("menú") -> openLauncher()
+            
             cmdLower.contains("hola") -> tts.speak("Hola, soy OASIS. Estoy listo para ayudarte.")
+            
             cmdLower.contains("ayuda") || cmdLower.contains("qué puedes hacer") -> {
                 tts.speak("Puedo abrir aplicaciones como WhatsApp o YouTube, realizar llamadas, enviar mensajes y ayudarte con configuraciones.")
             }
+            
             else -> tts.speak("No logré entenderte. Prueba con: 'Abre WhatsApp', 'Haz una llamada' o 'Envía un mensaje'.")
-        }
-    }
-    // === FUNCIONES AUXILIARES DE EXTRACCIÓN ===
+        }    }
 
+    // === FUNCIONES DE EXTRACCIÓN DE NOMBRES (Limpieza de texto) ===
+
+    // Limpia "Abre la aplicación de WhatsApp" -> devuelve "WhatsApp"
     private fun extractAppName(cmd: String): String {
         var result = cmd
         listOf("abrir", "abre", "lanza", "inicia", "la app", "el", "la", "aplicación").forEach { kw ->
             result = result.replace(kw, "").trim()
         }
+        // Quita artículos y preposiciones sobrantes
         result = result.replace(Regex("\\b(el|la|los|las|un|una|a|de|del|para|por)\\b"), "").trim()
         return result.replace(Regex("[^a-zA-ZáéíóúÁÉÍÓÚñÑ\\s]"), "").trim()
     }
 
+    // Limpia "Llama a mamá" -> devuelve "mamá"
     private fun extractContactName(cmd: String): String {
         var result = cmd
         listOf("llamar", "llama a", "mensaje", "mandar", "enviar", "a").forEach { kw ->
@@ -214,17 +268,18 @@ class MainActivity : AppCompatActivity() {
         return result.replace(Regex("[^a-zA-ZáéíóúÁÉÍÓÚñÑ\\s]"), "").trim()
     }
 
-    // === ABRIR APPS ESPECÍFICAS ===
+    // === LANZADOR DE APPS ESPECÍFICAS (El cerebro que faltaba) ===
 
     private fun openSpecificApp(appName: String) {
         val normalizedApp = appName.lowercase().trim()
         
+        // Mapeo de nombres hablados a Paquetes de Android
         val packageName = when {
-            normalizedApp.contains("whatsapp") -> "com.whatsapp"
-            normalizedApp.contains("facebook") -> "com.facebook.katana"
-            normalizedApp.contains("instagram") -> "com.instagram.android"
-            normalizedApp.contains("youtube") -> "com.google.android.youtube"
-            normalizedApp.contains("chrome") -> "com.android.chrome"
+            normalizedApp.contains("whatsapp") || normalizedApp.contains("wasap") -> "com.whatsapp"
+            normalizedApp.contains("facebook") || normalizedApp.contains("fb") -> "com.facebook.katana"
+            normalizedApp.contains("instagram") || normalizedApp.contains("insta") -> "com.instagram.android"
+            normalizedApp.contains("youtube") || normalizedApp.contains("tubo") -> "com.google.android.youtube"
+            normalizedApp.contains("chrome") || normalizedApp.contains("navegador") -> "com.android.chrome"
             normalizedApp.contains("camara") || normalizedApp.contains("cámara") -> "com.android.camera2"
             normalizedApp.contains("ajustes") || normalizedApp.contains("configuración") -> "com.android.settings"
             normalizedApp.contains("reloj") -> "com.google.android.deskclock"
@@ -237,19 +292,19 @@ class MainActivity : AppCompatActivity() {
         }
 
         if (packageName != null) {
-            try {
-                val intent = packageManager.getLaunchIntentForPackage(packageName)
+            try {                val intent = packageManager.getLaunchIntentForPackage(packageName)
                 if (intent != null) {
                     intent.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK)
                     startActivity(intent)
                     tts.speak("Abriendo $appName ahora.")
-                } else {                    tts.speak("La aplicación $appName no está disponible en este dispositivo.")
+                } else {
+                    tts.speak("La aplicación $appName no está instalada.")
                 }
             } catch (e: Exception) {
-                tts.speak("No fue posible abrir $appName.")
+                tts.speak("Error al abrir $appName.")
             }
         } else {
-            tts.speak("No reconozco la aplicación $appName. Intenta con WhatsApp, YouTube o Facebook.")
+            tts.speak("No reconozco esa aplicación. Prueba con WhatsApp, YouTube o Facebook.")
         }
     }
 
@@ -258,14 +313,15 @@ class MainActivity : AppCompatActivity() {
             val intent = Intent(Intent.ACTION_DIAL)
             intent.data = android.net.Uri.parse("tel:$number")
             startActivity(intent)
-            tts.speak("Llamando al número $number.")
+            tts.speak("Marcando $number.")
         } catch (e: Exception) {
-            tts.speak("No fue posible completar la llamada.")
+            tts.speak("No fue posible marcar.")
         }
     }
 
     private fun openSmsToContact(contactName: String) {
         try {
+            // Si dice "WhatsApp", abre WhatsApp, sino SMS normal
             val whatsappIntent = packageManager.getLaunchIntentForPackage("com.whatsapp")
             if (whatsappIntent != null && contactName.lowercase().contains("whatsapp")) {
                 startActivity(whatsappIntent)
@@ -274,51 +330,18 @@ class MainActivity : AppCompatActivity() {
                 val intent = Intent(Intent.ACTION_VIEW)
                 intent.type = "vnd.android-dir/mms-sms"
                 startActivity(intent)
-                tts.speak("Abriendo la aplicación de mensajes para $contactName.")
+                tts.speak("Abriendo mensajes para $contactName.")
             }
         } catch (e: Exception) {
-            toast.show("No se encontró ninguna aplicación de mensajes instalada.")
+            toast.show("Error al abrir mensajes.")
         }
     }
 
-    // === GESTIÓN DE TEMAS ===
-
-    private fun applyTheme() {
-        val selectedTheme = prefs.getString("selected_theme", "amanecer") ?: "amanecer"
-        
-        // Fondo
-        val bgRes = when (selectedTheme) {
-            "caribe" -> R.color.caribe_background
-            "oscuro" -> R.color.oscuro_background
-            else -> R.color.amanecer_background
-        }
-        window.setBackgroundDrawableResource(bgRes)
-        // Texto
-        val textColor = when (selectedTheme) {
-            "caribe" -> ContextCompat.getColor(this, R.color.caribe_text)
-            "oscuro" -> ContextCompat.getColor(this, R.color.oscuro_text)
-            else -> ContextCompat.getColor(this, R.color.amanecer_text)
-        }
-        findViewById<TextView>(R.id.clock_text).setTextColor(textColor)
-        findViewById<TextView>(R.id.greeting_text).setTextColor(textColor)
-    }
-
-    // === ANIMACIONES Y UTILIDADES ===
-
-    private fun pulseAnimation(view: View) {
-        val scaleX = ObjectAnimator.ofFloat(view, "scaleX", 1f, 0.94f, 1f)
-        val scaleY = ObjectAnimator.ofFloat(view, "scaleY", 1f, 0.94f, 1f)
-        val set = AnimatorSet()
-        set.playTogether(scaleX, scaleY)
-        set.duration = 180
-        set.interpolator = android.view.animation.DecelerateInterpolator()
-        set.start()
-    }
+    // === GESTIÓN DE PERMISOS Y CICLO DE VIDA ===
 
     private fun checkMicPermission() {
         if (ContextCompat.checkSelfPermission(this, Manifest.permission.RECORD_AUDIO) != PackageManager.PERMISSION_GRANTED) {
-            ActivityCompat.requestPermissions(this, arrayOf(Manifest.permission.RECORD_AUDIO), 100)
-        }
+            ActivityCompat.requestPermissions(this, arrayOf(Manifest.permission.RECORD_AUDIO), 100)        }
     }
 
     override fun onRequestPermissionsResult(requestCode: Int, permissions: Array<out String>, grantResults: IntArray) {
@@ -334,12 +357,13 @@ class MainActivity : AppCompatActivity() {
 
     override fun onResume() {
         super.onResume()
-        applyTheme()
+        applyTheme() // Re-aplica el tema por si cambió en Ajustes
     }
 
     override fun onDestroy() {
         super.onDestroy()
         sound.release()
         tts.shutdown()
-        stt.destroy()    }
+        stt.destroy()
+    }
 }
