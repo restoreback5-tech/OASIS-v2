@@ -21,7 +21,6 @@ import java.util.Locale
 
 class MainActivity : AppCompatActivity() {
 
-    // === DECLARACIÓN DE MÓDULOS ===
     private lateinit var sound: SoundModule
     private lateinit var toast: ToastModule
     private lateinit var anim: AnimationModule
@@ -33,12 +32,10 @@ class MainActivity : AppCompatActivity() {
         super.onCreate(savedInstanceState)
         setContentView(R.layout.activity_main)
 
-        // 1. Animación del Orbe
         val orb = findViewById<ImageView>(R.id.orb_view)
         val neuralAnim = android.view.animation.AnimationUtils.loadAnimation(this, R.anim.orb_neural_pulse)
         orb.startAnimation(neuralAnim)
 
-        // 2. Inicialización de Módulos
         sound = SoundModule(this)
         sound.preload(R.raw.cancelar, R.raw.confirmar, R.raw.inicio, R.raw.touch, R.raw.alerta, R.raw.error, R.raw.escuchando, R.raw.burbuja, R.raw.deslizar)
         toast = ToastModule(this)
@@ -47,27 +44,22 @@ class MainActivity : AppCompatActivity() {
         stt = STTModule(this)
         prefs = getSharedPreferences("oasis_settings", MODE_PRIVATE)
 
-        // 3. Aplicar Tema y Permisos        applyTheme()
+        applyTheme()
         checkMicPermission()
 
-        // 4. Listener de Voz
-        stt.setOnCommandListener { command ->
-            runOnUiThread { processCommand(command) }
+        stt.setOnCommandListener { command ->            runOnUiThread { processCommand(command) }
         }
 
-        // 5. Secuencia de Inicio
         sound.play(R.raw.inicio)
         orb.postDelayed({ tts.speak("Bienvenido a OASIS") }, 1000)
         anim.startRippleAnimation()
 
-        // 6. Botón de Ajustes
         findViewById<ImageView>(R.id.btn_settings).setOnClickListener {
             sound.play(R.raw.touch)
             tts.speak("Ajustes")
             startActivity(Intent(this, SettingsActivity::class.java))
         }
 
-        // 7. Reloj en Tiempo Real
         val clockHandler = Handler(Looper.getMainLooper())
         val clockRunnable = object : Runnable {
             override fun run() {
@@ -80,7 +72,6 @@ class MainActivity : AppCompatActivity() {
         }
         clockHandler.post(clockRunnable)
 
-        // 8. Click en el Orbe para Escuchar
         orb.setOnClickListener {
             sound.play(R.raw.touch)
             sound.play(R.raw.escuchando)
@@ -88,15 +79,14 @@ class MainActivity : AppCompatActivity() {
             stt.startListening()
         }
 
-        // 9. Configurar Botones Principales
         setupBtn(R.id.btn_call, "Llamar") { openDialer() }
         setupBtn(R.id.btn_message, "Enviar mensaje") { openSms() }
         setupBtn(R.id.btn_contacts, "Contactos") { openContacts() }
         setupBtn(R.id.btn_apps, "Apps") { openLauncher() }
     }
 
-    // === FUNCIONES AUXILIARES DE UI ===
-    private fun setupBtn(id: Int, text: String, action: () -> Unit) {        findViewById<MaterialButton>(id).setOnClickListener {
+    private fun setupBtn(id: Int, text: String, action: () -> Unit) {
+        findViewById<MaterialButton>(id).setOnClickListener {
             sound.play(R.raw.touch)
             pulseAnimation(findViewById<View>(id))
             toast.show(text)
@@ -106,8 +96,8 @@ class MainActivity : AppCompatActivity() {
     }
 
     private fun pulseAnimation(view: View) {
-        val scaleX = ObjectAnimator.ofFloat(view, "scaleX", 1f, 0.94f, 1f)
-        val scaleY = ObjectAnimator.ofFloat(view, "scaleY", 1f, 0.94f, 1f)
+        val scaleX = ObjectAnimator.ofFloat(view, "scaleX", 1f, 0.94f, 1f)        
+	val scaleY = ObjectAnimator.ofFloat(view, "scaleY", 1f, 0.94f, 1f)
         val set = AnimatorSet()
         set.playTogether(scaleX, scaleY)
         set.duration = 180
@@ -115,7 +105,6 @@ class MainActivity : AppCompatActivity() {
         set.start()
     }
 
-    // === LÓGICA DE TEMAS ===
     private fun applyTheme() {
         val selectedTheme = prefs.getString("selected_theme", "amanecer") ?: "amanecer"
         val bgRes = when (selectedTheme) {
@@ -133,7 +122,6 @@ class MainActivity : AppCompatActivity() {
         findViewById<TextView>(R.id.greeting_text).setTextColor(textColor)
     }
 
-    // === ACCIONES BÁSICAS ===
     private fun openDialer() {
         try {
             val intent = Intent(Intent.ACTION_DIAL)
@@ -145,7 +133,8 @@ class MainActivity : AppCompatActivity() {
     private fun openSms() {
         try {
             val whatsappIntent = packageManager.getLaunchIntentForPackage("com.whatsapp")
-            if (whatsappIntent != null) {                startActivity(whatsappIntent)
+            if (whatsappIntent != null) {
+                startActivity(whatsappIntent)
                 tts.speak("Abriendo WhatsApp.")
             } else {
                 val intent = Intent(Intent.ACTION_MAIN)
@@ -157,7 +146,6 @@ class MainActivity : AppCompatActivity() {
             toast.show("No se encontró ninguna app de mensajes")
         }
     }
-
     private fun openContacts() {
         try {
             val intent = Intent(Intent.ACTION_VIEW)
@@ -174,7 +162,6 @@ class MainActivity : AppCompatActivity() {
         } catch(_: Exception) { }
     }
 
-    // === CEREBRO DE VOZ: PROCESAR COMANDOS ===
     private fun processCommand(cmd: String) {
         val cmdLower = cmd.lowercase().trim()
         toast.show("Comando: $cmd")
@@ -194,7 +181,8 @@ class MainActivity : AppCompatActivity() {
                         dialNumber(contactName)
                     } else {
                         tts.speak("Buscando el contacto $contactName…")
-                        openDialer()                    }
+                        openDialer()
+                    }
                 } else {
                     tts.speak("¿A quién deseas llamar?")
                 }
@@ -207,8 +195,8 @@ class MainActivity : AppCompatActivity() {
                     openSms()
                 }
             }
-            cmdLower.contains("contacto") -> openContacts()
-            cmdLower.contains("app") || cmdLower.contains("menú") -> openLauncher()
+            cmdLower.contains("contacto") -> openContacts()           
+	    cmdLower.contains("app") || cmdLower.contains("menú") -> openLauncher()
             cmdLower.contains("hola") -> {
                 sound.play(R.raw.burbuja)
                 tts.speak("Hola, soy OASIS. Estoy listo para ayudarte.")
@@ -232,7 +220,6 @@ class MainActivity : AppCompatActivity() {
         }
     }
 
-    // === FUNCIONES DE EXTRACCIÓN ===
     private fun extractAppName(cmd: String): String {
         var result = cmd
         listOf("abrir", "abre", "lanza", "inicia", "la app", "el", "la", "aplicación").forEach { kw ->
@@ -243,14 +230,14 @@ class MainActivity : AppCompatActivity() {
     }
 
     private fun extractContactName(cmd: String): String {
-        var result = cmd        listOf("llamar", "llama a", "mensaje", "mandar", "enviar", "a").forEach { kw ->
+        var result = cmd
+        listOf("llamar", "llama a", "mensaje", "mandar", "enviar", "a").forEach { kw ->
             result = result.replace(kw, "").trim()
         }
         result = result.replace(Regex("\\b(el|la|los|las|un|una|de|del|para|por)\\b"), "").trim()
         return result.replace(Regex("[^a-zA-ZáéíóúÁÉÍÓÚñÑ\\s]"), "").trim()
     }
 
-    // === LANZADOR DE APPS ===
     private fun openSpecificApp(appName: String) {
         val normalizedApp = appName.lowercase().trim()
         val packageName = when {
@@ -258,8 +245,7 @@ class MainActivity : AppCompatActivity() {
             normalizedApp.contains("facebook") || normalizedApp.contains("fb") -> "com.facebook.katana"
             normalizedApp.contains("instagram") || normalizedApp.contains("insta") -> "com.instagram.android"
             normalizedApp.contains("youtube") || normalizedApp.contains("tubo") -> "com.google.android.youtube"
-            normalizedApp.contains("chrome") || normalizedApp.contains("navegador") -> "com.android.chrome"
-            normalizedApp.contains("camara") || normalizedApp.contains("cámara") -> "com.android.camera2"
+            normalizedApp.contains("chrome") || normalizedApp.contains("navegador") -> "com.android.chrome"            normalizedApp.contains("camara") || normalizedApp.contains("cámara") -> "com.android.camera2"
             normalizedApp.contains("ajustes") || normalizedApp.contains("configuración") -> "com.android.settings"
             normalizedApp.contains("reloj") || normalizedApp.contains("alarma") -> "com.google.android.deskclock"
             normalizedApp.contains("calculadora") -> "com.android.calculator2"
@@ -292,7 +278,7 @@ class MainActivity : AppCompatActivity() {
             tts.speak("No reconozco esa aplicación. Intenta con: WhatsApp, YouTube, Facebook o Chrome")
         }
     }
-    // === MARCAR NÚMERO ===
+
     private fun dialNumber(number: String) {
         try {
             val intent = Intent(Intent.ACTION_DIAL).apply {
@@ -306,11 +292,9 @@ class MainActivity : AppCompatActivity() {
         }
     }
 
-    // === ENVIAR MENSAJE A CONTACTO ===
     private fun openSmsToContact(contactName: String) {
         try {
-            if (contactName.lowercase().contains("whatsapp") || contactName.lowercase().contains("wasap")) {
-                val whatsappIntent = packageManager.getLaunchIntentForPackage("com.whatsapp")
+            if (contactName.lowercase().contains("whatsapp") || contactName.lowercase().contains("wasap")) {                val whatsappIntent = packageManager.getLaunchIntentForPackage("com.whatsapp")
                 if (whatsappIntent != null) {
                     startActivity(whatsappIntent)
                     tts.speak("Abriendo WhatsApp")
@@ -331,7 +315,6 @@ class MainActivity : AppCompatActivity() {
         }
     }
 
-    // === PERMISOS Y CICLO DE VIDA ===
     private fun checkMicPermission() {
         if (ContextCompat.checkSelfPermission(this, Manifest.permission.RECORD_AUDIO) != PackageManager.PERMISSION_GRANTED) {
             ActivityCompat.requestPermissions(this, arrayOf(Manifest.permission.RECORD_AUDIO), 100)
@@ -341,7 +324,8 @@ class MainActivity : AppCompatActivity() {
     override fun onRequestPermissionsResult(requestCode: Int, permissions: Array<out String>, grantResults: IntArray) {
         super.onRequestPermissionsResult(requestCode, permissions, grantResults)
         if (requestCode == 100) {
-            if (grantResults.isNotEmpty() && grantResults[0] == PackageManager.PERMISSION_GRANTED) {                sound.play(R.raw.confirmar)
+            if (grantResults.isNotEmpty() && grantResults[0] == PackageManager.PERMISSION_GRANTED) {
+                sound.play(R.raw.confirmar)
                 tts.speak("Permiso de micrófono concedido")
             } else {
                 sound.play(R.raw.cancelar)
@@ -359,6 +343,5 @@ class MainActivity : AppCompatActivity() {
         super.onDestroy()
         sound.release()
         tts.shutdown()
-        stt.destroy()
-    }
+        stt.destroy()    }
 }
