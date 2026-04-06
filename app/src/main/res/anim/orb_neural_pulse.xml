@@ -1,8 +1,6 @@
 <?xml version="1.0" encoding="utf-8"?>
 <set xmlns:android="http://schemas.android.com/apk/res/android"
     android:shareInterpolator="false">
-    
-    <!-- Escala suave (respiración) -->
     <scale
         android:interpolator="@android:anim/accelerate_decelerate_interpolator"
         android:fromXScale="1.0"
@@ -14,8 +12,6 @@
         android:duration="2000"
         android:repeatCount="infinite"
         android:repeatMode="reverse"/>
-    
-    <!-- Alpha para brillo (Aura) -->
     <alpha
         android:fromAlpha="0.8"
         android:toAlpha="1.0"
