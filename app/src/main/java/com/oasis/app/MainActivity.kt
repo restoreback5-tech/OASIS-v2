@@ -351,7 +351,8 @@ private fun processCommand(cmd: String) {
                 "Aquí tienes tus aplicaciones",
                 "Mostrando todas las apps"
             )
-            tts.speak(randomResponse(responses))            openLauncher()
+            tts.speak(randomResponse(responses))            
+	    openLauncher()
         }
         
         // === SALUDOS ===
