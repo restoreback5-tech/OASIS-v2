@@ -18,7 +18,6 @@ import androidx.core.content.ContextCompat
 import com.google.android.material.button.MaterialButton
 import java.text.SimpleDateFormat
 import java.util.Locale
-import android.speech.RecognizerIntent
 
 class MainActivity : AppCompatActivity() {
 
@@ -56,24 +55,28 @@ class MainActivity : AppCompatActivity() {
         stt = STTModule(this)
         prefs = getSharedPreferences("oasis_settings", MODE_PRIVATE)
 
+        // 3. Tema y Permisos
         applyTheme()
         checkMicPermission()
 
+        // 4. Listener de comandos de voz
         stt.setOnCommandListener { command ->
             runOnUiThread { processCommand(command) }
         }
 
+        // 5. Secuencia de inicio
         sound.play(R.raw.inicio)
         orbView.postDelayed({ tts.speak("Bienvenido a OASIS") }, 1000)
         anim.startRippleAnimation()
 
+        // 6. Botón Ajustes
         findViewById<ImageView>(R.id.btn_settings).setOnClickListener {
             sound.play(R.raw.touch)
             tts.speak("Ajustes")
             startActivity(Intent(this, SettingsActivity::class.java))
         }
 
-        // Reloj
+        // 7. Reloj en tiempo real
         val clockHandler = Handler(Looper.getMainLooper())
         val clockRunnable = object : Runnable {
             override fun run() {
@@ -89,27 +92,15 @@ class MainActivity : AppCompatActivity() {
         }
         clockHandler.post(clockRunnable)
 
-        // Click en el Orbe - Micrófono de Google
+        // 8. Click en el Orbe
         orbView.setOnClickListener {
             sound.play(R.raw.touch)
             toast.show("Escuchando...")
             setOrbToActive()
-
-            val intent = Intent(RecognizerIntent.ACTION_RECOGNIZE_SPEECH).apply {
-                putExtra(RecognizerIntent.EXTRA_LANGUAGE_MODEL, RecognizerIntent.LANGUAGE_MODEL_FREE_FORM)
-                putExtra(RecognizerIntent.EXTRA_LANGUAGE, Locale.getDefault())
-                putExtra(RecognizerIntent.EXTRA_PROMPT, "Habla ahora...")
-            }
-
-            try {
-                startActivityForResult(intent, 101)
-            } catch (e: Exception) {
-                toast.show("No se pudo abrir el micrófono")
-                tts.speak("No pude activar el micrófono")
-                setOrbToListening()
-            }
+            stt.startListening()
         }
 
+        // 9. Botones principales
         setupBtn(R.id.btn_call, "Llamar") { openDialer() }
         setupBtn(R.id.btn_message, "Enviar mensaje") { openSms() }
         setupBtn(R.id.btn_contacts, "Contactos") { openContacts() }
@@ -137,7 +128,7 @@ class MainActivity : AppCompatActivity() {
         }
     }
 
-    // ORBE VIVO
+    // ====================== ORBE VIVO ======================
     private fun setOrbToListening() {
         orbState = "idle"
         orbView.clearAnimation()
@@ -160,6 +151,7 @@ class MainActivity : AppCompatActivity() {
         }
     }
 
+    // === TEMAS ===
     private fun applyTheme() {
         val selectedTheme = prefs.getString("selected_theme", "amanecer") ?: "amanecer"
         val bgRes = when (selectedTheme) {
@@ -178,7 +170,7 @@ class MainActivity : AppCompatActivity() {
         findViewById<TextView>(R.id.greeting_text)?.setTextColor(textColor)
     }
 
-    // === ACCIONES (mantengo las tuyas) ===
+    // === ACCIONES SEGURAS ===
     private fun openDialer() {
         try {
             val intent = Intent(Intent.ACTION_DIAL).apply { data = android.net.Uri.parse("tel:") }
@@ -292,24 +284,28 @@ class MainActivity : AppCompatActivity() {
         resetOrbToIdle()
     }
 
+    // === EXTRACCIÓN (pega aquí tus funciones originales si son diferentes) ===
     private fun extractAppName(cmd: String): String {
         var result = cmd
-        listOf("abrir", "abre", "lanza", "inicia", "app", "aplicación").forEach { result = result.replace(it, "").trim() }
+        listOf("abrir","abre","lanza","inicia","app","aplicación").forEach { result = result.replace(it, "").trim() }
         result = result.replace(Regex("\\b(el|la|los|las|un|una|de|del|para|por)\\b"), "").trim()
         return result.replace(Regex("[^a-zA-Záéíóúñ\\s]"), "").trim()
     }
 
     private fun extractContactName(cmd: String): String {
         var result = cmd
-        listOf("llamar", "llama a", "mensaje", "mandar", "enviar", "a").forEach { result = result.replace(it, "").trim() }
+        listOf("llamar","llama a","mensaje","mandar","enviar","a").forEach { result = result.replace(it, "").trim() }
         result = result.replace(Regex("\\b(el|la|los|las|un|una|de|del|para|por)\\b"), "").trim()
         return result.replace(Regex("[^a-zA-Záéíóúñ\\s]"), "").trim()
     }
 
     private fun openSpecificApp(appName: String) {
+        // ← Pega aquí tu función original de openSpecificApp si la tienes más completa
         tts.speak("Abriendo $appName")
+        // Versión básica por ahora
     }
 
+    // === PERMISOS ===
     private fun checkMicPermission() {
         if (ContextCompat.checkSelfPermission(this, Manifest.permission.RECORD_AUDIO) != PackageManager.PERMISSION_GRANTED) {
             ActivityCompat.requestPermissions(this, arrayOf(Manifest.permission.RECORD_AUDIO), 100)
@@ -325,23 +321,6 @@ class MainActivity : AppCompatActivity() {
                 tts.speak("Necesito permiso de micrófono para escucharte")
             }
         }
-    }
-
-    override fun onActivityResult(requestCode: Int, resultCode: Int, data: Intent?) {
-        super.onActivityResult(requestCode, resultCode, data)
-
-        if (requestCode == 101) {
-            if (resultCode == RESULT_OK && data != null) {
-                val results = data.getStringArrayListExtra(RecognizerIntent.EXTRA_RESULTS)
-                val command = results?.get(0) ?: ""
-                if (command.isNotEmpty()) {
-                    processCommand(command)
-                }
-            } else {
-                tts.speak("No entendí, intenta de nuevo")
-            }
-        }
-        setOrbToListening()
     }
 
     override fun onResume() {
