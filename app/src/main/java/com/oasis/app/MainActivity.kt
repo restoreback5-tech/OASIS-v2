@@ -18,7 +18,6 @@ import androidx.core.content.ContextCompat
 import com.google.android.material.button.MaterialButton
 import java.text.SimpleDateFormat
 import java.util.Locale
-import android.content.res.ColorStateList
 
 class MainActivity : AppCompatActivity() {
 
@@ -124,7 +123,7 @@ class MainActivity : AppCompatActivity() {
                         dialNumber(contactName)
                     } else {
                         tts.speak("Buscando a $contactName")
-                        openDialer()
+                        openDialer(contactName)
                     }
                 } else tts.speak("¿A quién quieres llamar?")
             }
@@ -146,36 +145,31 @@ class MainActivity : AppCompatActivity() {
     }
 
     private fun extractAppName(cmd: String): String {
-        var result = cmd
-        listOf("abrir", "abre", "lanza", "inicia", "la app", "el", "la", "aplicación")
-            .forEach { result = result.replace(it, "").trim() }
-
-        result = result.replace(
-            Regex("\\b(el|la|los|las|un|una|a|de|del|para|por)\\b"),
-            ""
-        ).trim()
-
-        return result.replace(Regex("[^a-zA-Záéíóúñ\\s]"), "").trim()
+        return cmd
+            .lowercase()
+            .replace(Regex("abrir|abre|lanza|inicia|app|aplicación"), "")
+            .replace(Regex("\\b(el|la|los|las|un|una|mi|de|del|para|por)\\b"), "")
+            .replace(Regex("[^a-záéíóúñ\\s]"), "")
+            .replace(Regex("\\s+"), " ")
+            .trim()
     }
 
     private fun extractContactName(cmd: String): String {
-        var result = cmd
-        listOf("llamar", "llama a", "mensaje", "mandar", "enviar", "a")
-            .forEach { result = result.replace(it, "").trim() }
-
-        result = result.replace(
-            Regex("\\b(el|la|los|las|un|una|de|del|para|por)\\b"),
-            ""
-        ).trim()
-
-        return result.replace(Regex("[^a-zA-Záéíóúñ\\s]"), "").trim()
+        return cmd
+            .lowercase()
+            .replace(Regex("llamar|llama a|mensaje|mandar|enviar"), "")
+            .replace(Regex("\\b(el|la|los|las|un|una|mi|de|del|para|por|a)\\b"), "")
+            .replace(Regex("[^a-záéíóúñ\\s0-9]"), "")
+            .replace(Regex("\\s+"), " ")
+            .trim()
     }
 
     private fun openSpecificApp(appName: String) {
-        val normalized = appName.lowercase()
+        val pm = packageManager
+        val normalized = appName.lowercase().trim()
 
-        val packageName = when {
-            normalized.contains("whatsapp") -> "com.whatsapp"
+        val knownPackage = when {
+            normalized.contains("whatsapp") || normalized.contains("wasap") -> "com.whatsapp"
             normalized.contains("facebook") -> "com.facebook.katana"
             normalized.contains("instagram") -> "com.instagram.android"
             normalized.contains("youtube") -> "com.google.android.youtube"
@@ -184,23 +178,59 @@ class MainActivity : AppCompatActivity() {
             else -> null
         }
 
-        if (packageName != null) {
-            val intent = packageManager.getLaunchIntentForPackage(packageName)
+        if (knownPackage != null) {
+            val intent = pm.getLaunchIntentForPackage(knownPackage)
             if (intent != null) {
                 startActivity(intent)
                 tts.speak("Abriendo $appName")
-            } else tts.speak("No instalada")
-        } else tts.speak("No reconozco $appName")
+                return
+            }
+        }
+
+        val intent = Intent(Intent.ACTION_MAIN, null)
+        intent.addCategory(Intent.CATEGORY_LAUNCHER)
+
+        val apps = pm.queryIntentActivities(intent, 0)
+
+        val match = apps.firstOrNull {
+            it.loadLabel(pm).toString().lowercase().contains(normalized)
+        }
+
+        if (match != null) {
+            val launchIntent = pm.getLaunchIntentForPackage(match.activityInfo.packageName)
+            if (launchIntent != null) {
+                startActivity(launchIntent)
+                tts.speak("Abriendo ${match.loadLabel(pm)}")
+                return
+            }
+        }
+
+        tts.speak("No encontré la aplicación $appName")
     }
 
-    private fun openDialer() {
-        startActivity(Intent(Intent.ACTION_DIAL))
+    private fun openDialer(query: String? = null) {
+        val intent = Intent(Intent.ACTION_DIAL)
+        if (!query.isNullOrEmpty()) {
+            intent.data = android.net.Uri.parse("tel:$query")
+        }
+        startActivity(intent)
     }
 
     private fun openSms() {
         val intent = Intent(Intent.ACTION_VIEW)
         intent.type = "vnd.android-dir/mms-sms"
         startActivity(intent)
+    }
+
+    private fun openSmsToContact(contactName: String) {
+        try {
+            val intent = Intent(Intent.ACTION_SENDTO)
+            intent.data = android.net.Uri.parse("smsto:")
+            startActivity(intent)
+            tts.speak("Listo para enviar mensaje a $contactName")
+        } catch (e: Exception) {
+            tts.speak("No encontré una aplicación de mensajes")
+        }
     }
 
     private fun openContacts() {
@@ -221,11 +251,6 @@ class MainActivity : AppCompatActivity() {
         startActivity(intent)
     }
 
-    private fun openSmsToContact(contactName: String) {
-        openSms()
-        tts.speak("Mensaje para $contactName")
-    }
-
     private fun pulseAnimation(view: View) {
         val sx = ObjectAnimator.ofFloat(view, "scaleX", 1f, 0.94f, 1f)
         val sy = ObjectAnimator.ofFloat(view, "scaleY", 1f, 0.94f, 1f)
@@ -238,12 +263,10 @@ class MainActivity : AppCompatActivity() {
 
     private fun applyTheme() {
         val theme = prefs.getString("selected_theme", "amanecer") ?: "amanecer"
-
         val bg = when (theme) {
             "oscuro" -> R.color.oscuro_background
             else -> R.color.amanecer_background
         }
-
         window.setBackgroundDrawableResource(bg)
     }
 
