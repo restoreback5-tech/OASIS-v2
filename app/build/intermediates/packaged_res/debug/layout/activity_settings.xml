@@ -1,192 +1,286 @@
 <?xml version="1.0" encoding="utf-8"?>
-<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
-    xmlns:app="http://schemas.android.com/apk/res-auto"
+<ScrollView xmlns:android="http://schemas.android.com/apk/res/android"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
-    android:orientation="vertical"
-    android:background="@color/oasis_background"
-    android:padding="16dp">
+    android:background="@drawable/bg_translucent">
 
-    <!-- Header con botón volver y título -->
     <LinearLayout
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:orientation="horizontal"
-        android:gravity="center_vertical"
-        android:layout_marginBottom="32dp">
+        android:orientation="vertical"
+        android:padding="16dp">
 
-        <!-- Botón volver -->
-        <ImageView
-            android:id="@+id/btn_back"
-            android:layout_width="48dp"
-            android:layout_height="48dp"
-            android:src="@android:drawable/ic_menu_revert"
-            android:contentDescription="Volver"
-            android:padding="8dp"
-            android:background="?attr/selectableItemBackgroundBorderless"
-            android:tint="#1C1C1E"  />
-
-        <!-- Título -->
-        <TextView
-            android:id="@+id/settings_title"
-            android:layout_width="0dp"
+        <!-- Header (igual) -->
+        <LinearLayout
+            android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:layout_weight="1"
-            android:text="Ajustes"
-            android:textSize="24sp"
-            android:textColor="#1C1C1E"
-            android:fontFamily="@font/googlesans_semibold"
-            android:gravity="center" />
+            android:orientation="horizontal"
+            android:gravity="center_vertical"
+            android:layout_marginBottom="32dp">
 
-        <!-- Espacio vacío para balancear -->
-        <View
-            android:layout_width="48dp"
-            android:layout_height="48dp" />
+            <ImageView
+                android:id="@+id/btn_back"
+                android:layout_width="48dp"
+                android:layout_height="48dp"
+                android:src="@android:drawable/ic_menu_revert"
+                android:contentDescription="Volver"
+                android:padding="8dp"
+                android:background="?attr/selectableItemBackgroundBorderless"
+                android:tint="#1C1C1E" />
+
+            <TextView
+                android:id="@+id/settings_title"
+                android:layout_width="0dp"
+                android:layout_height="wrap_content"
+                android:layout_weight="1"
+                android:text="Ajustes"
+                android:textSize="24sp"
+                android:textColor="#1C1C1E"
+                android:fontFamily="@font/googlesans_semibold"
+                android:gravity="center" />
+
+            <View
+                android:layout_width="48dp"
+                android:layout_height="48dp" />
+        </LinearLayout>
+
+        <!-- 1. Formato de reloj (LED Toggle) -->
+        <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"            android:orientation="horizontal"
+            android:gravity="center_vertical"
+            android:paddingVertical="12dp">
+
+            <FrameLayout
+                android:layout_width="48dp"
+                android:layout_height="48dp"
+                android:clickable="true"
+                android:focusable="true"
+                android:background="?attr/selectableItemBackgroundBorderless">
+
+                <ImageView
+                    android:id="@+id/led_clock_format"
+                    android:layout_width="20dp"
+                    android:layout_height="20dp"
+                    android:layout_gravity="center"
+                    android:src="@drawable/led_indicator"
+                    android:contentDescription="Indicador formato de reloj"
+                    android:tint="#39FF14" />
+            </FrameLayout>
+
+            <TextView
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_marginStart="8dp"
+                android:text="Formato de reloj: 24h"
+                android:textSize="16sp"
+                android:textColor="#1C1C1E"
+                android:fontFamily="@font/googlesans_medium" />
+        </LinearLayout>
+        <View android:layout_width="match_parent" android:layout_height="1dp" android:background="#E5E5EA"/>
+
+        <!-- 2. Sonidos (LED Toggle) -->
+        <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:orientation="horizontal"
+            android:gravity="center_vertical"
+            android:paddingVertical="12dp">
+
+            <FrameLayout
+                android:layout_width="48dp"
+                android:layout_height="48dp"
+                android:clickable="true"
+                android:focusable="true"
+                android:background="?attr/selectableItemBackgroundBorderless">
+
+                <ImageView
+                    android:id="@+id/led_sounds"
+                    android:layout_width="20dp"                    android:layout_height="20dp"
+                    android:layout_gravity="center"
+                    android:src="@drawable/led_indicator"
+                    android:contentDescription="Indicador sonidos"
+                    android:tint="#39FF14" />
+            </FrameLayout>
+
+            <TextView
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_marginStart="8dp"
+                android:text="Sonidos: Activados"
+                android:textSize="16sp"
+                android:textColor="#1C1C1E"
+                android:fontFamily="@font/googlesans_medium" />
+        </LinearLayout>
+        <View android:layout_width="match_parent" android:layout_height="1dp" android:background="#E5E5EA"/>
+
+        <!-- 3. Animaciones (LED Toggle) -->
+        <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:orientation="horizontal"
+            android:gravity="center_vertical"
+            android:paddingVertical="12dp">
+
+            <FrameLayout
+                android:layout_width="48dp"
+                android:layout_height="48dp"
+                android:clickable="true"
+                android:focusable="true"
+                android:background="?attr/selectableItemBackgroundBorderless">
+
+                <ImageView
+                    android:id="@+id/led_animations"
+                    android:layout_width="20dp"
+                    android:layout_height="20dp"
+                    android:layout_gravity="center"
+                    android:src="@drawable/led_indicator"
+                    android:contentDescription="Indicador animaciones"
+                    android:tint="#39FF14" />
+            </FrameLayout>
+
+            <TextView
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_marginStart="8dp"
+                android:text="Animaciones: Activadas"
+                android:textSize="16sp"
+                android:textColor="#1C1C1E"                android:fontFamily="@font/googlesans_medium" />
+        </LinearLayout>
+        <View android:layout_width="match_parent" android:layout_height="1dp" android:background="#E5E5EA"/>
+
+        <!-- 4. Tema (Selector) -->
+        <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:orientation="horizontal"
+            android:gravity="center_vertical"
+            android:paddingVertical="12dp">
+
+            <FrameLayout
+                android:layout_width="48dp"
+                android:layout_height="48dp"
+                android:clickable="true"
+                android:focusable="true"
+                android:background="?attr/selectableItemBackgroundBorderless">
+
+                <ImageView
+                    android:id="@+id/led_theme"
+                    android:layout_width="20dp"
+                    android:layout_height="20dp"
+                    android:layout_gravity="center"
+                    android:src="@drawable/led_indicator"
+                    android:contentDescription="Indicador tema"
+                    android:tint="#39FF14" />
+            </FrameLayout>
+
+            <TextView
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_marginStart="8dp"
+                android:text="Tema: Seguir sistema"
+                android:textSize="16sp"
+                android:textColor="#1C1C1E"
+                android:fontFamily="@font/googlesans_medium" />
+        </LinearLayout>
+        <View android:layout_width="match_parent" android:layout_height="1dp" android:background="#E5E5EA"/>
+
+      <!-- 5. Asistente flotante (LED Toggle) -->
+        <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:orientation="horizontal"
+            android:gravity="center_vertical"
+            android:paddingVertical="12dp">
+
+            <FrameLayout
+                android:layout_width="48dp"
+                android:layout_height="48dp"
+                android:clickable="true"
+                android:focusable="true"
+                android:background="?attr/selectableItemBackgroundBorderless">
+
+                <ImageView
+                    android:id="@+id/led_overlay"
+                    android:layout_width="20dp"
+                    android:layout_height="20dp"
+                    android:layout_gravity="center"
+                    android:src="@drawable/led_indicator"
+                    android:contentDescription="Indicador asistente flotante"
+                    android:tint="#39FF14" />
+            </FrameLayout>
+
+            <TextView
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_marginStart="8dp"
+                android:text="Asistente flotante: Desactivado"
+                android:textSize="16sp"
+                android:textColor="#1C1C1E"
+                android:fontFamily="@font/googlesans_medium" />
+        </LinearLayout>
+        <View android:layout_width="match_parent" android:layout_height="1dp" android:background="#E5E5EA"/>
+
+        <!-- 6. Velocidad de voz (SeekBar al final) -->
+        <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:orientation="vertical"
+            android:paddingVertical="16dp">
+
+            <LinearLayout
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"                android:orientation="horizontal"
+                android:gravity="center_vertical">
+
+                <FrameLayout
+                    android:layout_width="48dp"
+                    android:layout_height="48dp"
+                    android:clickable="true"
+                    android:focusable="true"
+                    android:background="?attr/selectableItemBackgroundBorderless">
+
+                    <ImageView
+                        android:id="@+id/led_tts_speed"
+                        android:layout_width="20dp"
+                        android:layout_height="20dp"
+                        android:layout_gravity="center"
+                        android:src="@drawable/led_indicator"
+                        android:contentDescription="Indicador velocidad de voz"
+                        android:tint="#39FF14" />
+                </FrameLayout>
+
+                <TextView
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:layout_marginStart="8dp"
+                    android:text="Velocidad de voz"
+                    android:textSize="16sp"
+                    android:textColor="#1C1C1E"
+                    android:fontFamily="@font/googlesans_medium" />
+            </LinearLayout>
+
+            <SeekBar
+                android:id="@+id/seekbar_tts_speed"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="8dp"
+                android:layout_marginStart="56dp"
+                android:max="100"
+                android:progress="50"
+                android:progressTint="#39FF14"
+                android:thumbTint="#39FF14" />
+
+            <TextView
+                android:id="@+id/text_tts_speed_value"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:text="Normal"
+                android:textSize="14sp"
+                android:textColor="#1C1C1E"
+                android:gravity="center"
+                android:layout_marginTop="4dp"                android:layout_marginStart="56dp" />
+        </LinearLayout>
 
     </LinearLayout>
-
-    <!-- Ajuste 1: Formato de reloj -->
-<LinearLayout
-    android:layout_width="match_parent"
-    android:layout_height="wrap_content"
-    android:orientation="horizontal"
-    android:background="@color/oasis_card"
-    android:padding="16dp"
-    android:layout_marginBottom="8dp"
-    android:gravity="center_vertical">
-
-    <TextView
-        android:layout_width="0dp"
-        android:layout_height="wrap_content"
-        android:layout_weight="1"
-        android:text="Formato de reloj: 24h"
-        android:textSize="16sp"
-        android:textColor="@color/oasis_text"
-        android:fontFamily="@font/googlesans_medium" />
-
-    <androidx.appcompat.widget.SwitchCompat
-    android:id="@+id/btn_clock_format"
-    android:layout_width="wrap_content"
-    android:layout_height="wrap_content"
-    android:checked="true"
-    app:thumbTint="@color/switch_thumb_color"
-    app:trackTint="@color/switch_track_color" />
-
-</LinearLayout>
-
-    <!-- Ajuste 2: Velocidad de voz -->
-<LinearLayout
-    android:layout_width="match_parent"
-    android:layout_height="wrap_content"
-    android:orientation="horizontal"
-    android:background="@color/oasis_card"
-    android:padding="16dp"
-    android:layout_marginBottom="8dp"
-    android:gravity="center_vertical">
-
-    <TextView
-        android:layout_width="0dp"
-        android:layout_height="wrap_content"
-        android:layout_weight="1"
-        android:text="Velocidad de voz: Normal"
-        android:textSize="16sp"
-        android:textColor="@color/oasis_text"
-        android:fontFamily="@font/googlesans_medium" />
-
-    <androidx.appcompat.widget.SwitchCompat
-    android:id="@+id/btn_tts_speed"
-    android:layout_width="wrap_content"
-    android:layout_height="wrap_content"
-    android:checked="true"
-    app:thumbTint="@color/switch_thumb_color"
-    app:trackTint="@color/switch_track_color" />
-
-</LinearLayout>
-
-    <!-- Ajuste 3: Sonidos -->
-<LinearLayout
-    android:layout_width="match_parent"
-    android:layout_height="wrap_content"
-    android:orientation="horizontal"
-    android:background="@color/oasis_card"
-    android:padding="16dp"
-    android:layout_marginBottom="8dp"
-    android:gravity="center_vertical">
-
-    <TextView
-        android:layout_width="0dp"
-        android:layout_height="wrap_content"
-        android:layout_weight="1"
-        android:text="Sonidos: Activados"
-        android:textSize="16sp"
-        android:textColor="@color/oasis_text"
-        android:fontFamily="@font/googlesans_medium" />
-
-    <androidx.appcompat.widget.SwitchCompat
-    android:id="@+id/btn_sounds"
-    android:layout_width="wrap_content"
-    android:layout_height="wrap_content"
-    android:checked="true"
-    app:thumbTint="@color/switch_thumb_color"
-    app:trackTint="@color/switch_track_color" />
-
-</LinearLayout>
-
-    <!-- Ajuste 4: Animaciones -->
-<LinearLayout
-    android:layout_width="match_parent"
-    android:layout_height="wrap_content"
-    android:orientation="horizontal"
-    android:background="@color/oasis_card"
-    android:padding="16dp"
-    android:layout_marginBottom="8dp"
-    android:gravity="center_vertical">
-
-    <TextView
-        android:layout_width="0dp"
-        android:layout_height="wrap_content"
-        android:layout_weight="1"
-        android:text="Animaciones: Activadas"
-        android:textSize="16sp"
-        android:textColor="@color/oasis_text"
-        android:fontFamily="@font/googlesans_medium" />
-
-    <androidx.appcompat.widget.SwitchCompat
-    android:id="@+id/btn_animations"
-    android:layout_width="wrap_content"
-    android:layout_height="wrap_content"
-    android:checked="true"
-    app:thumbTint="@color/switch_thumb_color"
-    app:trackTint="@color/switch_track_color" />
-
-</LinearLayout>
-
-    <!-- Ajuste 5: Modo Día/Noche -->
-<LinearLayout
-    android:layout_width="match_parent"
-    android:layout_height="wrap_content"
-    android:orientation="horizontal"
-    android:background="@color/oasis_card"
-    android:padding="16dp"
-    android:layout_marginBottom="8dp"
-    android:gravity="center_vertical">
-
-    <TextView
-        android:layout_width="0dp"
-        android:layout_height="wrap_content"
-        android:layout_weight="1"
-        android:text="Modo Día/Noche: Día"
-        android:textSize="16sp"
-        android:textColor="@color/oasis_text"
-        android:fontFamily="@font/googlesans_medium" />
-
-    <androidx.appcompat.widget.SwitchCompat
-    android:id="@+id/btn_day_night"
-    android:layout_width="wrap_content"
-    android:layout_height="wrap_content"
-    android:checked="true"
-    app:thumbTint="@color/switch_thumb_color"
-    app:trackTint="@color/switch_track_color" />
-
-</LinearLayout>
-</LinearLayout>
+</ScrollView>

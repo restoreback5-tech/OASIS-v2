@@ -1,34 +1,43 @@
 <?xml version="1.0" encoding="utf-8"?>
 <layer-list xmlns:android="http://schemas.android.com/apk/res/android">
-    <!-- Glow exterior -->
-    <item>
+    <!-- 1. Aura Exterior (Glow Púrpura/Azul difuso) -->
+    <item android:bottom="0dp" android:top="0dp" android:left="0dp" android:right="0dp">
         <shape android:shape="oval">
             <gradient
-                android:angle="0"
-                android:startColor="#400066ff"
-                android:endColor="#000066ff"
                 android:type="radial"
+                android:centerColor="#80AB47BC" 
+                android:endColor="#00000000"
                 android:gradientRadius="120dp" />
         </shape>
     </item>
-    <!-- Círculo blanco central -->
-    <item
-        android:left="20dp"
-        android:top="20dp"
-        android:right="20dp"
-        android:bottom="20dp">
+
+    <!-- 2. Capa Intermedia (Azul Profundo) -->
+    <item android:bottom="15dp" android:top="15dp" android:left="15dp" android:right="15dp">
         <shape android:shape="oval">
-            <solid android:color="#ffffff" />
+            <gradient
+                android:type="radial"
+                android:centerColor="#00E5FF"
+                android:endColor="#00000000"
+                android:gradientRadius="80dp" />
         </shape>
     </item>
-    <!-- Estrella central -->
-    <item
-        android:left="70dp"
-        android:top="70dp"
-        android:right="70dp"
-        android:bottom="70dp">
+
+    <!-- 3. Anillo de Energía (Borde brillante Cian) -->
+    <item android:bottom="35dp" android:top="35dp" android:left="35dp" android:right="35dp">
         <shape android:shape="oval">
-            <solid android:color="#4a90e2" />
+            <stroke android:width="4dp" android:color="#00FFFF" />
+            <solid android:color="#00000000" />
+        </shape>
+    </item>
+
+    <!-- 4. Núcleo (Ojo Blanco Brillante) -->
+    <item android:bottom="50dp" android:top="50dp" android:left="50dp" android:right="50dp">
+        <shape android:shape="oval">
+            <gradient
+                android:type="radial"
+                android:centerColor="#FFFFFF"
+                android:endColor="#00BFFF"
+                android:gradientRadius="40dp" />
         </shape>
     </item>
 </layer-list>

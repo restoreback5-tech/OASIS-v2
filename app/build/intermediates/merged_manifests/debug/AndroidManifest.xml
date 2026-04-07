@@ -8,23 +8,58 @@
         android:minSdkVersion="24"
         android:targetSdkVersion="34" />
 
-    <!-- Permisos existentes (6) -->
+    <!-- Permisos existentes -->
     <uses-permission android:name="android.permission.INTERNET" />
     <uses-permission android:name="android.permission.RECORD_AUDIO" />
     <uses-permission android:name="android.permission.CALL_PHONE" />
     <uses-permission android:name="android.permission.READ_CONTACTS" />
     <uses-permission android:name="android.permission.SEND_SMS" />
     <uses-permission android:name="android.permission.VIBRATE" />
+    <uses-permission android:name="android.permission.FOREGROUND_SERVICE" />
+    <uses-permission android:name="android.permission.FOREGROUND_SERVICE_MICROPHONE" />
 
-    <!-- Permiso nuevo para overlay (Sección 4.1.4) -->
+    <!-- Permiso para overlay -->
     <uses-permission android:name="android.permission.SYSTEM_ALERT_WINDOW" />
+
+    <!-- ============================================ -->
+    <!-- QUERIES: Permitir consultar apps externas (Android 11+) -->
+    <!-- ============================================ -->
+    <queries>
+
+        <!-- Mensajería -->
+        <package android:name="com.whatsapp" />
+        <package android:name="org.telegram.messenger" />
+
+        <!-- Redes sociales -->
+        <package android:name="com.facebook.katana" />
+        <package android:name="com.instagram.android" />
+        <package android:name="com.twitter.android" />
+
+        <!-- Multimedia -->
+        <package android:name="com.google.android.youtube" />
+        <package android:name="com.spotify.music" />
+        <package android:name="com.zhiliaoapp.musically" />
+
+        <!-- Netflix -->
+        <package android:name="com.netflix.mediaclient" />
+
+        <!-- Navegación y utilidades -->
+        <package android:name="com.android.chrome" />
+        <package android:name="com.google.android.apps.maps" />
+        <package android:name="com.android.camera2" />
+        <package android:name="com.google.android.deskclock" />
+        <package android:name="com.android.calculator2" />
+
+        <!-- Sistema -->
+        <package android:name="com.android.settings" />
+        <package android:name="com.google.android.gm" />
+    </queries>
 
     <permission
         android:name="com.oasis.app.DYNAMIC_RECEIVER_NOT_EXPORTED_PERMISSION"
         android:protectionLevel="signature" />
 
-    <uses-permission android:name="com.oasis.app.DYNAMIC_RECEIVER_NOT_EXPORTED_PERMISSION" />
-
+    <uses-permission android:name="com.oasis.app.DYNAMIC_RECEIVER_NOT_EXPORTED_PERMISSION" /> <!-- ============================================ -->
     <application
         android:allowBackup="true"
         android:appComponentFactory="androidx.core.app.CoreComponentFactory"
@@ -36,7 +71,7 @@
         android:supportsRtl="true"
         android:theme="@style/Theme.Material3.DayNight.NoActionBar" >
 
-        <!-- SplashActivity: Nueva pantalla de inicio -->
+        <!-- SplashActivity -->
         <activity
             android:name="com.oasis.app.SplashActivity"
             android:exported="true"
@@ -48,18 +83,38 @@
             </intent-filter>
         </activity>
 
-        <!-- MainActivity: Sin cambios funcionales -->
+        <!-- MainActivity -->
         <activity
             android:name="com.oasis.app.MainActivity"
             android:exported="false"
             android:screenOrientation="portrait"
             android:theme="@style/Theme.Material3.DayNight.NoActionBar" />
 
+        <!-- OverlayService -->
+        <service
+            android:name="com.oasis.app.OverlayService"
+            android:enabled="true"
+            android:exported="false"
+            android:foregroundServiceType="microphone" />
+
         <!-- SettingsActivity -->
         <activity
             android:name="com.oasis.app.SettingsActivity"
             android:exported="false"
             android:screenOrientation="portrait"
+            android:theme="@style/Theme.Material3.DayNight.NoActionBar" />
+        <activity
+            android:name="com.oasis.app.OverlayPermissionActivity"
+            android:exported="false"
+            android:theme="@style/Theme.Material3.DayNight.NoActionBar" />
+
+        <!-- VoiceCaptureActivity -->
+        <activity
+            android:name="com.oasis.app.VoiceCaptureActivity"
+            android:excludeFromRecents="true"
+            android:exported="false"
+            android:noHistory="true"
+            android:taskAffinity=""
             android:theme="@style/Theme.Material3.DayNight.NoActionBar" />
 
         <provider
