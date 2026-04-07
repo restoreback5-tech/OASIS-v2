@@ -26,7 +26,7 @@ class MainActivity : AppCompatActivity() {
     private lateinit var toast: ToastModule
     private lateinit var anim: AnimationModule
     private lateinit var tts: TTSModule
-    private lateinit var stt: STTModule
+    private lateinit var voice: VoiceCommandModule
     private lateinit var prefs: SharedPreferences
 
     // === ORBE VIVO - VARIABLES ===
@@ -43,7 +43,6 @@ class MainActivity : AppCompatActivity() {
         orbView = findViewById(R.id.orb_view)
         orbBreatheAnim = android.view.animation.AnimationUtils.loadAnimation(this, R.anim.orb_breathe)
         orbFastAnim = android.view.animation.AnimationUtils.loadAnimation(this, R.anim.orb_fast_pulse)
-
         setOrbToListening()
 
         // 2. Inicialización de Módulos
@@ -52,31 +51,51 @@ class MainActivity : AppCompatActivity() {
         toast = ToastModule(this)
         anim = AnimationModule(orbView)
         tts = TTSModule(this)
-        stt = STTModule(this)
+
+        // VoiceCommandModule con callbacks
+        voice = VoiceCommandModule(
+            context = this,
+            onCommandDetected = { command, params ->
+                runOnUiThread { handleVoiceCommand(command, params) }
+            },
+            onListening = { isListening ->
+                runOnUiThread {
+                    if (isListening) {
+                        setOrbToActive()
+                        toast.show("Escuchando...")
+                    } else {
+                        setOrbToListening()
+                    }
+                }
+            },
+            onError = { error ->
+                runOnUiThread {
+                    toast.show(error)
+                    tts.speak(error)
+                    resetOrbToIdle()
+                }
+            }
+        )
+
         prefs = getSharedPreferences("oasis_settings", MODE_PRIVATE)
 
         // 3. Tema y Permisos
         applyTheme()
         checkMicPermission()
 
-        // 4. Listener de comandos de voz
-        stt.setOnCommandListener { command ->
-            runOnUiThread { processCommand(command) }
-        }
-
-        // 5. Secuencia de inicio
+        // 4. Secuencia de inicio
         sound.play(R.raw.inicio)
         orbView.postDelayed({ tts.speak("Bienvenido a OASIS") }, 1000)
         anim.startRippleAnimation()
 
-        // 6. Botón Ajustes
+        // 5. Botón Ajustes
         findViewById<ImageView>(R.id.btn_settings).setOnClickListener {
             sound.play(R.raw.touch)
             tts.speak("Ajustes")
             startActivity(Intent(this, SettingsActivity::class.java))
         }
 
-        // 7. Reloj en tiempo real
+        // 6. Reloj en tiempo real
         val clockHandler = Handler(Looper.getMainLooper())
         val clockRunnable = object : Runnable {
             override fun run() {
@@ -92,15 +111,13 @@ class MainActivity : AppCompatActivity() {
         }
         clockHandler.post(clockRunnable)
 
-        // 8. Click en el Orbe
+        // 7. Click en el Orbe - Usa VoiceModule
         orbView.setOnClickListener {
             sound.play(R.raw.touch)
-            toast.show("Escuchando...")
-            setOrbToActive()
-            stt.startListening()
+            voice.startListening()
         }
 
-        // 9. Botones principales
+        // 8. Botones principales
         setupBtn(R.id.btn_call, "Llamar") { openDialer() }
         setupBtn(R.id.btn_message, "Enviar mensaje") { openSms() }
         setupBtn(R.id.btn_contacts, "Contactos") { openContacts() }
@@ -148,6 +165,61 @@ class MainActivity : AppCompatActivity() {
     private fun resetOrbToIdle() {
         if (orbState == "active") {
             setOrbToListening()
+        }
+    }
+
+    // ====================== MANEJO DE COMANDOS (VoiceModule) ======================
+    private fun handleVoiceCommand(command: String, params: Map<String, String>) {
+        toast.show("Comando: $command")
+
+        when (command) {
+            "open_app" -> {
+                val appName = params["app"] ?: "desconocido"
+                if (appName != "desconocido") {
+                    openSpecificApp(appName)
+                } else {
+                    tts.speak("¿Qué aplicación quieres abrir?")
+                }
+            }
+
+            "call" -> {
+                val contact = params["contact"] ?: ""
+                if (contact.isNotEmpty()) {
+                    if (contact.any { it.isDigit() }) {
+                        dialNumber(contact)
+                    } else {
+                        tts.speak("Buscando a $contact")
+                        openDialer()
+                    }
+                } else {
+                    tts.speak("¿A quién quieres llamar?")
+                }
+            }
+
+            "message" -> {
+                val contact = params["contact"] ?: ""
+                if (contact.isNotEmpty()) {
+                    openSmsToContact(contact)
+                } else {
+                    openSms()
+                }
+            }
+
+            "cancel" -> {
+                sound.play(R.raw.cancelar)
+                tts.speak("Cancelando")
+                resetOrbToIdle()
+            }
+
+            "help" -> {
+                tts.speak("Puedo abrir apps, hacer llamadas y enviar mensajes")
+                resetOrbToIdle()
+            }
+
+            else -> {
+                tts.speak("No entendí. Intenta de nuevo")
+                resetOrbToIdle()
+            }
         }
     }
 
@@ -253,239 +325,55 @@ class MainActivity : AppCompatActivity() {
         }
     }
 
-    // === PROCESAR COMANDOS CON RESPUESTAS VARIADAS ===
-private val random = java.util.Random()
-
-private fun randomResponse(responses: Array<String>): String {
-    return responses[random.nextInt(responses.size)]
-}
-
-private fun processCommand(cmd: String) {
-    val cmdLower = cmd.lowercase().trim()
-    toast.show("Comando: $cmd")
-    
-    when {
-        // === ABRIR APPS ===
-        cmdLower.contains("abrir") || cmdLower.contains("abre") || cmdLower.contains("lanza") -> {
-            val appName = extractAppName(cmdLower)
-            if (appName.isNotEmpty()) {
-                openSpecificApp(appName)
-            } else {
-                val responses = arrayOf(
-                    "¿Qué aplicación quieres abrir?",
-                    "Dime el nombre de la app",
-                    "¿Cuál app buscas?",
-                    "Te escucho, ¿qué app necesitas?"
-                )
-                tts.speak(randomResponse(responses))
-            }
-        }
-        
-        // === LLAMADAS ===
-        cmdLower.contains("llamar") || cmdLower.contains("llama a") -> {
-            val contactName = extractContactName(cmdLower)
-            if (contactName.isNotEmpty()) {
-                if (contactName.any { it.isDigit() }) {
-                    val responses = arrayOf(
-                        "Llamando a $contactName",
-                        "Marcando $contactName",
-                        "Conectando con $contactName"
-                    )
-                    tts.speak(randomResponse(responses))
-                    dialNumber(contactName)
-                } else {
-                    val responses = arrayOf(
-                        "Buscando a $contactName",
-                        "Déjame buscar a $contactName",
-                        "Un momento, busco a $contactName"
-                    )
-                    tts.speak(randomResponse(responses))
-                    openDialer()
-                }
-            } else {                val responses = arrayOf(
-                    "¿A quién quieres llamar?",
-                    "Dime el nombre del contacto",
-                    "¿Con quién te comunicas?"
-                )
-                tts.speak(randomResponse(responses))
-            }
-        }
-        
-        // === MENSAJES ===
-        cmdLower.contains("mensaje") || cmdLower.contains("mandar") || cmdLower.contains("enviar") -> {
-            val contactName = extractContactName(cmdLower)
-            if (contactName.isNotEmpty()) {
-                val responses = arrayOf(
-                    "Mensaje para $contactName",
-                    "Preparando mensaje para $contactName",
-                    "Abriendo chat con $contactName"
-                )
-                tts.speak(randomResponse(responses))
-                openSmsToContact(contactName)
-            } else {
-                val responses = arrayOf(
-                    "¿A quién le envías el mensaje?",
-                    "Dime el contacto",
-                    "¿Para quién es el mensaje?"
-                )
-                tts.speak(randomResponse(responses))
-                openSms()
-            }
-        }
-        
-        // === CONTACTOS ===
-        cmdLower.contains("contacto") || cmdLower.contains("contactos") -> {
-            val responses = arrayOf(
-                "Abriendo contactos",
-                "Aquí están tus contactos",
-                "Mostrando tu agenda"
-            )
-            tts.speak(randomResponse(responses))
-            openContacts()
-        }
-        
-        // === APPS / MENÚ ===
-        cmdLower.contains("app") || cmdLower.contains("menú") -> {
-            val responses = arrayOf(
-                "Abriendo menú de apps",
-                "Aquí tienes tus aplicaciones",
-                "Mostrando todas las apps"
-            )
-            tts.speak(randomResponse(responses))            
-	    openLauncher()
-        }
-        
-        // === SALUDOS ===
-        cmdLower.contains("hola") || cmdLower.contains("buenos") || cmdLower.contains("buenas") -> {
-            val responses = arrayOf(
-                "¡Hola! Soy OASIS. ¿En qué puedo ayudarte?",
-                "¡Hola! Estoy aquí para lo que necesites",
-                "¡Hola! ¿Qué quieres hacer hoy?",
-                "¡Hola! Soy OASIS, tu asistente personal",
-                "¡Hola! ¿En qué te ayudo?"
-            )
-            tts.speak(randomResponse(responses))
-        }
-        
-        // === AYUDA ===
-        cmdLower.contains("ayuda") || cmdLower.contains("qué puedes hacer") || cmdLower.contains("comandos") -> {
-            val responses = arrayOf(
-                "Puedo abrir apps, hacer llamadas y enviar mensajes.",
-                "Puedo ayudarte con apps, llamadas y mensajes.",
-                "Soy capaz de abrir aplicaciones, llamar a contactos y enviar mensajes.",
-                "Puedo abrir apps, hacer llamadas, enviar mensajes y mostrar contactos."
-            )
-            tts.speak(randomResponse(responses))
-        }
-        
-        // === AGRADECIMIENTOS ===
-        cmdLower.contains("gracias") || cmdLower.contains("thank") -> {
-            val responses = arrayOf(
-                "¡Con gusto!",
-                "¡Para eso estoy!",
-                "¡Cuando quieras!",
-                "¡Aquí para servirte!"
-            )
-            tts.speak(randomResponse(responses))
-        }
-        
-        // === DESPEDIDAS ===
-        cmdLower.contains("adiós") || cmdLower.contains("nos vemos") || cmdLower.contains("hasta luego") -> {
-            val responses = arrayOf(
-                "¡Hasta pronto!",
-                "¡Nos vemos!",
-                "¡Que tengas buen día!",
-                "¡Aquí estaré cuando me necesites!"
-            )
-            tts.speak(randomResponse(responses))
-        }
-        
-        // === NO ENTIENDE ===
-        else -> {            val responses = arrayOf(
-                "No entendí. Intenta de nuevo.",
-                "¿Puedes repetirlo?",
-                "No capté eso. ¿Otra vez?",
-                "Disculpa, ¿puedes decirlo diferente?",
-                "No estoy seguro de entender. Intenta otra vez."
-            )
-            tts.speak(randomResponse(responses))
-        }
-    }
-    
-    resetOrbToIdle()
-}
-
-    // === EXTRACCIÓN (pega aquí tus funciones originales si son diferentes) ===
-    private fun extractAppName(cmd: String): String {
-    return cmd
-        .replace(Regex("abrir|abre|lanza|inicia|app|aplicación"), "")
-        .replace(Regex("\\b(el|la|los|las|un|una|de|del|para|por)\\b"), "")
-        .replace(Regex("[^a-zA-Záéíóúñ\\s]"), "")
-        .trim()
-}
-
-    private fun extractContactName(cmd: String): String {
-    var result = cmd
-    listOf("llamar", "llama a", "mensaje", "mandar", "enviar", "a")
-        .forEach { result = result.replace(it, "").trim() }
-    result = result.replace(
-        Regex("\\b(el|la|los|las|un|una|de|del|para|por)\\b"),
-        ""
-    ).trim()
-    return result.replace(Regex("[^a-zA-Záéíóúñ\\s]"), "").trim()
-}
-
+    // === ABRIR APPS ===
     private fun openSpecificApp(appName: String) {
-    val pm = packageManager
-    val normalized = appName.lowercase().trim()
-    
-    // 1. Intento rápido (hardcode)
-    val knownPackage = when {
-        normalized.contains("whatsapp") || normalized.contains("wasap") -> "com.whatsapp"
-        normalized.contains("facebook") -> "com.facebook.katana"
-        normalized.contains("instagram") -> "com.instagram.android"
-        normalized.contains("youtube") -> "com.google.android.youtube"
-        normalized.contains("chrome") -> "com.android.chrome"
-        normalized.contains("spotify") -> "com.spotify.music"
-        normalized.contains("tiktok") -> "com.zhiliaoapp.musically"
-        normalized.contains("netflix") -> "com.netflix.mediaclient"
-        normalized.contains("telegram") -> "org.telegram.messenger"
-        normalized.contains("twitter") || normalized.contains("x") -> "com.twitter.android"
-        else -> null
-    }
-    
-    // 👉 Intento directo
-    if (knownPackage != null) {
-        try {
-            val intent = pm.getLaunchIntentForPackage(knownPackage)
-            if (intent != null) {
-                startActivity(intent)
-                tts.speak("Abriendo $appName")
+        val pm = packageManager
+        val normalized = appName.lowercase().trim()
+
+        val knownPackage = when {
+            normalized.contains("whatsapp") || normalized.contains("wasap") -> "com.whatsapp"
+            normalized.contains("facebook") || normalized.contains("fb") -> "com.facebook.katana"
+            normalized.contains("instagram") || normalized.contains("insta") -> "com.instagram.android"
+            normalized.contains("youtube") || normalized.contains("tubo") -> "com.google.android.youtube"
+            normalized.contains("chrome") || normalized.contains("navegador") -> "com.android.chrome"
+            normalized.contains("spotify") -> "com.spotify.music"
+            normalized.contains("tiktok") -> "com.zhiliaoapp.musically"
+            normalized.contains("netflix") -> "com.netflix.mediaclient"
+            normalized.contains("telegram") -> "org.telegram.messenger"
+            normalized.contains("twitter") || normalized.contains("x") -> "com.twitter.android"
+            normalized.contains("maps") || normalized.contains("mapas") -> "com.google.android.apps.maps"
+            else -> null
+        }
+
+        if (knownPackage != null) {
+            try {
+                val intent = pm.getLaunchIntentForPackage(knownPackage)
+                if (intent != null) {
+                    startActivity(intent)
+                    tts.speak("Abriendo $appName")
+                    return
+                }
+            } catch (_: Exception) {}
+        }
+
+        val intent = Intent(Intent.ACTION_MAIN, null)
+        intent.addCategory(Intent.CATEGORY_LAUNCHER)
+        val apps = pm.queryIntentActivities(intent, 0)
+        val match = apps.firstOrNull {
+            it.loadLabel(pm).toString().lowercase().contains(normalized)
+        }
+
+        if (match != null) {
+            val launchIntent = pm.getLaunchIntentForPackage(match.activityInfo.packageName)
+            if (launchIntent != null) {
+                startActivity(launchIntent)
+                tts.speak("Abriendo ${match.loadLabel(pm)}")
                 return
             }
-        } catch (_: Exception) {}
-    }
-    
-    // 2. 🔥 FALLBACK REAL (busca en TODAS las apps instaladas)
-    val intent = Intent(Intent.ACTION_MAIN, null)
-    intent.addCategory(Intent.CATEGORY_LAUNCHER)
-    val apps = pm.queryIntentActivities(intent, 0)
-    val match = apps.firstOrNull {
-        it.loadLabel(pm).toString().lowercase().contains(normalized)
-    }
-    
-    if (match != null) {
-        val launchIntent = pm.getLaunchIntentForPackage(match.activityInfo.packageName)
-        if (launchIntent != null) {
-            startActivity(launchIntent)
-            tts.speak("Abriendo ${match.loadLabel(pm)}")
-            return
         }
+
+        tts.speak("No encontré la aplicación $appName")
     }
-    
-    // 3. Fallback final
-    tts.speak("No encontré la aplicación $appName")
-}
 
     // === PERMISOS ===
     private fun checkMicPermission() {
@@ -514,6 +402,6 @@ private fun processCommand(cmd: String) {
         super.onDestroy()
         sound.release()
         tts.shutdown()
-        stt.destroy()
+        voice.destroy()
     }
 }
