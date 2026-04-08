@@ -46,42 +46,42 @@ class MainActivity : AppCompatActivity() {
         orbFastAnim = android.view.animation.AnimationUtils.loadAnimation(this, R.anim.orb_fast_pulse)
         setOrbToListening()
 
-	// 2. Inicialización de Módulos
-	sound = SoundModule(this)
-	sound.preload(R.raw.cancelar, R.raw.confirmar)
-	toast = ToastModule(this)
-	anim = AnimationModule(orbView)
-	tts = TTSModule(this)
+        // 2. Inicialización de Módulos
+        sound = SoundModule(this)
+        sound.preload(R.raw.cancelar, R.raw.confirmar)
+        toast = ToastModule(this)
+        anim = AnimationModule(orbView)
+        tts = TTSModule(this)
 
-	// VoiceCommandModule con callbacks
-	voice = VoiceCommandModule(
-	 context = this,
-    onCommandDetected = { command, params ->
-        runOnUiThread { handleVoiceCommand(command, params) }
-    },
-    onListening = { isListening ->
-        runOnUiThread {
-            if (isListening) {
-                setOrbToActive()
-                toast.show("Escuchando...")
-            } else {
-                setOrbToListening()
+        // VoiceCommandModule con callbacks
+        voice = VoiceCommandModule(
+            context = this,
+            onCommandDetected = { command, params ->
+                runOnUiThread { handleVoiceCommand(command, params) }
+            },
+            onListening = { isListening ->
+                runOnUiThread {
+                    if (isListening) {
+                        setOrbToActive()
+                        toast.show("Escuchando...")
+                    } else {
+                        setOrbToListening()
+                    }
+                }
+            },
+            onError = { error ->
+                runOnUiThread {
+                    toast.show(error)
+                    tts.speak(error)
+                    resetOrbToIdle()
+                }
             }
-        }
-    },
-    onError = { error ->
-        runOnUiThread {
-            toast.show(error)
-            tts.speak(error)
-            resetOrbToIdle()
-        }
-    }
-)
+        )
 
-	// AppLauncherModule - Lanzador de aplicaciones
-	appLauncher = AppLauncherModule(this)
+        // AppLauncherModule - Lanzador de aplicaciones
+        appLauncher = AppLauncherModule(this)
 
-	prefs = getSharedPreferences("oasis_settings", MODE_PRIVATE)
+        prefs = getSharedPreferences("oasis_settings", MODE_PRIVATE)
 
         // 3. Tema y Permisos
         applyTheme()
@@ -180,7 +180,12 @@ class MainActivity : AppCompatActivity() {
             "open_app" -> {
                 val appName = params["app"] ?: "desconocido"
                 if (appName != "desconocido") {
-                    openSpecificApp(appName)
+                    val success = appLauncher.launchApp(appName)
+                    if (success) {
+                        tts.speak("Abriendo $appName")
+                    } else {
+                        tts.speak("No encontré la aplicación $appName")
+                    }
                 } else {
                     tts.speak("¿Qué aplicación quieres abrir?")
                 }
@@ -328,58 +333,6 @@ class MainActivity : AppCompatActivity() {
             tts.speak("No se pudo iniciar la llamada")
         }
     }
-
-  /*
-        === ABRIR APPS === (Código antiguo - reemplazado por AppLauncherModule)
-    private fun openSpecificApp(appName: String) {
-        val pm = packageManager
-        val normalized = appName.lowercase().trim()
-
-        val knownPackage = when {
-            normalized.contains("whatsapp") || normalized.contains("wasap") -> "com.whatsapp"
-            normalized.contains("facebook") || normalized.contains("fb") -> "com.facebook.katana"
-            normalized.contains("instagram") || normalized.contains("insta") -> "com.instagram.android"
-            normalized.contains("youtube") || normalized.contains("tubo") -> "com.google.android.youtube"
-            normalized.contains("chrome") || normalized.contains("navegador") -> "com.android.chrome"
-            normalized.contains("spotify") -> "com.spotify.music"
-            normalized.contains("tiktok") -> "com.zhiliaoapp.musically"
-            normalized.contains("netflix") -> "com.netflix.mediaclient"
-            normalized.contains("telegram") -> "org.telegram.messenger"
-            normalized.contains("twitter") || normalized.contains("x") -> "com.twitter.android"
-            normalized.contains("maps") || normalized.contains("mapas") -> "com.google.android.apps.maps"
-            else -> null
-        }
-
-        if (knownPackage != null) {
-            try {
-                val intent = pm.getLaunchIntentForPackage(knownPackage)
-                if (intent != null) {
-                    startActivity(intent)
-                    tts.speak("Abriendo $appName")
-                    return
-                }
-            } catch (_: Exception) {}
-        }
-
-        val intent = Intent(Intent.ACTION_MAIN, null)
-        intent.addCategory(Intent.CATEGORY_LAUNCHER)
-        val apps = pm.queryIntentActivities(intent, 0)
-        val match = apps.firstOrNull {
-            it.loadLabel(pm).toString().lowercase().contains(normalized)
-        }
-
-        if (match != null) {
-            val launchIntent = pm.getLaunchIntentForPackage(match.activityInfo.packageName)
-            if (launchIntent != null) {
-                startActivity(launchIntent)
-                tts.speak("Abriendo ${match.loadLabel(pm)}")
-                return
-            }
-        }
-
-        tts.speak("No encontré la aplicación $appName")
-    }
-*/
 
     // === PERMISOS ===
     private fun checkMicPermission() {

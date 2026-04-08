@@ -9,12 +9,16 @@ class AppLauncherModule(
 ) {
     private val pm: PackageManager = context.packageManager
 
-    // Mapeo de aliases a package names (¡tu lista está excelente!)
+    // Mapeo de aliases a package names (VERSIÓN COMPLETA)
     private val appAliases = mapOf(
+        // Mensajería
         "whatsapp" to "com.whatsapp",
         "wasap" to "com.whatsapp",
         "wsp" to "com.whatsapp",
         "telegram" to "org.telegram.messenger",
+        "signal" to "org.thoughtcrime.securesms",
+        
+        // Redes Sociales
         "facebook" to "com.facebook.katana",
         "fb" to "com.facebook.katana",
         "instagram" to "com.instagram.android",
@@ -22,6 +26,8 @@ class AppLauncherModule(
         "twitter" to "com.twitter.android",
         "x" to "com.twitter.android",
         "tiktok" to "com.zhiliaoapp.musically",
+        
+        // Google
         "youtube" to "com.google.android.youtube",
         "tubo" to "com.google.android.youtube",
         "chrome" to "com.android.chrome",
@@ -33,19 +39,40 @@ class AppLauncherModule(
         "drive" to "com.google.android.apps.docs",
         "fotos" to "com.google.android.apps.photos",
         "galeria" to "com.google.android.apps.photos",
+        "galería" to "com.google.android.apps.photos",
+        
+        // Entretenimiento
         "spotify" to "com.spotify.music",
         "netflix" to "com.netflix.mediaclient",
+        "disney" to "com.disney.disneyplus",
+        "hbo" to "com.hbo.hbonow",
+        "prime" to "com.amazon.avod.thirdpartyclient",
+        "amazon" to "com.amazon.avod.thirdpartyclient",
+        
+        // Utilidades
+        "camara" to "com.google.android.camera",
+        "cámara" to "com.google.android.camera",
+        "calculadora" to "com.google.android.calculator",
+        "reloj" to "com.google.android.deskclock",
+        "alarma" to "com.google.android.deskclock",
         "ajustes" to "com.android.settings",
         "configuración" to "com.android.settings",
         "settings" to "com.android.settings",
-        "reloj" to "com.google.android.deskclock",
-        "alarma" to "com.google.android.deskclock"
+        "archivos" to "com.google.android.documentsui",
+        "contactos" to "com.google.android.contacts",
+        "calendario" to "com.google.android.calendar",
+        
+        // Transporte
+        "uber" to "com.ubercab",
+        "didi" to "com.sdu.didi.psnger",
+        "waze" to "com.waze",
+        
+        // Financieras
+        "paypal" to "com.paypal.android.p2pmobile",
+        "bbva" to "com.bbva.netcash",
+        "santander" to "com.santander.app"
     )
 
-    /**
-     * Intenta abrir una aplicación
-     * @return true si se abrió, false si no se encontró
-     */
     fun launchApp(appName: String): Boolean {
         val normalized = appName.lowercase().trim()
 
