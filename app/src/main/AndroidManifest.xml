@@ -21,27 +21,27 @@
         <!-- Mensajería -->
         <package android:name="com.whatsapp" />
         <package android:name="org.telegram.messenger" />
-        
+
         <!-- Redes sociales -->
         <package android:name="com.facebook.katana" />
         <package android:name="com.instagram.android" />
         <package android:name="com.twitter.android" />
-        
+
         <!-- Multimedia -->
         <package android:name="com.google.android.youtube" />
         <package android:name="com.spotify.music" />
         <package android:name="com.zhiliaoapp.musically" />
 
-	<!-- Netflix -->
-	<package android:name="com.netflix.mediaclient" />
-        
+        <!-- Netflix -->
+        <package android:name="com.netflix.mediaclient" />
+
         <!-- Navegación y utilidades -->
         <package android:name="com.android.chrome" />
         <package android:name="com.google.android.apps.maps" />
         <package android:name="com.android.camera2" />
         <package android:name="com.google.android.deskclock" />
         <package android:name="com.android.calculator2" />
-        
+
         <!-- Sistema -->
         <package android:name="com.android.settings" />
         <package android:name="com.google.android.gm" />
@@ -50,17 +50,18 @@
 
     <application
         android:allowBackup="true"
-        android:icon="@drawable/ic_launcher"        android:label="OASIS"
+        android:icon="@drawable/ic_launcher"
+        android:label="OASIS"
         android:roundIcon="@drawable/ic_launcher"
         android:supportsRtl="true"
-	android:theme="@style/Theme.OASIS"
+        android:theme="@style/Theme.OASIS"
         tools:targetApi="34">
 
         <!-- SplashActivity -->
         <activity
             android:name=".SplashActivity"
             android:exported="true"
-            android:theme="@style/Theme.OASIS"
+            android:theme="@style/Theme.OASIS">
             <intent-filter>
                 <action android:name="android.intent.action.MAIN" />
                 <category android:name="android.intent.category.LAUNCHER" />
@@ -71,8 +72,9 @@
         <activity
             android:name=".MainActivity"
             android:exported="false"
-            android:screenOrientation="portrait"	
-	    android:theme="@style/Theme.OASIS"
+            android:screenOrientation="portrait"
+            android:theme="@style/Theme.OASIS" />
+
         <!-- OverlayService -->
         <service
             android:name=".OverlayService"
@@ -85,19 +87,22 @@
             android:name=".SettingsActivity"
             android:exported="false"
             android:screenOrientation="portrait"
-	    android:theme="@style/Theme.OASIS"
+            android:theme="@style/Theme.OASIS" />
+
+        <!-- OverlayPermissionActivity -->
         <activity
             android:name=".OverlayPermissionActivity"
             android:exported="false"
-	    android:theme="@style/Theme.OASIS"
+            android:theme="@style/Theme.OASIS" />
+
         <!-- VoiceCaptureActivity -->
         <activity
             android:name=".VoiceCaptureActivity"
             android:exported="false"
-	    ndroid:theme="@style/Theme.OASIS"            
-	    android:excludeFromRecents="true"
-            android:noHistory="true"            
-	    android:taskAffinity="" />
+            android:theme="@style/Theme.OASIS"
+            android:excludeFromRecents="true"
+            android:noHistory="true"
+            android:taskAffinity="" />
 
     </application>
 </manifest>
