@@ -30,19 +30,4 @@
     <color name="status_bar_amanecer">#FFE0B2</color>
     <color name="status_bar_caribe">#B2EBF2</color>
     <color name="status_bar_oscuro">#1E1E1E</color>
-
-    <!-- Temas de fondo -->
-    <color name="amanecer_background">#FFF8E7</color>
-    <color name="caribe_background">#E0F7FA</color>
-    <color name="oscuro_background">#121212</color>
-
-   <!-- Temas de texto -->
-   <color name="amanecer_text">#5D4037</color>
-   <color name="caribe_text">#006064</color>
-   <color name="oscuro_text">#FFFFFF</color>
-
-   <!-- Status bar -->
-   <color name="status_bar_amanecer">#FFE0B2</color>
-   <color name="status_bar_caribe">#B2EBF2</color>
-   <color name="status_bar_oscuro">#1E1E1E</color>
 </resources>
