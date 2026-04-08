@@ -53,14 +53,14 @@
         android:icon="@drawable/ic_launcher"        android:label="OASIS"
         android:roundIcon="@drawable/ic_launcher"
         android:supportsRtl="true"
-        android:theme="@style/Theme.Material3.DayNight.NoActionBar"
+	android:theme="@style/Theme.OASIS"
         tools:targetApi="34">
 
         <!-- SplashActivity -->
         <activity
             android:name=".SplashActivity"
             android:exported="true"
-            android:theme="@style/Theme.Material3.DayNight.NoActionBar">
+            android:theme="@style/Theme.OASIS"
             <intent-filter>
                 <action android:name="android.intent.action.MAIN" />
                 <category android:name="android.intent.category.LAUNCHER" />
@@ -71,9 +71,8 @@
         <activity
             android:name=".MainActivity"
             android:exported="false"
-            android:screenOrientation="portrait"
-            android:theme="@style/Theme.Material3.DayNight.NoActionBar" />
-
+            android:screenOrientation="portrait"	
+	    android:theme="@style/Theme.OASIS"
         <!-- OverlayService -->
         <service
             android:name=".OverlayService"
@@ -86,20 +85,19 @@
             android:name=".SettingsActivity"
             android:exported="false"
             android:screenOrientation="portrait"
-            android:theme="@style/Theme.Material3.DayNight.NoActionBar" />
-
+	    android:theme="@style/Theme.OASIS"
         <activity
             android:name=".OverlayPermissionActivity"
             android:exported="false"
-            android:theme="@style/Theme.Material3.DayNight.NoActionBar" />
-
+	    android:theme="@style/Theme.OASIS"
         <!-- VoiceCaptureActivity -->
         <activity
             android:name=".VoiceCaptureActivity"
             android:exported="false"
-            android:theme="@style/Theme.Material3.DayNight.NoActionBar"
-            android:excludeFromRecents="true"
-            android:noHistory="true"            android:taskAffinity="" />
+	    ndroid:theme="@style/Theme.OASIS"            
+	    android:excludeFromRecents="true"
+            android:noHistory="true"            
+	    android:taskAffinity="" />
 
     </application>
 </manifest>

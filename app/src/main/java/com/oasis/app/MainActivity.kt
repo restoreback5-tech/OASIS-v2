@@ -234,24 +234,42 @@ class MainActivity : AppCompatActivity() {
 
     // === TEMAS ===
     private fun applyTheme() {
-        val selectedTheme = prefs.getString("selected_theme", "amanecer") ?: "amanecer"
-        val bgRes = when (selectedTheme) {
-            "caribe" -> R.color.caribe_background
-            "oscuro" -> R.color.oscuro_background
-            else -> R.color.amanecer_background
-        }
-        window.setBackgroundDrawableResource(bgRes)
+    val selectedTheme = prefs.getString("selected_theme", "amanecer") ?: "amanecer"
+    val bgRes = when (selectedTheme) {
+        "caribe" -> R.color.caribe_background
+        "oscuro" -> R.color.oscuro_background
+        else -> R.color.amanecer_background
+    }
+    window.setBackgroundDrawableResource(bgRes)
 
-        val textColor = when (selectedTheme) {
-            "caribe" -> ContextCompat.getColor(this, R.color.caribe_text)
-            "oscuro" -> ContextCompat.getColor(this, R.color.oscuro_text)
-            else -> ContextCompat.getColor(this, R.color.amanecer_text)
+    // Cambiar color de la status bar según tema
+    val statusBarColor = when (selectedTheme) {
+        "caribe" -> R.color.status_bar_caribe
+        "oscuro" -> R.color.status_bar_oscuro
+        else -> R.color.status_bar_amanecer
+    }
+    window.statusBarColor = ContextCompat.getColor(this, statusBarColor)
+
+    // Texto oscuro o claro en status bar
+    val isLightStatusBar = selectedTheme != "oscuro"
+    if (android.os.Build.VERSION.SDK_INT >= android.os.Build.VERSION_CODES.M) {
+        window.decorView.systemUiVisibility = if (isLightStatusBar) {
+            android.view.View.SYSTEM_UI_FLAG_LIGHT_STATUS_BAR
+        } else {
+            0
         }
-        findViewById<TextView>(R.id.clock_text).setTextColor(textColor)
-        findViewById<TextView>(R.id.greeting_text)?.setTextColor(textColor)
     }
 
-    // === ACCIONES SEGURAS ===
+    val textColor = when (selectedTheme) {
+        "caribe" -> ContextCompat.getColor(this, R.color.caribe_text)
+        "oscuro" -> ContextCompat.getColor(this, R.color.oscuro_text)
+        else -> ContextCompat.getColor(this, R.color.amanecer_text)
+    }
+    findViewById<TextView>(R.id.clock_text).setTextColor(textColor)
+    findViewById<TextView>(R.id.greeting_text)?.setTextColor(textColor)
+}
+ 
+   // === ACCIONES SEGURAS ===
     private fun openDialer() {
         try {
             val intent = Intent(Intent.ACTION_DIAL).apply { data = android.net.Uri.parse("tel:") }
