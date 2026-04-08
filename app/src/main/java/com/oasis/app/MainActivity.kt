@@ -27,6 +27,7 @@ class MainActivity : AppCompatActivity() {
     private lateinit var anim: AnimationModule
     private lateinit var tts: TTSModule
     private lateinit var voice: VoiceCommandModule
+    private lateinit var appLauncher: AppLauncherModule
     private lateinit var prefs: SharedPreferences
 
     // === ORBE VIVO - VARIABLES ===
@@ -45,39 +46,42 @@ class MainActivity : AppCompatActivity() {
         orbFastAnim = android.view.animation.AnimationUtils.loadAnimation(this, R.anim.orb_fast_pulse)
         setOrbToListening()
 
-        // 2. Inicialización de Módulos
-        sound = SoundModule(this)
-        sound.preload(R.raw.cancelar, R.raw.confirmar)
-        toast = ToastModule(this)
-        anim = AnimationModule(orbView)
-        tts = TTSModule(this)
+	// 2. Inicialización de Módulos
+	sound = SoundModule(this)
+	sound.preload(R.raw.cancelar, R.raw.confirmar)
+	toast = ToastModule(this)
+	anim = AnimationModule(orbView)
+	tts = TTSModule(this)
 
-        // VoiceCommandModule con callbacks
-        voice = VoiceCommandModule(
-            context = this,
-            onCommandDetected = { command, params ->
-                runOnUiThread { handleVoiceCommand(command, params) }
-            },
-            onListening = { isListening ->
-                runOnUiThread {
-                    if (isListening) {
-                        setOrbToActive()
-                        toast.show("Escuchando...")
-                    } else {
-                        setOrbToListening()
-                    }
-                }
-            },
-            onError = { error ->
-                runOnUiThread {
-                    toast.show(error)
-                    tts.speak(error)
-                    resetOrbToIdle()
-                }
+	// VoiceCommandModule con callbacks
+	voice = VoiceCommandModule(
+	 context = this,
+    onCommandDetected = { command, params ->
+        runOnUiThread { handleVoiceCommand(command, params) }
+    },
+    onListening = { isListening ->
+        runOnUiThread {
+            if (isListening) {
+                setOrbToActive()
+                toast.show("Escuchando...")
+            } else {
+                setOrbToListening()
             }
-        )
+        }
+    },
+    onError = { error ->
+        runOnUiThread {
+            toast.show(error)
+            tts.speak(error)
+            resetOrbToIdle()
+        }
+    }
+)
 
-        prefs = getSharedPreferences("oasis_settings", MODE_PRIVATE)
+	// AppLauncherModule - Lanzador de aplicaciones
+	appLauncher = AppLauncherModule(this)
+
+	prefs = getSharedPreferences("oasis_settings", MODE_PRIVATE)
 
         // 3. Tema y Permisos
         applyTheme()
@@ -325,7 +329,8 @@ class MainActivity : AppCompatActivity() {
         }
     }
 
-    // === ABRIR APPS ===
+  /*
+        === ABRIR APPS === (Código antiguo - reemplazado por AppLauncherModule)
     private fun openSpecificApp(appName: String) {
         val pm = packageManager
         val normalized = appName.lowercase().trim()
@@ -374,6 +379,7 @@ class MainActivity : AppCompatActivity() {
 
         tts.speak("No encontré la aplicación $appName")
     }
+*/
 
     // === PERMISOS ===
     private fun checkMicPermission() {
