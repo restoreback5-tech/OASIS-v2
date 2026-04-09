@@ -236,55 +236,53 @@ class MainActivity : AppCompatActivity() {
 
     // === TEMAS ===
     private fun applyTheme() {
-    val selectedTheme = prefs.getString("selected_theme", "amanecer") ?: "amanecer"
-    val bgRes = when (selectedTheme) {
-        "caribe" -> R.color.caribe_background
-        "oscuro" -> R.color.oscuro_background
-        else -> R.color.amanecer_background
-    }
-    window.setBackgroundDrawableResource(bgRes)
+        val selectedTheme = prefs.getString("selected_theme", "amanecer") ?: "amanecer"
+        val bgRes = when (selectedTheme) {
+            "caribe" -> R.color.caribe_background
+            "oscuro" -> R.color.oscuro_background
+            else -> R.color.amanecer_background
+        }
+        window.setBackgroundDrawableResource(bgRes)
 
-    // Cambiar color de la status bar según tema
-    val statusBarColor = when (selectedTheme) {
-        "caribe" -> R.color.status_bar_caribe
-        "oscuro" -> R.color.status_bar_oscuro
-        else -> R.color.status_bar_amanecer
-    }
-    window.statusBarColor = ContextCompat.getColor(this, statusBarColor)
+        val statusBarColor = when (selectedTheme) {
+            "caribe" -> R.color.status_bar_caribe
+            "oscuro" -> R.color.status_bar_oscuro
+            else -> R.color.status_bar_amanecer
+        }
+        window.statusBarColor = ContextCompat.getColor(this, statusBarColor)
 
-    // Texto oscuro o claro en status bar
-    val isLightStatusBar = selectedTheme != "oscuro"
-    if (android.os.Build.VERSION.SDK_INT >= android.os.Build.VERSION_CODES.M) {
-        window.decorView.systemUiVisibility = if (isLightStatusBar) {
-            android.view.View.SYSTEM_UI_FLAG_LIGHT_STATUS_BAR
-        } else {
-            0
+        val isLightStatusBar = selectedTheme != "oscuro"
+        if (android.os.Build.VERSION.SDK_INT >= android.os.Build.VERSION_CODES.M) {
+            window.decorView.systemUiVisibility = if (isLightStatusBar) {
+                android.view.View.SYSTEM_UI_FLAG_LIGHT_STATUS_BAR
+            } else {
+                0
+            }
+        }
+
+        val textColor = when (selectedTheme) {
+            "caribe" -> ContextCompat.getColor(this, R.color.caribe_text)
+            "oscuro" -> ContextCompat.getColor(this, R.color.oscuro_text)
+            else -> ContextCompat.getColor(this, R.color.amanecer_text)
+        }
+        findViewById<TextView>(R.id.clock_text).setTextColor(textColor)
+        findViewById<TextView>(R.id.greeting_text)?.setTextColor(textColor)
+    }
+
+    // === ACCIONES SEGURAS ===
+    private fun openDialer() {
+        if (ContextCompat.checkSelfPermission(this, Manifest.permission.CALL_PHONE) != PackageManager.PERMISSION_GRANTED) {
+            ActivityCompat.requestPermissions(this, arrayOf(Manifest.permission.CALL_PHONE), REQUEST_CALL_PHONE)
+            return
+        }
+        try {
+            val intent = Intent(Intent.ACTION_DIAL).apply { data = android.net.Uri.parse("tel:") }
+            if (intent.resolveActivity(packageManager) != null) startActivity(intent)
+            else tts.speak("No se encontró aplicación de teléfono")
+        } catch (e: Exception) {
+            tts.speak("No pude abrir el marcador")
         }
     }
-
-    val textColor = when (selectedTheme) {
-        "caribe" -> ContextCompat.getColor(this, R.color.caribe_text)
-        "oscuro" -> ContextCompat.getColor(this, R.color.oscuro_text)
-        else -> ContextCompat.getColor(this, R.color.amanecer_text)
-    }
-    findViewById<TextView>(R.id.clock_text).setTextColor(textColor)
-    findViewById<TextView>(R.id.greeting_text)?.setTextColor(textColor)
-}
- 
-   // === ACCIONES SEGURAS ===
-    private fun openDialer() {
-    if (ContextCompat.checkSelfPermission(this, Manifest.permission.CALL_PHONE) != PackageManager.PERMISSION_GRANTED) {
-        ActivityCompat.requestPermissions(this, arrayOf(Manifest.permission.CALL_PHONE), REQUEST_CALL_PHONE)
-        return
-    }
-    try {
-        val intent = Intent(Intent.ACTION_DIAL).apply { data = android.net.Uri.parse("tel:") }
-        if (intent.resolveActivity(packageManager) != null) startActivity(intent)
-        else tts.speak("No se encontró aplicación de teléfono")
-    } catch (e: Exception) {
-        tts.speak("No pude abrir el marcador")
-    }
-}
 
     private fun openSms() {
         try {
@@ -306,20 +304,33 @@ class MainActivity : AppCompatActivity() {
         }
     }
 
-    private fun openContacts() {
-    if (ContextCompat.checkSelfPermission(this, Manifest.permission.READ_CONTACTS) != PackageManager.PERMISSION_GRANTED) {
-        ActivityCompat.requestPermissions(this, arrayOf(Manifest.permission.READ_CONTACTS), REQUEST_READ_CONTACTS)
-        return
-    }
-    try {
-        val intent = Intent(Intent.ACTION_VIEW).apply {
-            data = android.provider.ContactsContract.Contacts.CONTENT_URI
+    private fun openSmsToContact(contactName: String) {
+        try {
+            if (contactName.lowercase().contains("whatsapp") || contactName.lowercase().contains("wasap")) {
+                val intent = packageManager.getLaunchIntentForPackage("com.whatsapp")
+                if (intent != null) {
+                    startActivity(intent)
+                    tts.speak("Abriendo WhatsApp")
+                    return
+                }
+            }
+            val intent = Intent(Intent.ACTION_SENDTO).apply { data = android.net.Uri.parse("smsto:$contactName") }
+            if (intent.resolveActivity(packageManager) != null) {
+                startActivity(intent)
+                tts.speak("Mensaje para $contactName")
+            } else {
+                tts.speak("No hay aplicación de mensajes")
+            }
+        } catch (e: Exception) {
+            tts.speak("No pude abrir mensajes")
         }
-        if (intent.resolveActivity(packageManager) != null) startActivity(intent)
-    } catch (e: Exception) {}
-}
+    }
 
     private fun openContacts() {
+        if (ContextCompat.checkSelfPermission(this, Manifest.permission.READ_CONTACTS) != PackageManager.PERMISSION_GRANTED) {
+            ActivityCompat.requestPermissions(this, arrayOf(Manifest.permission.READ_CONTACTS), REQUEST_READ_CONTACTS)
+            return
+        }
         try {
             val intent = Intent(Intent.ACTION_VIEW).apply {
                 data = android.provider.ContactsContract.Contacts.CONTENT_URI
@@ -357,31 +368,31 @@ class MainActivity : AppCompatActivity() {
     }
 
     override fun onRequestPermissionsResult(requestCode: Int, permissions: Array<out String>, grantResults: IntArray) {
-    super.onRequestPermissionsResult(requestCode, permissions, grantResults)
-    when (requestCode) {
-        100 -> {
-            if (grantResults.isNotEmpty() && grantResults[0] == PackageManager.PERMISSION_GRANTED) {
-                tts.speak("Permiso de micrófono concedido")
-            } else {
-                tts.speak("Necesito permiso de micrófono para escucharte")
+        super.onRequestPermissionsResult(requestCode, permissions, grantResults)
+        when (requestCode) {
+            100 -> {
+                if (grantResults.isNotEmpty() && grantResults[0] == PackageManager.PERMISSION_GRANTED) {
+                    tts.speak("Permiso de micrófono concedido")
+                } else {
+                    tts.speak("Necesito permiso de micrófono para escucharte")
+                }
             }
-        }
-        101 -> {
-            if (grantResults.isNotEmpty() && grantResults[0] == PackageManager.PERMISSION_GRANTED) {
-                openDialer()
-            } else {
-                tts.speak("Necesito permiso para hacer llamadas")
+            101 -> {
+                if (grantResults.isNotEmpty() && grantResults[0] == PackageManager.PERMISSION_GRANTED) {
+                    openDialer()
+                } else {
+                    tts.speak("Necesito permiso para hacer llamadas")
+                }
             }
-        }
-        102 -> {
-            if (grantResults.isNotEmpty() && grantResults[0] == PackageManager.PERMISSION_GRANTED) {
-                openContacts()
-            } else {
-                tts.speak("Necesito permiso para leer contactos")
+            102 -> {
+                if (grantResults.isNotEmpty() && grantResults[0] == PackageManager.PERMISSION_GRANTED) {
+                    openContacts()
+                } else {
+                    tts.speak("Necesito permiso para leer contactos")
+                }
             }
         }
     }
-}
 
     override fun onResume() {
         super.onResume()
