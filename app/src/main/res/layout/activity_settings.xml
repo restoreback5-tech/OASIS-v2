@@ -331,129 +331,175 @@
         </LinearLayout>
         <View android:layout_width="match_parent" android:layout_height="1dp" android:background="#E5E5EA"/>
 
-        <!-- 6. Velocidad de voz -->
-        <LinearLayout
-            android:layout_width="match_parent"
+	<!-- 6. Velocidad de voz -->
+<LinearLayout
+    android:layout_width="match_parent"
+    android:layout_height="wrap_content"
+    android:orientation="vertical"
+    android:paddingVertical="16dp">
+
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:orientation="horizontal"
+        android:gravity="center_vertical">
+
+        <FrameLayout
+            android:layout_width="48dp"
+            android:layout_height="48dp"
+            android:clickable="true"
+            android:focusable="true"
+            android:background="?attr/selectableItemBackgroundBorderless">
+
+            <ImageView
+                android:id="@+id/led_tts_speed"
+                android:layout_width="20dp"
+                android:layout_height="20dp"
+                android:layout_gravity="center"
+                android:src="@drawable/led_indicator"
+                android:contentDescription="Indicador velocidad de voz" />
+        </FrameLayout>
+
+        <TextView
+            android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:orientation="vertical"
-            android:paddingVertical="16dp">
+            android:layout_marginStart="8dp"
+            android:text="Velocidad de voz"
+            android:textSize="16sp"
+            android:textColor="#1C1C1E"
+            android:fontFamily="@font/googlesans_medium" />
+    </LinearLayout>
 
-            <LinearLayout
-                android:layout_width="match_parent"
-                android:layout_height="wrap_content"
-                android:orientation="horizontal"
-                android:gravity="center_vertical">
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:orientation="horizontal"
+        android:gravity="center_vertical"
+        android:layout_marginTop="8dp"
+        android:layout_marginStart="56dp">
 
-                <FrameLayout
-                    android:layout_width="48dp"
-                    android:layout_height="48dp"
-                    android:clickable="true"
-                    android:focusable="true"
-                    android:background="?attr/selectableItemBackgroundBorderless">
+        <ImageView
+            android:layout_width="32dp"
+            android:layout_height="32dp"
+            android:src="@drawable/ic_tortuga"
+            android:contentDescription="Lento" />
 
-                    <ImageView
-                        android:id="@+id/led_tts_speed"
-                        android:layout_width="20dp"
-                        android:layout_height="20dp"
-                        android:layout_gravity="center"
-                        android:src="@drawable/led_indicator"
-                        android:contentDescription="Indicador velocidad de voz" />
-                </FrameLayout>
-
-                <TextView
-                    android:layout_width="wrap_content"
-                    android:layout_height="wrap_content"
-                    android:layout_marginStart="8dp"
-                    android:text="Velocidad de voz"
-                    android:textSize="16sp"
-                    android:textColor="#1C1C1E"
-                    android:fontFamily="@font/googlesans_medium" />
-            </LinearLayout>
-
-            <SeekBar
-                android:id="@+id/seekbar_tts_speed"
-                android:layout_width="match_parent"
-                android:layout_height="wrap_content"
-                android:layout_marginTop="8dp"
-                android:layout_marginStart="56dp"
-                android:max="100"
-                android:progress="50"
-                android:progressTint="@color/settings_accent_blue"
-                android:thumbTint="@color/settings_accent_blue" />
-
-            <TextView
-                android:id="@+id/text_tts_speed_value"
-                android:layout_width="match_parent"
-                android:layout_height="wrap_content"
-                android:text="Normal"
-                android:textSize="14sp"
-                android:textColor="#1C1C1E"
-                android:gravity="center"
-                android:layout_marginTop="4dp"
-                android:layout_marginStart="56dp" />
-        </LinearLayout>
-
-        <!-- 7. Tono de voz -->
-        <LinearLayout
-            android:layout_width="match_parent"
+        <SeekBar
+            android:id="@+id/seekbar_tts_speed"
+            android:layout_width="0dp"
             android:layout_height="wrap_content"
-            android:orientation="vertical"
-            android:paddingVertical="16dp">
+            android:layout_weight="1"
+            android:layout_marginStart="8dp"
+            android:layout_marginEnd="8dp"
+            android:max="100"
+            android:progress="50"
+            android:progressTint="@color/settings_accent_blue"
+            android:thumbTint="@color/settings_accent_blue" />
 
-            <LinearLayout
-                android:layout_width="match_parent"
-                android:layout_height="wrap_content"
-                android:orientation="horizontal"
-                android:gravity="center_vertical">
+        <ImageView
+            android:layout_width="32dp"
+            android:layout_height="32dp"
+            android:src="@drawable/ic_conejo"
+            android:contentDescription="Rápido" />
 
-                <FrameLayout
-                    android:layout_width="48dp"
-                    android:layout_height="48dp"
-                    android:clickable="true"
-                    android:focusable="true"
-                    android:background="?attr/selectableItemBackgroundBorderless">
+    </LinearLayout>
 
-                    <ImageView
-                        android:id="@+id/led_tts_pitch"
-                        android:layout_width="20dp"
-                        android:layout_height="20dp"
-                        android:layout_gravity="center"
-                        android:src="@drawable/led_indicator"
-                        android:contentDescription="Indicador tono de voz" />
-                </FrameLayout>
+    <TextView
+        android:id="@+id/text_tts_speed_value"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:text="Normal"
+        android:textSize="14sp"
+        android:textColor="#1C1C1E"
+        android:gravity="center"
+        android:layout_marginTop="4dp"
+        android:layout_marginStart="56dp" />
+</LinearLayout>
+                
+	<!-- 7. Tono de voz -->
+<LinearLayout
+    android:layout_width="match_parent"
+    android:layout_height="wrap_content"
+    android:orientation="vertical"
+    android:paddingVertical="16dp">
 
-                <TextView
-                    android:layout_width="wrap_content"
-                    android:layout_height="wrap_content"
-                    android:layout_marginStart="8dp"
-                    android:text="Tono de voz"
-                    android:textSize="16sp"
-                    android:textColor="#1C1C1E"
-                    android:fontFamily="@font/googlesans_medium" />
-            </LinearLayout>
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:orientation="horizontal"
+        android:gravity="center_vertical">
 
-            <SeekBar
-                android:id="@+id/seekbar_tts_pitch"
-                android:layout_width="match_parent"
-                android:layout_height="wrap_content"
-                android:layout_marginTop="8dp"
-                android:layout_marginStart="56dp"
-                android:max="100"
-                android:progress="50"
-                android:progressTint="@color/settings_accent_blue"
-                android:thumbTint="@color/settings_accent_blue" />
+        <FrameLayout
+            android:layout_width="48dp"
+            android:layout_height="48dp"
+            android:clickable="true"
+            android:focusable="true"
+            android:background="?attr/selectableItemBackgroundBorderless">
 
-            <TextView
-                android:id="@+id/text_tts_pitch_value"
-                android:layout_width="match_parent"
-                android:layout_height="wrap_content"
-                android:text="Normal"
-                android:textSize="14sp"
-                android:textColor="#1C1C1E"
-                android:gravity="center"
-                android:layout_marginTop="4dp"
-                android:layout_marginStart="56dp" />
-        </LinearLayout>
+            <ImageView
+                android:id="@+id/led_tts_pitch"
+                android:layout_width="20dp"
+                android:layout_height="20dp"
+                android:layout_gravity="center"
+                android:src="@drawable/led_indicator"
+                android:contentDescription="Indicador tono de voz" />
+        </FrameLayout>
+
+        <TextView
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_marginStart="8dp"
+            android:text="Tono de voz"
+            android:textSize="16sp"
+            android:textColor="#1C1C1E"
+            android:fontFamily="@font/googlesans_medium" />
+    </LinearLayout>
+
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:orientation="horizontal"
+        android:gravity="center_vertical"
+        android:layout_marginTop="8dp"
+        android:layout_marginStart="56dp">
+
+        <ImageView
+            android:layout_width="32dp"
+            android:layout_height="32dp"
+            android:src="@drawable/ic_koala"
+            android:contentDescription="Grave" />
+
+        <SeekBar
+            android:id="@+id/seekbar_tts_pitch"
+            android:layout_width="0dp"
+            android:layout_height="wrap_content"
+            android:layout_weight="1"
+            android:layout_marginStart="8dp"
+            android:layout_marginEnd="8dp"
+            android:max="100"
+            android:progress="50"
+            android:progressTint="@color/settings_accent_blue"
+            android:thumbTint="@color/settings_accent_blue" />
+
+        <ImageView
+            android:layout_width="32dp"
+            android:layout_height="32dp"
+            android:src="@drawable/ic_ardilla"
+            android:contentDescription="Agudo" />
+
+    </LinearLayout>
+
+    <TextView
+        android:id="@+id/text_tts_pitch_value"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:text="Normal"
+        android:textSize="14sp"
+        android:textColor="#1C1C1E"
+        android:gravity="center"
+        android:layout_marginTop="4dp"
+        android:layout_marginStart="56dp" />
+</LinearLayout>
 
     </LinearLayout>
 </ScrollView>
