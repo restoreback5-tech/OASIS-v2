@@ -29,6 +29,8 @@ class MainActivity : AppCompatActivity() {
     private lateinit var voice: VoiceCommandModule
     private lateinit var appLauncher: AppLauncherModule
     private lateinit var prefs: SharedPreferences
+    private val REQUEST_CALL_PHONE = 101
+    private val REQUEST_READ_CONTACTS = 102
 
     // === ORBE VIVO - VARIABLES ===
     private var orbState = "idle"
@@ -271,14 +273,18 @@ class MainActivity : AppCompatActivity() {
  
    // === ACCIONES SEGURAS ===
     private fun openDialer() {
-        try {
-            val intent = Intent(Intent.ACTION_DIAL).apply { data = android.net.Uri.parse("tel:") }
-            if (intent.resolveActivity(packageManager) != null) startActivity(intent)
-            else tts.speak("No se encontró aplicación de teléfono")
-        } catch (e: Exception) {
-            tts.speak("No pude abrir el marcador")
-        }
+    if (ContextCompat.checkSelfPermission(this, Manifest.permission.CALL_PHONE) != PackageManager.PERMISSION_GRANTED) {
+        ActivityCompat.requestPermissions(this, arrayOf(Manifest.permission.CALL_PHONE), REQUEST_CALL_PHONE)
+        return
     }
+    try {
+        val intent = Intent(Intent.ACTION_DIAL).apply { data = android.net.Uri.parse("tel:") }
+        if (intent.resolveActivity(packageManager) != null) startActivity(intent)
+        else tts.speak("No se encontró aplicación de teléfono")
+    } catch (e: Exception) {
+        tts.speak("No pude abrir el marcador")
+    }
+}
 
     private fun openSms() {
         try {
@@ -300,27 +306,18 @@ class MainActivity : AppCompatActivity() {
         }
     }
 
-    private fun openSmsToContact(contactName: String) {
-        try {
-            if (contactName.lowercase().contains("whatsapp") || contactName.lowercase().contains("wasap")) {
-                val intent = packageManager.getLaunchIntentForPackage("com.whatsapp")
-                if (intent != null) {
-                    startActivity(intent)
-                    tts.speak("Abriendo WhatsApp")
-                    return
-                }
-            }
-            val intent = Intent(Intent.ACTION_SENDTO).apply { data = android.net.Uri.parse("smsto:") }
-            if (intent.resolveActivity(packageManager) != null) {
-                startActivity(intent)
-                tts.speak("Mensaje para $contactName")
-            } else {
-                tts.speak("No hay aplicación de mensajes")
-            }
-        } catch (e: Exception) {
-            tts.speak("No pude abrir mensajes")
-        }
+    private fun openContacts() {
+    if (ContextCompat.checkSelfPermission(this, Manifest.permission.READ_CONTACTS) != PackageManager.PERMISSION_GRANTED) {
+        ActivityCompat.requestPermissions(this, arrayOf(Manifest.permission.READ_CONTACTS), REQUEST_READ_CONTACTS)
+        return
     }
+    try {
+        val intent = Intent(Intent.ACTION_VIEW).apply {
+            data = android.provider.ContactsContract.Contacts.CONTENT_URI
+        }
+        if (intent.resolveActivity(packageManager) != null) startActivity(intent)
+    } catch (e: Exception) {}
+}
 
     private fun openContacts() {
         try {
@@ -360,15 +357,31 @@ class MainActivity : AppCompatActivity() {
     }
 
     override fun onRequestPermissionsResult(requestCode: Int, permissions: Array<out String>, grantResults: IntArray) {
-        super.onRequestPermissionsResult(requestCode, permissions, grantResults)
-        if (requestCode == 100) {
+    super.onRequestPermissionsResult(requestCode, permissions, grantResults)
+    when (requestCode) {
+        100 -> {
             if (grantResults.isNotEmpty() && grantResults[0] == PackageManager.PERMISSION_GRANTED) {
                 tts.speak("Permiso de micrófono concedido")
             } else {
                 tts.speak("Necesito permiso de micrófono para escucharte")
             }
         }
+        101 -> {
+            if (grantResults.isNotEmpty() && grantResults[0] == PackageManager.PERMISSION_GRANTED) {
+                openDialer()
+            } else {
+                tts.speak("Necesito permiso para hacer llamadas")
+            }
+        }
+        102 -> {
+            if (grantResults.isNotEmpty() && grantResults[0] == PackageManager.PERMISSION_GRANTED) {
+                openContacts()
+            } else {
+                tts.speak("Necesito permiso para leer contactos")
+            }
+        }
     }
+}
 
     override fun onResume() {
         super.onResume()
