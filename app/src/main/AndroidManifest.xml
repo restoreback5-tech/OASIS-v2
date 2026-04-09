@@ -46,6 +46,26 @@
         <!-- Sistema -->
         <package android:name="com.android.settings" />
         <package android:name="com.google.android.gm" />
+
+        <!-- Para abrir el marcador/teléfono -->
+        <intent>
+            <action android:name="android.intent.action.DIAL" />
+            <data android:scheme="tel" />
+        </intent>
+
+        <!-- Para abrir SMS -->
+        <intent>
+            <action android:name="android.intent.action.SENDTO" />
+            <data android:scheme="smsto" />
+        </intent>
+
+        <!-- Paquetes de teléfono y contactos -->
+        <package android:name="com.google.android.dialer" />
+        <package android:name="com.google.android.contacts" />
+        <package android:name="com.motorola.dialer" />
+        <package android:name="com.motorola.contacts" />
+        <package android:name="com.android.dialer" />
+        <package android:name="com.android.contacts" />
     </queries>
 
     <!-- ============================================ -->
@@ -99,4 +119,3 @@
 
     </application>
 </manifest>
-
