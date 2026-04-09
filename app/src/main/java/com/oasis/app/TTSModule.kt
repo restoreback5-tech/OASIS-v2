@@ -1,36 +1,46 @@
 package com.oasis.app
 
 import android.content.Context
+import android.content.SharedPreferences
 import android.speech.tts.TextToSpeech
 import java.util.Locale
 
 class TTSModule(ctx: Context) : TextToSpeech.OnInitListener {
-    
+
     private var tts: TextToSpeech? = null
-    private var ready = false
-    
+    private val prefs: SharedPreferences = ctx.getSharedPreferences("oasis_settings", Context.MODE_PRIVATE)
+
     init {
-        if (Config.ENABLE_TTS && !Config.SAFE_MODE) {
-            tts = TextToSpeech(ctx, this)
-        }
+        tts = TextToSpeech(ctx, this)
     }
-    
+
     override fun onInit(status: Int) {
         if (status == TextToSpeech.SUCCESS) {
-            tts?.language = Locale("es", "ES")
-            ready = true
-        } else {
-            Config.SAFE_MODE = true
+            tts?.language = Locale("es", "MX")
+            applySpeechRateAndPitch()
         }
     }
-    
-    fun speak(text: String) {
-        if (!Config.ENABLE_TTS || Config.SAFE_MODE || !ready) return
-        try { tts?.speak(text, TextToSpeech.QUEUE_FLUSH, null, null) } 
-        catch (e: Exception) { Config.SAFE_MODE = true }
+
+    private fun applySpeechRateAndPitch() {
+        val speed = prefs.getFloat("voice_speed", 1.0f)
+        val pitch = prefs.getFloat("voice_pitch", 1.0f)
+        tts?.setSpeechRate(speed)
+        tts?.setPitch(pitch)
     }
-    
+
+    fun speak(text: String) {
+        try {
+            tts?.speak(text, TextToSpeech.QUEUE_FLUSH, null, null)
+        } catch (e: Exception) { }
+    }
+
+    fun updateSpeechSettings() {
+        applySpeechRateAndPitch()
+    }
+
     fun shutdown() {
-        try { tts?.stop(); tts?.shutdown() } catch(_: Exception) {}
+        tts?.stop()
+        tts?.shutdown()
+        tts = null
     }
 }

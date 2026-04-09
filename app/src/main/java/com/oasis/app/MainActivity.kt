@@ -86,9 +86,20 @@ class MainActivity : AppCompatActivity() {
 
         prefs = getSharedPreferences("oasis_settings", MODE_PRIVATE)
 
+	// Aplicar ocultar reloj si está activado
+	val hideClock = prefs.getBoolean("hide_clock", false)
+	val clockText = findViewById<TextView>(R.id.clock_text)
+	if (hideClock) {
+    clockText.visibility = View.GONE
+} else {
+    clockText.visibility = View.VISIBLE
+}
+
         // 3. Tema y Permisos
         applyTheme()
         checkMicPermission()
+	val hideClock = prefs.getBoolean("hide_clock", false)
+	findViewById<TextView>(R.id.clock_text).visibility = if (hideClock) View.GONE else View.VISIBLE
 
         // 4. Secuencia de inicio
         sound.play(R.raw.inicio)
