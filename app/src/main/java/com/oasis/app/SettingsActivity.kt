@@ -82,8 +82,8 @@ class SettingsActivity : AppCompatActivity() {
         setupTheme()
         setupOverlay()
         setupTtsSpeed()
-        setupTtsPitch()
-        setupHideClock()
+       // setupTtsPitch()
+       // setupHideClock()
     }
 
     private fun setupClockFormat() {

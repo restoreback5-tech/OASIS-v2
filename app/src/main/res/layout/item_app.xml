@@ -20,6 +20,6 @@
         android:layout_marginTop="8dp"
         android:textSize="12sp"
         android:gravity="center"
-        android:textColor="@color/amanecer_text" />
+        android:textColor="@color/white" />
 
 </LinearLayout>
