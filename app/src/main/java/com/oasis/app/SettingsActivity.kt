@@ -26,8 +26,6 @@ class SettingsActivity : AppCompatActivity() {
     private lateinit var ledSounds: ImageView
     private lateinit var ledTtsEnabled: ImageView
     private lateinit var ledOverlay: ImageView
-    private lateinit var ledTtsSpeed: ImageView
-    private lateinit var ledTtsPitch: ImageView
     private lateinit var ledHideClock: ImageView
     private lateinit var hideClockText: TextView
 
@@ -65,8 +63,6 @@ class SettingsActivity : AppCompatActivity() {
         ledSounds = findViewById(R.id.led_sounds)
         ledTtsEnabled = findViewById(R.id.led_tts_enabled)
         ledOverlay = findViewById(R.id.led_overlay)
-        ledTtsSpeed = findViewById(R.id.led_tts_speed)
-        ledTtsPitch = findViewById(R.id.led_tts_pitch)
         ledHideClock = findViewById(R.id.led_hide_clock)
         hideClockText = findViewById(R.id.text_hide_clock)
 
@@ -270,7 +266,6 @@ class SettingsActivity : AppCompatActivity() {
             else -> "Rápida"
         }
         speedValueText.text = "$speedText (${String.format("%.1f", speed)}x)"
-        ledTtsSpeed.setColorFilter(ContextCompat.getColor(this, R.color.settings_accent_blue))
     }
 
     private fun setupTtsPitch() {
@@ -303,7 +298,6 @@ class SettingsActivity : AppCompatActivity() {
             else -> "Agudo"
         }
         pitchValueText.text = "$pitchText (${String.format("%.1f", pitch)}x)"
-        ledTtsPitch.setColorFilter(ContextCompat.getColor(this, R.color.settings_accent_blue))
     }
 
     private fun setupHideClock() {
