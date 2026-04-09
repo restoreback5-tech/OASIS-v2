@@ -32,6 +32,7 @@ class MainActivity : AppCompatActivity() {
     private lateinit var voice: VoiceCommandModule
     private lateinit var appLauncher: AppLauncherModule
     private lateinit var prefs: SharedPreferences
+    private lateinit var phoneActions: PhoneActionsModule
     
     private val REQUEST_READ_CONTACTS = 102
 
@@ -57,6 +58,7 @@ class MainActivity : AppCompatActivity() {
         toast = ToastModule(this)
         anim = AnimationModule(orbView)
         tts = TTSModule(this)
+        phoneActions = PhoneActionsModule(this, tts, sound)
 
         // VoiceCommandModule con callbacks
         voice = VoiceCommandModule(
@@ -127,10 +129,10 @@ class MainActivity : AppCompatActivity() {
         }
 
         // 8. Botones principales
-        setupBtn(R.id.btn_call, "Llamar") { openDialer() }
-        setupBtn(R.id.btn_message, "Enviar mensaje") { openSms() }
-        setupBtn(R.id.btn_contacts, "Contactos") { openContacts() }
-        setupBtn(R.id.btn_apps, "Apps") { openAppDrawer() }
+        setupBtn(R.id.btn_call, "Llamar") { phoneActions.openDialer() }
+	setupBtn(R.id.btn_message, "Enviar mensaje") { phoneActions.openSms() }
+	setupBtn(R.id.btn_contacts, "Contactos") { phoneActions.openContacts() }
+	setupBtn(R.id.btn_apps, "Apps") { phoneActions.openAppDrawer() }
     }
 
     private fun setupBtn(id: Int, text: String, action: () -> Unit) {
@@ -272,188 +274,6 @@ class MainActivity : AppCompatActivity() {
         findViewById<TextView>(R.id.greeting_text)?.setTextColor(textColor)
     }
 
-    // === ACCIONES DE TELÉFONO ===
-    
-    /**
-     * Abre el marcador de teléfono (NO requiere permiso)
-     */
-    private fun openDialer() {
-        try {
-            val intent = Intent(Intent.ACTION_DIAL).apply { 
-                data = Uri.parse("tel:") 
-            }
-            startActivitySafe(intent, "No se encontró aplicación de teléfono")
-        } catch (e: Exception) {
-            tts.speak("No pude abrir el marcador")
-        }
-    }
-
-    /**
-     * Marca un número específico (NO requiere permiso, solo abre el dialer con el número)
-     */
-    private fun dialNumber(number: String) {
-        try {
-            val cleanNumber = number.replace(Regex("[^0-9+#*]"), "")
-            val intent = Intent(Intent.ACTION_DIAL).apply {
-                data = Uri.parse("tel:$cleanNumber")
-            }
-            startActivitySafe(intent, "No se pudo iniciar la llamada")
-            tts.speak("Marcando $number")
-        } catch (e: Exception) {
-            tts.speak("No se pudo marcar el número")
-        }
-    }
-
-    /**
-     * Busca contacto y abre dialer (requiere permiso READ_CONTACTS para búsqueda avanzada)
-     */
-    private fun searchContactAndDial(contactName: String) {
-        if (!hasPermission(Manifest.permission.READ_CONTACTS)) {
-            requestContactsPermission()
-            return
-        }
-        
-        try {
-            // Intentar abrir contactos con búsqueda
-            val intent = Intent(Intent.ACTION_VIEW).apply {
-                data = ContactsContract.Contacts.CONTENT_URI
-                putExtra(ContactsContract.Intents.Insert.NAME, contactName)
-            }
-            startActivitySafe(intent, "No se encontró la aplicación de contactos")
-        } catch (e: Exception) {
-            // Fallback: abrir dialer directamente
-            openDialer()
-        }
-    }
-
-    // === MENSAJES Y SMS ===
-    
-    /**
-     * Abre la app de mensajes predeterminada o WhatsApp
-     */
-    private fun openSms() {
-        // Primero intentar con la app de SMS predeterminada
-        try {
-            val smsIntent = Intent(Intent.ACTION_SENDTO).apply { 
-                data = Uri.parse("smsto:") 
-            }
-            if (smsIntent.resolveActivity(packageManager) != null) {
-                startActivity(smsIntent)
-                return
-            }
-        } catch (e: Exception) {
-            // Continuar con fallback
-        }
-        
-        // Fallback: Intentar abrir cualquier app de mensajería
-        val messagingApps = listOf(
-            "com.google.android.apps.messaging", // Google Messages
-            "com.samsung.android.messaging",     // Samsung Messages
-            "com.android.mms",                   // MMS genérico
-            "com.whatsapp"                       // WhatsApp como último recurso
-        )
-        
-        for (packageName in messagingApps) {
-            val intent = packageManager.getLaunchIntentForPackage(packageName)
-            if (intent != null) {
-                startActivity(intent)
-                tts.speak("Abriendo mensajes")
-                return
-            }
-        }
-        
-        tts.speak("No hay aplicación de mensajes disponible")
-    }
-
-    /**
-     * Abre SMS con contacto específico
-     */
-    private fun openSmsToContact(contactName: String) {
-        // Detectar si quiere WhatsApp específicamente
-        val lowerContact = contactName.lowercase()
-        if (lowerContact.contains("whatsapp") || lowerContact.contains("wasap")) {
-            openWhatsApp()
-            return
-        }
-        
-        // Intentar abrir SMS con el contacto/número
-        try {
-            val intent = Intent(Intent.ACTION_SENDTO).apply { 
-                data = Uri.parse("smsto:$contactName") 
-            }
-            startActivitySafe(intent, "No hay aplicación de mensajes")
-            tts.speak("Mensaje para $contactName")
-        } catch (e: Exception) {
-            tts.speak("No pude abrir mensajes")
-        }
-    }
-
-    /**
-     * Abre WhatsApp específicamente
-     */
-    private fun openWhatsApp() {
-        val intent = packageManager.getLaunchIntentForPackage("com.whatsapp")
-        if (intent != null) {
-            startActivity(intent)
-            tts.speak("Abriendo WhatsApp")
-        } else {
-            tts.speak("WhatsApp no está instalado")
-            // Abrir Play Store para instalar WhatsApp
-            try {
-                startActivity(Intent(Intent.ACTION_VIEW, Uri.parse("market://details?id=com.whatsapp")))
-            } catch (e: Exception) {
-                startActivity(Intent(Intent.ACTION_VIEW, Uri.parse("https://play.google.com/store/apps/details?id=com.whatsapp")))
-            }
-        }
-    }
-
-    // === CONTACTOS ===
-    
-    /**
-     * Abre la aplicación de contactos
-     */
-    private fun openContacts() {
-        if (!hasPermission(Manifest.permission.READ_CONTACTS)) {
-            requestContactsPermission()
-            return
-        }
-        
-        try {
-            // Intent 1: Abrir lista de contactos completa
-            val intent = Intent(Intent.ACTION_VIEW).apply {
-                data = ContactsContract.Contacts.CONTENT_URI
-            }
-            if (intent.resolveActivity(packageManager) != null) {
-                startActivity(intent)
-                return
-            }
-            
-            // Intent 2: Abrir app de contactos genérica
-            val fallbackIntent = Intent(Intent.ACTION_MAIN).apply {
-                addCategory(Intent.CATEGORY_APP_CONTACTS)
-            }
-            startActivitySafe(fallbackIntent, "No se encontró aplicación de contactos")
-            
-        } catch (e: Exception) {
-            tts.speak("No pude abrir contactos")
-        }
-    }
-
-    // === LANZADOR DE APPS ===
-    
-    /**
-     * Abre el cajón de aplicaciones del sistema
-     */
-    private fun openAppDrawer() {
-        try {
-            val intent = Intent(Intent.ACTION_MAIN).apply {
-                addCategory(Intent.CATEGORY_LAUNCHER)
-            }
-            startActivitySafe(intent, "No se encontró el lanzador de aplicaciones")
-        } catch (e: Exception) {
-            tts.speak("No pude abrir las aplicaciones")
-        }
-    }
 
     // === UTILIDADES ===
     
