@@ -78,47 +78,6 @@ class AppLauncherModule(
         "santander" to "com.santander.app"
     )
 
-    /**
-     * Muestra un diálogo con aplicaciones para lanzar
-     */
-    fun showAppsMenu() {
-        val dialogView = LayoutInflater.from(context).inflate(R.layout.apps_menu_dialog, null)
-        val dialog = AlertDialog.Builder(context)
-            .setView(dialogView)
-            .setCancelable(true)
-            .create()
-
-        // Configurar botones del menú
-        dialogView.findViewById<Button>(R.id.app_calculator)?.setOnClickListener {
-            launchCalculatorApp()
-            dialog.dismiss()
-        }
-        dialogView.findViewById<Button>(R.id.app_camera)?.setOnClickListener {
-            launchCameraApp()
-            dialog.dismiss()
-        }
-        dialogView.findViewById<Button>(R.id.app_files)?.setOnClickListener {
-            launchFilesApp()
-            dialog.dismiss()
-        }
-        dialogView.findViewById<Button>(R.id.app_settings)?.setOnClickListener {
-            launchSettingsApp()
-            dialog.dismiss()
-        }
-        dialogView.findViewById<Button>(R.id.app_flashlight)?.setOnClickListener {
-            showFlashlightMessage()
-            dialog.dismiss()
-        }
-        dialogView.findViewById<Button>(R.id.app_calendar)?.setOnClickListener {
-            launchCalendarApp()
-            dialog.dismiss()
-        }
-        dialogView.findViewById<Button>(R.id.btn_close_menu)?.setOnClickListener {
-            dialog.dismiss()
-        }
-
-        dialog.show()
-    }
 
     fun launchApp(appName: String): Boolean {
         val normalized = appName.lowercase().trim()
