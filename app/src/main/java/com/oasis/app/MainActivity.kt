@@ -303,7 +303,7 @@ class MainActivity : AppCompatActivity() {
     override fun onResume() {
         super.onResume()
         applyTheme()
-        ttsModule.updateSpeechSettings()
+        tts.updateSpeechSettings()
     }
 
     override fun onDestroy() {
