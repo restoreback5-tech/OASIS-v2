@@ -32,7 +32,7 @@ class OverlayService : Service() {
     override fun onCreate() {
         super.onCreate()
         sound = SoundModule(this)
-        tts = TTSModule(this) { /* opcional */ }
+        tts = TTSModule(this)
 
         appLauncher = AppLauncherModule(this)
 
