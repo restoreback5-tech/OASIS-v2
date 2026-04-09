@@ -4,7 +4,9 @@
     android:layout_height="wrap_content"
     android:orientation="vertical"
     android:gravity="center"
-    android:padding="16dp">
+    android:padding="12dp"
+    android:layout_margin="4dp"
+    android:background="@drawable/item_app_bg">
 
     <ImageView
         android:id="@+id/iv_app_icon"
@@ -17,6 +19,7 @@
         android:layout_height="wrap_content"
         android:layout_marginTop="8dp"
         android:textSize="12sp"
-        android:gravity="center" />
+        android:gravity="center"
+        android:textColor="@color/amanecer_text" />
 
 </LinearLayout>
