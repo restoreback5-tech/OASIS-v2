@@ -59,6 +59,7 @@ class MainActivity : AppCompatActivity() {
         // VoiceCommandModule con callbacks
         voice = VoiceCommandModule(
             context = this,
+	    sound = sound,
             onCommandDetected = { command, params ->
                 runOnUiThread { handleVoiceCommand(command, params) }
             },
@@ -82,7 +83,7 @@ class MainActivity : AppCompatActivity() {
         )
 
         // AppLauncherModule - Lanzador de aplicaciones
-        appLauncher = AppLauncherModule(this)
+	appLauncher = AppLauncherModule(this, sound)
 
         prefs = getSharedPreferences("oasis_settings", MODE_PRIVATE)
 

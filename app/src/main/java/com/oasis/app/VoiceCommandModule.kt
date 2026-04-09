@@ -11,6 +11,7 @@ import java.util.Locale
 
 class VoiceCommandModule(
     private val context: Context,
+    private val sound: SoundModule,
     private val onCommandDetected: (String, Map<String, String>) -> Unit,
     private val onListening: (Boolean) -> Unit,
     private val onError: (String) -> Unit

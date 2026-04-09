@@ -10,7 +10,8 @@ import android.widget.Toast
 import androidx.recyclerview.widget.GridLayoutManager
 
 class AppLauncherModule(
-    private val context: Context
+    private val context: Context,
+    private val sound: SoundModule
 ) {
     private val pm: PackageManager = context.packageManager
 
@@ -220,6 +221,7 @@ class AppLauncherModule(
         dialog.dismiss()
     }
     
+    sound.play(R.raw.apps_launch)
     dialog.show()
 }
 

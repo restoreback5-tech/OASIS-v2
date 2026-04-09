@@ -30,4 +30,6 @@
     <color name="status_bar_amanecer">#FFE0B2</color>
     <color name="status_bar_caribe">#B2EBF2</color>
     <color name="status_bar_oscuro">#1E1E1E</color>
+
+   <color name="settings_accent_blue">#0084FF</color>
 </resources>

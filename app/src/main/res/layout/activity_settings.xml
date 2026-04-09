@@ -2,7 +2,7 @@
 <ScrollView xmlns:android="http://schemas.android.com/apk/res/android"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
-    android:background="@drawable/bg_translucent">
+    android:background="#000000">
 
     <LinearLayout
         android:layout_width="match_parent"
@@ -44,42 +44,41 @@
                 android:layout_height="48dp" />
         </LinearLayout>
 
-	<!-- 0  Ocultar reloj -->
-<LinearLayout
-    android:layout_width="match_parent"
-    android:layout_height="wrap_content"
-    android:orientation="horizontal"
-    android:gravity="center_vertical"
-    android:paddingVertical="12dp">
+        <!-- 0. Ocultar reloj -->
+        <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:orientation="horizontal"
+            android:gravity="center_vertical"
+            android:paddingVertical="12dp">
 
-    <FrameLayout
-        android:layout_width="48dp"
-        android:layout_height="48dp"
-        android:clickable="true"
-        android:focusable="true"
-        android:background="?attr/selectableItemBackgroundBorderless">
+            <FrameLayout
+                android:layout_width="48dp"
+                android:layout_height="48dp"
+                android:clickable="true"
+                android:focusable="true"
+                android:background="?attr/selectableItemBackgroundBorderless">
 
-        <ImageView
-            android:id="@+id/led_hide_clock"
-            android:layout_width="20dp"
-            android:layout_height="20dp"
-            android:layout_gravity="center"
-            android:src="@drawable/led_indicator"
-            android:contentDescription="Indicador ocultar reloj"
-            android:tint="#39FF14" />
-    </FrameLayout>
+                <ImageView
+                    android:id="@+id/led_hide_clock"
+                    android:layout_width="20dp"
+                    android:layout_height="20dp"
+                    android:layout_gravity="center"
+                    android:src="@drawable/led_indicator"
+                    android:contentDescription="Indicador ocultar reloj" />
+            </FrameLayout>
 
-    <TextView
-        android:id="@+id/text_hide_clock"
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:layout_marginStart="8dp"
-        android:text="Ocultar reloj: No"
-        android:textSize="16sp"
-        android:textColor="#1C1C1E"
-        android:fontFamily="@font/googlesans_medium" />
-</LinearLayout>
-	<View android:layout_width="match_parent" android:layout_height="1dp" android:background="#E5E5EA"/>
+            <TextView
+                android:id="@+id/text_hide_clock"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_marginStart="8dp"
+                android:text="Ocultar reloj: No"
+                android:textSize="16sp"
+                android:textColor="#1C1C1E"
+                android:fontFamily="@font/googlesans_medium" />
+        </LinearLayout>
+        <View android:layout_width="match_parent" android:layout_height="1dp" android:background="#E5E5EA"/>
 
         <!-- 1. Formato de reloj -->
         <LinearLayout
@@ -102,8 +101,7 @@
                     android:layout_height="20dp"
                     android:layout_gravity="center"
                     android:src="@drawable/led_indicator"
-                    android:contentDescription="Indicador formato de reloj"
-                    android:tint="#39FF14" />
+                    android:contentDescription="Indicador formato de reloj" />
             </FrameLayout>
 
             <TextView
@@ -118,7 +116,7 @@
         </LinearLayout>
         <View android:layout_width="match_parent" android:layout_height="1dp" android:background="#E5E5EA"/>
 
-        <!-- 2. Sonidos -->
+        <!-- 2. Sonidos UI -->
         <LinearLayout
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
@@ -139,8 +137,7 @@
                     android:layout_height="20dp"
                     android:layout_gravity="center"
                     android:src="@drawable/led_indicator"
-                    android:contentDescription="Indicador sonidos"
-                    android:tint="#39FF14" />
+                    android:contentDescription="Indicador sonidos" />
             </FrameLayout>
 
             <TextView
@@ -155,7 +152,7 @@
         </LinearLayout>
         <View android:layout_width="match_parent" android:layout_height="1dp" android:background="#E5E5EA"/>
 
-        <!-- 3. Animaciones -->
+        <!-- 3. Voz TTS (nuevo) -->
         <LinearLayout
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
@@ -171,61 +168,130 @@
                 android:background="?attr/selectableItemBackgroundBorderless">
 
                 <ImageView
-                    android:id="@+id/led_animations"
+                    android:id="@+id/led_tts_enabled"
                     android:layout_width="20dp"
                     android:layout_height="20dp"
                     android:layout_gravity="center"
                     android:src="@drawable/led_indicator"
-                    android:contentDescription="Indicador animaciones"
-                    android:tint="#39FF14" />
+                    android:contentDescription="Indicador voz TTS" />
             </FrameLayout>
 
             <TextView
-                android:id="@+id/text_animations"
+                android:id="@+id/text_tts_enabled"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
                 android:layout_marginStart="8dp"
-                android:text="Animaciones: Activadas"
+                android:text="Voz asistente: Activada"
                 android:textSize="16sp"
                 android:textColor="#1C1C1E"
                 android:fontFamily="@font/googlesans_medium" />
         </LinearLayout>
         <View android:layout_width="match_parent" android:layout_height="1dp" android:background="#E5E5EA"/>
 
-        <!-- 4. Tema -->
+        <!-- 4. Tema (tres iconos) -->
         <LinearLayout
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:orientation="horizontal"
-            android:gravity="center_vertical"
+            android:orientation="vertical"
             android:paddingVertical="12dp">
 
-            <FrameLayout
-                android:layout_width="48dp"
-                android:layout_height="48dp"
-                android:clickable="true"
-                android:focusable="true"
-                android:background="?attr/selectableItemBackgroundBorderless">
+            <LinearLayout
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:orientation="horizontal"
+                android:gravity="center"
+                android:padding="8dp">
 
-                <ImageView
-                    android:id="@+id/led_theme"
-                    android:layout_width="20dp"
-                    android:layout_height="20dp"
-                    android:layout_gravity="center"
-                    android:src="@drawable/led_indicator"
-                    android:contentDescription="Indicador tema"
-                    android:tint="#39FF14" />
-            </FrameLayout>
+                <LinearLayout
+                    android:id="@+id/theme_sol"
+                    android:layout_width="0dp"
+                    android:layout_height="wrap_content"
+                    android:layout_weight="1"
+                    android:orientation="vertical"
+                    android:gravity="center"
+                    android:clickable="true"
+                    android:focusable="true"
+                    android:background="?attr/selectableItemBackgroundBorderless">
+
+                    <ImageView
+                        android:layout_width="48dp"
+                        android:layout_height="48dp"
+                        android:src="@drawable/ic_sol"
+                        android:contentDescription="Sol" />
+
+                    <ImageView
+                        android:id="@+id/indicator_sol"
+                        android:layout_width="20dp"
+                        android:layout_height="20dp"
+                        android:layout_marginTop="4dp"
+                        android:src="@drawable/ic_check_circle_blue"
+                        android:visibility="gone" />
+                </LinearLayout>
+
+                <LinearLayout
+                    android:id="@+id/theme_luna"
+                    android:layout_width="0dp"
+                    android:layout_height="wrap_content"
+                    android:layout_weight="1"
+                    android:orientation="vertical"
+                    android:gravity="center"
+                    android:clickable="true"
+                    android:focusable="true"
+                    android:background="?attr/selectableItemBackgroundBorderless">
+
+                    <ImageView
+                        android:layout_width="48dp"
+                        android:layout_height="48dp"
+                        android:src="@drawable/ic_luna"
+                        android:contentDescription="Luna" />
+
+                    <ImageView
+                        android:id="@+id/indicator_luna"
+                        android:layout_width="20dp"
+                        android:layout_height="20dp"
+                        android:layout_marginTop="4dp"
+                        android:src="@drawable/ic_check_circle_blue"
+                        android:visibility="gone" />
+                </LinearLayout>
+
+                <LinearLayout
+                    android:id="@+id/theme_nubes"
+                    android:layout_width="0dp"
+                    android:layout_height="wrap_content"
+                    android:layout_weight="1"
+                    android:orientation="vertical"
+                    android:gravity="center"
+                    android:clickable="true"
+                    android:focusable="true"
+                    android:background="?attr/selectableItemBackgroundBorderless">
+
+                    <ImageView
+                        android:layout_width="48dp"
+                        android:layout_height="48dp"
+                        android:src="@drawable/ic_nubes"
+                        android:contentDescription="Nubes" />
+
+                    <ImageView
+                        android:id="@+id/indicator_nubes"
+                        android:layout_width="20dp"
+                        android:layout_height="20dp"
+                        android:layout_marginTop="4dp"
+                        android:src="@drawable/ic_check_circle_blue"
+                        android:visibility="gone" />
+                </LinearLayout>
+
+            </LinearLayout>
 
             <TextView
                 android:id="@+id/text_theme"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
-                android:layout_marginStart="8dp"
+                android:layout_gravity="center"
                 android:text="Tema: Amanecer"
-                android:textSize="16sp"
-                android:textColor="#1C1C1E"
-                android:fontFamily="@font/googlesans_medium" />
+                android:textSize="14sp"
+                android:textColor="#888888"
+                android:layout_marginTop="4dp" />
+
         </LinearLayout>
         <View android:layout_width="match_parent" android:layout_height="1dp" android:background="#E5E5EA"/>
 
@@ -250,8 +316,7 @@
                     android:layout_height="20dp"
                     android:layout_gravity="center"
                     android:src="@drawable/led_indicator"
-                    android:contentDescription="Indicador asistente flotante"
-                    android:tint="#39FF14" />
+                    android:contentDescription="Indicador asistente flotante" />
             </FrameLayout>
 
             <TextView
@@ -292,8 +357,7 @@
                         android:layout_height="20dp"
                         android:layout_gravity="center"
                         android:src="@drawable/led_indicator"
-                        android:contentDescription="Indicador velocidad de voz"
-                        android:tint="#39FF14" />
+                        android:contentDescription="Indicador velocidad de voz" />
                 </FrameLayout>
 
                 <TextView
@@ -314,8 +378,8 @@
                 android:layout_marginStart="56dp"
                 android:max="100"
                 android:progress="50"
-                android:progressTint="#39FF14"
-                android:thumbTint="#39FF14" />
+                android:progressTint="@color/settings_accent_blue"
+                android:thumbTint="@color/settings_accent_blue" />
 
             <TextView
                 android:id="@+id/text_tts_speed_value"
@@ -355,8 +419,7 @@
                         android:layout_height="20dp"
                         android:layout_gravity="center"
                         android:src="@drawable/led_indicator"
-                        android:contentDescription="Indicador tono de voz"
-                        android:tint="#39FF14" />
+                        android:contentDescription="Indicador tono de voz" />
                 </FrameLayout>
 
                 <TextView
@@ -377,8 +440,8 @@
                 android:layout_marginStart="56dp"
                 android:max="100"
                 android:progress="50"
-                android:progressTint="#39FF14"
-                android:thumbTint="#39FF14" />
+                android:progressTint="@color/settings_accent_blue"
+                android:thumbTint="@color/settings_accent_blue" />
 
             <TextView
                 android:id="@+id/text_tts_pitch_value"

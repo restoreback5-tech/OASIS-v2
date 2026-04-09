@@ -29,9 +29,14 @@ class TTSModule(ctx: Context) : TextToSpeech.OnInitListener {
     }
 
     fun speak(text: String) {
-        try {
-            tts?.speak(text, TextToSpeech.QUEUE_FLUSH, null, null)
-        } catch (e: Exception) { }
+        // Solo habla si la preferencia tts_enabled es true (por defecto true)
+        if (prefs.getBoolean("tts_enabled", true)) {
+            try {
+                tts?.speak(text, TextToSpeech.QUEUE_FLUSH, null, null)
+            } catch (e: Exception) {
+                // Silenciar errores
+            }
+        }
     }
 
     fun updateSpeechSettings() {
