@@ -1,27 +1,15 @@
 package com.oasis.app
 
 import android.content.Context
-import android.media.AudioAttributes
-import android.media.SoundPool
-import android.os.Build
+import android.media.MediaPlayer
+import android.util.SparseArray
 
 class SoundModule(private val context: Context) {
 
-    private var soundPool: SoundPool
-    private val sounds = mutableMapOf<Int, Int>()
+    private val players = SparseArray<MediaPlayer>()
 
     init {
-        val audioAttributes = AudioAttributes.Builder()
-            .setUsage(AudioAttributes.USAGE_ASSISTANCE_SONIFICATION)
-            .setContentType(AudioAttributes.CONTENT_TYPE_SONIFICATION)
-            .build()
-
-        soundPool = SoundPool.Builder()
-            .setMaxStreams(5)
-            .setAudioAttributes(audioAttributes)
-            .build()
-
-        // Precargar todos los sonidos (puedes añadir más si es necesario)
+        // Precargar todos los sonidos necesarios
         preload(R.raw.touch)
         preload(R.raw.confirmar)
         preload(R.raw.cancelar)
@@ -36,24 +24,36 @@ class SoundModule(private val context: Context) {
     }
 
     private fun preload(resId: Int) {
-        val soundId = soundPool.load(context, resId, 1)
-        sounds[resId] = soundId
+        try {
+            val player = MediaPlayer.create(context, resId)
+            player?.isLooping = false
+            players.put(resId, player)
+        } catch (e: Exception) {
+            // Ignorar error de precarga
+        }
     }
 
     fun play(resId: Int) {
-        val soundId = sounds[resId]
-        if (soundId != null) {
-            soundPool.play(soundId, 1.0f, 1.0f, 1, 0, 1.0f)
+        val player = players.get(resId)
+        if (player != null) {
+            // Reiniciar si estaba en curso
+            if (player.isPlaying) player.seekTo(0)
+            player.start()
         } else {
-            // Si no está precargado, cargar sobre la marcha (no debería ocurrir)
-            val tempId = soundPool.load(context, resId, 1)
-            soundPool.setOnLoadCompleteListener { _, _, _ ->
-                soundPool.play(tempId, 1.0f, 1.0f, 1, 0, 1.0f)
-            }
+            // Fallback: cargar sobre la marcha (no debería ocurrir)
+            try {
+                MediaPlayer.create(context, resId)?.apply {
+                    start()
+                    setOnCompletionListener { release() }
+                }
+            } catch (e: Exception) { }
         }
     }
 
     fun release() {
-        soundPool.release()
+        for (i in 0 until players.size()) {
+            players.valueAt(i)?.release()
+        }
+        players.clear()
     }
 }
