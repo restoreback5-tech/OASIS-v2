@@ -128,7 +128,7 @@ class MainActivity : AppCompatActivity() {
         setupBtn(R.id.btn_call, "Llamar") { phoneActions.openDialer() }
         setupBtn(R.id.btn_message, "Enviar mensaje") { phoneActions.openSms() }
         setupBtn(R.id.btn_contacts, "Contactos") { phoneActions.openContacts() }
-        setupBtn(R.id.btn_apps, "Apps") { phoneActions.openAppDrawer() }
+        setupBtn(R.id.btn_apps, "Apps") { appLauncher.showAllApps() }
     }
 
     private fun setupBtn(id: Int, text: String, action: () -> Unit) {
