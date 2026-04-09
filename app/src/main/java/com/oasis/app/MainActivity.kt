@@ -8,12 +8,10 @@ import android.net.Uri
 import android.os.Bundle
 import android.os.Handler
 import android.os.Looper
-import android.provider.ContactsContract
 import android.provider.Settings
 import android.view.View
 import android.widget.ImageView
 import android.widget.TextView
-import android.widget.Toast
 import androidx.appcompat.app.AlertDialog
 import androidx.appcompat.app.AppCompatActivity
 import androidx.core.app.ActivityCompat
@@ -33,8 +31,6 @@ class MainActivity : AppCompatActivity() {
     private lateinit var appLauncher: AppLauncherModule
     private lateinit var prefs: SharedPreferences
     private lateinit var phoneActions: PhoneActionsModule
-    
-    private val REQUEST_READ_CONTACTS = 102
 
     // === ORBE VIVO - VARIABLES ===
     private var orbState = "idle"
@@ -130,9 +126,9 @@ class MainActivity : AppCompatActivity() {
 
         // 8. Botones principales
         setupBtn(R.id.btn_call, "Llamar") { phoneActions.openDialer() }
-	setupBtn(R.id.btn_message, "Enviar mensaje") { phoneActions.openSms() }
-	setupBtn(R.id.btn_contacts, "Contactos") { phoneActions.openContacts() }
-	setupBtn(R.id.btn_apps, "Apps") { phoneActions.openAppDrawer() }
+        setupBtn(R.id.btn_message, "Enviar mensaje") { phoneActions.openSms() }
+        setupBtn(R.id.btn_contacts, "Contactos") { phoneActions.openContacts() }
+        setupBtn(R.id.btn_apps, "Apps") { phoneActions.openAppDrawer() }
     }
 
     private fun setupBtn(id: Int, text: String, action: () -> Unit) {
@@ -202,10 +198,10 @@ class MainActivity : AppCompatActivity() {
                 val contact = params["contact"] ?: ""
                 if (contact.isNotEmpty()) {
                     if (contact.any { it.isDigit() }) {
-                        dialNumber(contact)
+                        phoneActions.dialNumber(contact)
                     } else {
                         tts.speak("Buscando a $contact")
-                        searchContactAndDial(contact)
+                        phoneActions.searchContactAndDial(contact)
                     }
                 } else {
                     tts.speak("¿A quién quieres llamar?")
@@ -215,9 +211,9 @@ class MainActivity : AppCompatActivity() {
             "message" -> {
                 val contact = params["contact"] ?: ""
                 if (contact.isNotEmpty()) {
-                    openSmsToContact(contact)
+                    phoneActions.openSmsToContact(contact)
                 } else {
-                    openSms()
+                    phoneActions.openSms()
                 }
             }
 
@@ -274,53 +270,11 @@ class MainActivity : AppCompatActivity() {
         findViewById<TextView>(R.id.greeting_text)?.setTextColor(textColor)
     }
 
-
-    // === UTILIDADES ===
-    
-    /**
-     * Verifica si tenemos un permiso específico
-     */
-    private fun hasPermission(permission: String): Boolean {
-        return ContextCompat.checkSelfPermission(this, permission) == PackageManager.PERMISSION_GRANTED
-    }
-
-    /**
-     * Inicia una actividad de forma segura con mensaje de error si falla
-     */
-    private fun startActivitySafe(intent: Intent, errorMessage: String) {
-        try {
-            if (intent.resolveActivity(packageManager) != null) {
-                startActivity(intent)
-            } else {
-                tts.speak(errorMessage)
-                Toast.makeText(this, errorMessage, Toast.LENGTH_SHORT).show()
-            }
-        } catch (e: Exception) {
-            tts.speak(errorMessage)
-        }
-    }
-
     // === PERMISOS ===
-    
-    private fun checkMicPermission() {
-        if (!hasPermission(Manifest.permission.RECORD_AUDIO)) {
-            ActivityCompat.requestPermissions(this, arrayOf(Manifest.permission.RECORD_AUDIO), 100)
-        }
-    }
 
-    private fun requestContactsPermission() {
-        if (ActivityCompat.shouldShowRequestPermissionRationale(this, Manifest.permission.READ_CONTACTS)) {
-            // Explicar por qué necesitamos el permiso
-            AlertDialog.Builder(this)
-                .setTitle("Permiso necesario")
-                .setMessage("Necesitamos acceder a tus contactos para mostrarlos")
-                .setPositiveButton("Conceder") { _, _ ->
-                    ActivityCompat.requestPermissions(this, arrayOf(Manifest.permission.READ_CONTACTS), REQUEST_READ_CONTACTS)
-                }
-                .setNegativeButton("Cancelar", null)
-                .show()
-        } else {
-            ActivityCompat.requestPermissions(this, arrayOf(Manifest.permission.READ_CONTACTS), REQUEST_READ_CONTACTS)
+    private fun checkMicPermission() {
+        if (ContextCompat.checkSelfPermission(this, Manifest.permission.RECORD_AUDIO) != PackageManager.PERMISSION_GRANTED) {
+            ActivityCompat.requestPermissions(this, arrayOf(Manifest.permission.RECORD_AUDIO), 100)
         }
     }
 
@@ -332,29 +286,6 @@ class MainActivity : AppCompatActivity() {
                     tts.speak("Permiso de micrófono concedido")
                 } else {
                     tts.speak("Necesito permiso de micrófono para escucharte")
-                }
-            }
-            REQUEST_READ_CONTACTS -> {
-                if (grantResults.isNotEmpty() && grantResults[0] == PackageManager.PERMISSION_GRANTED) {
-                    tts.speak("Permiso concedido, abriendo contactos")
-                    openContacts()
-                } else {
-                    tts.speak("Sin permiso no puedo mostrar contactos")
-                    // Opcional: Abrir configuración de la app
-                    if (!ActivityCompat.shouldShowRequestPermissionRationale(this, Manifest.permission.READ_CONTACTS)) {
-                        // Permiso denegado permanentemente, ofrecer ir a ajustes
-                        AlertDialog.Builder(this)
-                            .setTitle("Permiso necesario")
-                            .setMessage("El permiso de contactos fue denegado. ¿Deseas abrir la configuración de la app?")
-                            .setPositiveButton("Abrir ajustes") { _, _ ->
-                                val intent = Intent(Settings.ACTION_APPLICATION_DETAILS_SETTINGS).apply {
-                                    data = Uri.fromParts("package", packageName, null)
-                                }
-                                startActivity(intent)
-                            }
-                            .setNegativeButton("Cancelar", null)
-                            .show()
-                    }
                 }
             }
         }
@@ -372,4 +303,3 @@ class MainActivity : AppCompatActivity() {
         voice.destroy()
     }
 }
-
