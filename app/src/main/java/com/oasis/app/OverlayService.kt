@@ -31,13 +31,14 @@ class OverlayService : Service() {
 
     override fun onCreate() {
         super.onCreate()
+
         sound = SoundModule(this)
         tts = TTSModule(this)
-
-        appLauncher = AppLauncherModule(this)
+        appLauncher = AppLauncherModule(this, sound)
 
         voiceModule = VoiceCommandModule(
             context = this,
+            sound = sound,
             onCommandDetected = { command, params -> handleCommand(command, params) },
             onListening = { isListening -> toggleListeningUI(isListening) },
             onError = { msg ->
@@ -167,7 +168,6 @@ class OverlayService : Service() {
             "call" -> {
                 val contact = params["contact"] ?: ""
                 tts.speak("Llamando a $contact")
-                // Opcional: abrir el marcador
                 val intent = Intent(Intent.ACTION_DIAL).apply {
                     data = android.net.Uri.parse("tel:$contact")
                 }

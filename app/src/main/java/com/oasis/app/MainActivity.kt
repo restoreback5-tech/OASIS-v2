@@ -50,7 +50,6 @@ class MainActivity : AppCompatActivity() {
 
         // 2. Inicialización de Módulos
         sound = SoundModule(this)
-        sound.preload(R.raw.cancelar, R.raw.confirmar)
         toast = ToastModule(this)
         anim = AnimationModule(orbView)
         tts = TTSModule(this)
