@@ -1,10 +1,7 @@
 package com.oasis.app
 
 import android.app.Service
-import android.content.BroadcastReceiver
-import android.content.Context
 import android.content.Intent
-import android.content.IntentFilter
 import android.graphics.PixelFormat
 import android.os.Build
 import android.os.IBinder
@@ -19,8 +16,9 @@ class OverlayService : Service() {
 
     private lateinit var windowManager: WindowManager
     private lateinit var sound: SoundModule
-    private var tts: TTSModule? = null
-    private var voiceModule: VoiceCommandModule? = null
+    private lateinit var tts: TTSModule
+    private lateinit var voiceModule: VoiceCommandModule
+    private lateinit var appLauncher: AppLauncherModule
 
     private var floatingView: View? = null
     private var listeningView: View? = null
@@ -31,48 +29,24 @@ class OverlayService : Service() {
     private var initialTouchY = 0f
     private var isDragging = false
 
-    // Receiver para escuchar comandos desde VoiceCaptureActivity
-    private val voiceReceiver = object : BroadcastReceiver() {
-        override fun onReceive(context: Context, intent: Intent) {
-            val commandText = intent.getStringExtra("command_text")
-            val error = intent.getStringExtra("error")
-            
-            toggleListeningUI(false)
-            
-            if (!error.isNullOrEmpty()) {
-                tts?.speak(error)
-            } else if (!commandText.isNullOrEmpty()) {
-                // Parsear comando manualmente (ya que voiceModule.parseAndExecute es privado)
-                parseAndExecuteCommand(commandText)
-            }
-        }
-    }
     override fun onCreate() {
         super.onCreate()
         sound = SoundModule(this)
-        tts = TTSModule(this)
+        tts = TTSModule(this) { /* opcional */ }
+
+        appLauncher = AppLauncherModule(this)
 
         voiceModule = VoiceCommandModule(
             context = this,
             onCommandDetected = { command, params -> handleCommand(command, params) },
             onListening = { isListening -> toggleListeningUI(isListening) },
             onError = { msg ->
-                tts?.speak(msg)
+                tts.speak(msg)
                 toggleListeningUI(false)
             }
         )
 
-        // Registrar receiver para comandos de voz
-        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) {
-            registerReceiver(voiceReceiver, IntentFilter("com.oasis.app.VOICE_COMMAND"), Context.RECEIVER_EXPORTED)
-        } else {
-            @Suppress("DEPRECATION")
-            registerReceiver(voiceReceiver, IntentFilter("com.oasis.app.VOICE_COMMAND"))
-        }
-
-        windowManager = getSystemService(WINDOW_SERVICE) as WindowManager
-        
-        // Crear Canal de Notificación (Obligatorio para Android 8+)
+        // Canal de notificación
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
             val channel = android.app.NotificationChannel(
                 "oasis_overlay_channel",
@@ -83,25 +57,22 @@ class OverlayService : Service() {
             manager?.createNotificationChannel(channel)
         }
 
-        // Crear la Notificación
         val notification = androidx.core.app.NotificationCompat.Builder(this, "oasis_overlay_channel")
             .setContentTitle("OASIS Activo")
             .setContentText("Asistente flotante listo")
             .setSmallIcon(android.R.drawable.ic_dialog_info)
             .build()
 
-        // Iniciar en Primer Plano (Esto activa el micrófono)
         startForeground(1, notification)
-        
+
+        windowManager = getSystemService(WINDOW_SERVICE) as WindowManager
         createFloatingButton()
     }
 
-    override fun onStartCommand(intent: Intent?, flags: Int, startId: Int): Int {        return START_STICKY
-    }
+    override fun onStartCommand(intent: Intent?, flags: Int, startId: Int): Int = START_STICKY
 
     private fun createFloatingButton() {
         removeViews()
-
         floatingView = LayoutInflater.from(this).inflate(R.layout.layout_overlay_float, null)
 
         val params = WindowManager.LayoutParams(
@@ -145,14 +116,10 @@ class OverlayService : Service() {
                     true
                 }
                 MotionEvent.ACTION_UP -> {
-                    v.alpha = 1.0f                    
+                    v.alpha = 1.0f
                     if (!isDragging) {
                         sound.play(R.raw.touch)
-                        // Lanzar actividad invisible para micrófono
-                        val intent = Intent(this, VoiceCaptureActivity::class.java).apply {
-                            flags = Intent.FLAG_ACTIVITY_NEW_TASK
-                        }
-                        startActivity(intent)
+                        voiceModule.startListening()
                     }
                     true
                 }
@@ -186,75 +153,53 @@ class OverlayService : Service() {
         }
     }
 
-    // Parseo manual de comandos (copia de la lógica de VoiceCommandModule)
-    private fun parseAndExecuteCommand(commandText: String) {
-        val params = mutableMapOf<String, String>()
-        var command = ""
-
-        when {
-            commandText.contains("llamar") || commandText.contains("llama a") -> {
-                command = "call"
-                params["contact"] = extractName(commandText, listOf("llamar", "llama a", "telefonear"))
-            }           
-                commandText.contains("mensaje") || commandText.contains("mandar") || commandText.contains("enviar") -> {
-                command = "message"
-                params["contact"] = extractName(commandText, listOf("mensaje", "mandar", "enviar", "a"))
-            }
-            commandText.contains("abrir") -> {
-                command = "open_app"
-                params["app"] = extractName(commandText, listOf("abrir", "abre", "la app", "el"))
-            }
-            commandText.contains("cancelar") || commandText.contains("detener") || commandText.contains("parar") -> {
-                command = "cancel"
-            }
-            commandText.contains("ayuda") || commandText.contains("qué puedes hacer") -> {
-                command = "help"
-            }
-            else -> {
-                tts?.speak("No entendí. Intenta: 'Abre WhatsApp', 'Haz una llamada'")
-                return
-            }
-        }
-
-        if (command.isNotEmpty()) {
-            handleCommand(command, params)
-        }
-    }
-
-    private fun extractName(text: String, keywords: List<String>): String {
-        var result = text
-        for (kw in keywords) {
-            result = result.replace(kw, "").trim()
-        }
-        result = result.replace(Regex("\\b(el|la|los|las|un|una|a|de|del|para)\\b"), "").trim()
-        return result.replace(Regex("[^a-zA-ZáéíóúÁÉÍÓÚñÑ\\s]"), "").trim()
-    }
-
     private fun handleCommand(command: String, params: Map<String, String>) {
-        val response = when (command) {
+        when (command) {
+            "open_app" -> {
+                val appName = params["app"] ?: "desconocido"
+                val success = appLauncher.launchApp(appName)
+                if (success) {
+                    tts.speak("Abriendo $appName")
+                } else {
+                    tts.speak("No encontré la aplicación $appName")
+                }
+            }
             "call" -> {
-                val contact = params["contact"] ?: "contacto"
-                "Llamando a $contact"
+                val contact = params["contact"] ?: ""
+                tts.speak("Llamando a $contact")
+                // Opcional: abrir el marcador
+                val intent = Intent(Intent.ACTION_DIAL).apply {
+                    data = android.net.Uri.parse("tel:$contact")
+                }
+                intent.flags = Intent.FLAG_ACTIVITY_NEW_TASK
+                startActivity(intent)
             }
             "message" -> {
-                val contact = params["contact"] ?: "contacto"
-                "Preparando mensaje para $contact"
+                val contact = params["contact"] ?: ""
+                tts.speak("Mensaje para $contact")
+                val intent = Intent(Intent.ACTION_VIEW).apply {
+                    data = android.net.Uri.parse("sms:$contact")
+                }
+                intent.flags = Intent.FLAG_ACTIVITY_NEW_TASK
+                startActivity(intent)
             }
-            "open_app" -> {
-                val app = params["app"] ?: "la aplicación"
-                "Abriendo $app"
+            "cancel" -> {
+                tts.speak("Cancelado")
             }
-            "cancel" -> "Cancelado"
-            "help" -> "Puedo llamar, enviar mensajes o abrir aplicaciones"            else -> "No entendí el comando"
+            "help" -> {
+                tts.speak("Puedo abrir apps, hacer llamadas y enviar mensajes")
+            }
+            else -> {
+                tts.speak("No entendí el comando")
+            }
         }
-        tts?.speak(response)
     }
 
     private fun removeViews() {
         try {
             floatingView?.let { windowManager.removeView(it) }
             listeningView?.let { windowManager.removeView(it) }
-        } catch (e: Exception) { /* Ignorar si ya fue removida */ }
+        } catch (e: Exception) { }
         floatingView = null
         listeningView = null
     }
@@ -264,9 +209,8 @@ class OverlayService : Service() {
     override fun onDestroy() {
         super.onDestroy()
         removeViews()
-        voiceModule?.destroy()
-        tts?.shutdown()
+        voiceModule.destroy()
+        tts.shutdown()
         sound.release()
-        unregisterReceiver(voiceReceiver)
     }
 }

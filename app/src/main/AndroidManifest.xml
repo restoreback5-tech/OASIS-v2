@@ -46,6 +46,7 @@
         <package android:name="com.android.settings" />
         <package android:name="com.google.android.gm" />
     </queries>
+
     <!-- ============================================ -->
 
     <application
@@ -95,9 +96,7 @@
             android:exported="false"
             android:theme="@style/Theme.OASIS" />
 
-        <!-- VoiceCaptureActivity -->
         <activity
-            android:name=".VoiceCaptureActivity"
             android:exported="false"
             android:theme="@style/Theme.OASIS"
             android:excludeFromRecents="true"
