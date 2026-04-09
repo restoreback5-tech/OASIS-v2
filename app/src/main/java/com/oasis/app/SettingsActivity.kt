@@ -21,8 +21,7 @@ class SettingsActivity : AppCompatActivity() {
     private lateinit var sound: SoundModule
     private var overlayServiceRunning = false
 
-    // LEDs
-    private lateinit var ledClock: ImageView
+    // LEDs de toggles (sin incluir los de sliders)
     private lateinit var ledSounds: ImageView
     private lateinit var ledTtsEnabled: ImageView
     private lateinit var ledOverlay: ImageView
@@ -38,13 +37,12 @@ class SettingsActivity : AppCompatActivity() {
     private lateinit var indicatorNubes: ImageView
     private lateinit var themeText: TextView
 
-    // Textos
-    private lateinit var clockText: TextView
+    // Textos de toggles
     private lateinit var soundsText: TextView
     private lateinit var ttsEnabledText: TextView
     private lateinit var overlayText: TextView
 
-    // SeekBars
+    // SeekBars y valores (sin LEDs asociados)
     private lateinit var seekSpeed: SeekBar
     private lateinit var seekPitch: SeekBar
     private lateinit var speedValueText: TextView
@@ -58,27 +56,27 @@ class SettingsActivity : AppCompatActivity() {
         ttsModule = TTSModule(this)
         sound = SoundModule(this)
 
-        // Inicializar vistas
-        ledClock = findViewById(R.id.led_clock_format)
+        // Inicializar vistas de toggles
         ledSounds = findViewById(R.id.led_sounds)
         ledTtsEnabled = findViewById(R.id.led_tts_enabled)
         ledOverlay = findViewById(R.id.led_overlay)
         ledHideClock = findViewById(R.id.led_hide_clock)
         hideClockText = findViewById(R.id.text_hide_clock)
 
-        clockText = findViewById(R.id.text_clock_format)
         soundsText = findViewById(R.id.text_sounds)
         ttsEnabledText = findViewById(R.id.text_tts_enabled)
         overlayText = findViewById(R.id.text_overlay)
 
+        // SeekBars
         seekSpeed = findViewById(R.id.seekbar_tts_speed)
         seekPitch = findViewById(R.id.seekbar_tts_pitch)
         speedValueText = findViewById(R.id.text_tts_speed_value)
         pitchValueText = findViewById(R.id.text_tts_pitch_value)
 
+        // Botón de regreso
         findViewById<ImageView>(R.id.btn_back).setOnClickListener { finish() }
 
-        setupClockFormat()
+        // Configurar cada ajuste
         setupSounds()
         setupTtsEnabled()
         setupTheme()
@@ -86,23 +84,6 @@ class SettingsActivity : AppCompatActivity() {
         setupTtsSpeed()
         setupTtsPitch()
         setupHideClock()
-    }
-
-    private fun setupClockFormat() {
-        val is24Hour = prefs.getBoolean("clock_24h", true)
-        updateClockUI(is24Hour)
-        ledClock.setOnClickListener {
-            val newValue = !prefs.getBoolean("clock_24h", true)
-            prefs.edit().putBoolean("clock_24h", newValue).apply()
-            updateClockUI(newValue)
-            sound.play(R.raw.check_on)
-        }
-    }
-
-    private fun updateClockUI(is24Hour: Boolean) {
-        val text = if (is24Hour) "Formato de reloj: 24h" else "Formato de reloj: 12h"
-        clockText.text = text
-        ledClock.setColorFilter(if (is24Hour) ContextCompat.getColor(this, R.color.settings_accent_blue) else 0xFF888888.toInt())
     }
 
     private fun setupSounds() {
@@ -114,14 +95,13 @@ class SettingsActivity : AppCompatActivity() {
             updateSoundsUI(newValue)
             sound.play(R.raw.check_on)
             if (newValue) {
-                // Probar sonido
                 sound.play(R.raw.touch)
             }
         }
     }
 
     private fun updateSoundsUI(enabled: Boolean) {
-        val text = if (enabled) "Sonidos: Activados" else "Sonidos: Desactivados"
+        val text = if (enabled) "Sonidos UI: Activados" else "Sonidos UI: Desactivados"
         soundsText.text = text
         ledSounds.setColorFilter(if (enabled) ContextCompat.getColor(this, R.color.settings_accent_blue) else 0xFF888888.toInt())
     }
@@ -173,7 +153,7 @@ class SettingsActivity : AppCompatActivity() {
             else -> "Tema: Oscuro"
         }
         Toast.makeText(this, "Tema cambiado a ${themeText.text}. Reinicia la app para ver los cambios.", Toast.LENGTH_SHORT).show()
-        sound.play(R.raw.check_on) // opcional: sonido al cambiar tema
+        sound.play(R.raw.check_on)
     }
 
     private fun updateThemeUI(themeKey: String, themes: Map<String, View>, indicators: Map<String, ImageView>) {

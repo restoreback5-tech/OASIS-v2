@@ -304,6 +304,8 @@ class MainActivity : AppCompatActivity() {
         super.onResume()
         applyTheme()
         tts.updateSpeechSettings()
+	val hideClock = prefs.getBoolean("hide_clock", false)
+	findViewById<TextView>(R.id.clock_text).visibility = if (hideClock) View.GONE else View.VISIBLE
     }
 
     override fun onDestroy() {
