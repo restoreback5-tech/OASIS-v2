@@ -26,7 +26,7 @@
                 android:contentDescription="Volver"
                 android:padding="8dp"
                 android:background="?attr/selectableItemBackgroundBorderless"
-                android:tint="#1C1C1E" />
+                android:tint="#FFFFFF" />
 
             <TextView
                 android:id="@+id/settings_title"
@@ -35,7 +35,7 @@
                 android:layout_weight="1"
                 android:text="Ajustes"
                 android:textSize="24sp"
-                android:textColor="#1C1C1E"
+                android:textColor="#FFFFFF"
                 android:fontFamily="@font/googlesans_semibold"
                 android:gravity="center" />
 
@@ -75,7 +75,7 @@
                 android:layout_marginStart="8dp"
                 android:text="Ocultar reloj: No"
                 android:textSize="16sp"
-                android:textColor="#1C1C1E"
+                android:textColor="#FFFFFF"
                 android:fontFamily="@font/googlesans_medium" />
         </LinearLayout>
         <View android:layout_width="match_parent" android:layout_height="1dp" android:background="#E5E5EA"/>
@@ -111,7 +111,7 @@
                 android:layout_marginStart="8dp"
                 android:text="Formato de reloj: 24h"
                 android:textSize="16sp"
-                android:textColor="#1C1C1E"
+                android:textColor="#FFFFFF"
                 android:fontFamily="@font/googlesans_medium" />
         </LinearLayout>
         <View android:layout_width="match_parent" android:layout_height="1dp" android:background="#E5E5EA"/>
@@ -147,7 +147,7 @@
                 android:layout_marginStart="8dp"
                 android:text="Sonidos: Activados"
                 android:textSize="16sp"
-                android:textColor="#1C1C1E"
+                android:textColor="#FFFFFF"
                 android:fontFamily="@font/googlesans_medium" />
         </LinearLayout>
         <View android:layout_width="match_parent" android:layout_height="1dp" android:background="#E5E5EA"/>
@@ -183,7 +183,7 @@
                 android:layout_marginStart="8dp"
                 android:text="Voz asistente: Activada"
                 android:textSize="16sp"
-                android:textColor="#1C1C1E"
+                android:textColor="#FFFFFF"
                 android:fontFamily="@font/googlesans_medium" />
         </LinearLayout>
         <View android:layout_width="match_parent" android:layout_height="1dp" android:background="#E5E5EA"/>
@@ -326,7 +326,7 @@
                 android:layout_marginStart="8dp"
                 android:text="Asistente flotante: Desactivado"
                 android:textSize="16sp"
-                android:textColor="#1C1C1E"
+                android:textColor="#FFFFFF"
                 android:fontFamily="@font/googlesans_medium" />
         </LinearLayout>
         <View android:layout_width="match_parent" android:layout_height="1dp" android:background="#E5E5EA"/>
@@ -366,7 +366,7 @@
                     android:layout_marginStart="8dp"
                     android:text="Velocidad de voz"
                     android:textSize="16sp"
-                    android:textColor="#1C1C1E"
+                    android:textColor="#FFFFFF"
                     android:fontFamily="@font/googlesans_medium" />
             </LinearLayout>
 
@@ -387,7 +387,7 @@
                 android:layout_height="wrap_content"
                 android:text="Normal"
                 android:textSize="14sp"
-                android:textColor="#1C1C1E"
+                android:textColor="#FFFFFF"
                 android:gravity="center"
                 android:layout_marginTop="4dp"
                 android:layout_marginStart="56dp" />
@@ -428,7 +428,7 @@
                     android:layout_marginStart="8dp"
                     android:text="Tono de voz"
                     android:textSize="16sp"
-                    android:textColor="#1C1C1E"
+                    android:textColor="#FFFFFF"
                     android:fontFamily="@font/googlesans_medium" />
             </LinearLayout>
 
@@ -449,7 +449,7 @@
                 android:layout_height="wrap_content"
                 android:text="Normal"
                 android:textSize="14sp"
-                android:textColor="#1C1C1E"
+                android:textColor="#FFFFFF"
                 android:gravity="center"
                 android:layout_marginTop="4dp"
                 android:layout_marginStart="56dp" />
