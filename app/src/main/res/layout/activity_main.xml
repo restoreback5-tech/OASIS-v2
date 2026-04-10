@@ -34,7 +34,7 @@
         android:layout_height="wrap_content"
         android:textSize="48sp"
         android:textColor="#1C1C1E"
-        android:fontFamily="@font/samsungsans_medium" />
+        android:fontFamily="@font/sf_pro_display_bold" />
 
     <TextView
         android:id="@+id/tv_ampm"
@@ -42,7 +42,7 @@
         android:layout_height="wrap_content"
         android:textSize="16sp"
         android:textColor="#1C1C1E"
-        android:fontFamily="@font/samsungsans_medium"
+        android:fontFamily="@font/sf_pro_display_bold"
         android:layout_marginStart="4dp"
         android:layout_marginBottom="12dp" />
 </LinearLayout>

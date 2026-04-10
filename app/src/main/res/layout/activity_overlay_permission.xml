@@ -26,7 +26,7 @@
             android:text="Permiso de superposición"
             android:textSize="24sp"
             android:textColor="#1C1C1E"
-            android:fontFamily="@font/googlesans_semibold"
+            android:fontFamily="@font/sf_pro_display_medium"
             android:gravity="center"
             android:layout_marginBottom="16dp" />
 
@@ -37,7 +37,7 @@
             android:layout_height="wrap_content"
             android:textSize="16sp"
             android:textColor="#3A3A3C"
-            android:fontFamily="@font/googlesans_regular"
+            android:fontFamily="@font/sf_pro_display_regular"
             android:lineSpacingExtra="4dp"
             android:gravity="center"
             android:layout_marginBottom="32dp" />
@@ -51,7 +51,7 @@
             android:textSize="16sp"
             android:backgroundTint="#39FF14"
             android:textColor="#000000"
-            android:fontFamily="@font/googlesans_semibold"
+            android:fontFamily="@font/sf_pro_display_medium"
             android:layout_marginBottom="16dp" />
 
         <!-- Botón: Más tarde -->
