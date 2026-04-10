@@ -59,7 +59,7 @@ class MainActivity : AppCompatActivity() {
         // VoiceCommandModule con callbacks
         voice = VoiceCommandModule(
             context = this,
-	    sound = sound,
+            sound = sound,
             onCommandDetected = { command, params ->
                 runOnUiThread { handleVoiceCommand(command, params) }
             },
@@ -83,19 +83,14 @@ class MainActivity : AppCompatActivity() {
         )
 
         // AppLauncherModule - Lanzador de aplicaciones
-	appLauncher = AppLauncherModule(this, sound)
+        appLauncher = AppLauncherModule(this, sound)
 
         prefs = getSharedPreferences("oasis_settings", MODE_PRIVATE)
 
-	// Aplicar ocultar reloj si está activado
-	val hideClock = prefs.getBoolean("hide_clock", false)
-	findViewById<TextView>(R.id.tv_time).visibility = if (hideClock) View.GONE else View.VISIBLE
-	findViewById<TextView>(R.id.tv_ampm).visibility = if (hideClock) View.GONE else View.VISIBLE
-	if (hideClock) {
-    clockText.visibility = View.GONE
-} else {
-    clockText.visibility = View.VISIBLE
-}
+        // Aplicar ocultar reloj si está activado
+        val hideClock = prefs.getBoolean("hide_clock", false)
+        findViewById<TextView>(R.id.tv_time).visibility = if (hideClock) View.GONE else View.VISIBLE
+        findViewById<TextView>(R.id.tv_ampm).visibility = if (hideClock) View.GONE else View.VISIBLE
 
         // 3. Tema y Permisos
         applyTheme()
@@ -113,21 +108,21 @@ class MainActivity : AppCompatActivity() {
             startActivity(Intent(this, SettingsActivity::class.java))
         }
 
-	// 6. Reloj en tiempo real (formato 12h con AM/PM pequeño)
-	val clockHandler = Handler(Looper.getMainLooper())
-	val clockRunnable = object : Runnable {
-        override fun run() {
-        val calendar = Calendar.getInstance()
-        val timeFormat = SimpleDateFormat("hh:mm", Locale.getDefault())
-        val amPmFormat = SimpleDateFormat("a", Locale.getDefault())
-        val timeStr = timeFormat.format(calendar.time)
-        val amPmStr = amPmFormat.format(calendar.time)
-        findViewById<TextView>(R.id.tv_time).text = timeStr
-        findViewById<TextView>(R.id.tv_ampm).text = amPmStr
-        clockHandler.postDelayed(this, 1000)
-    }
-}
-clockHandler.post(clockRunnable)
+        // 6. Reloj en tiempo real (formato 12h con AM/PM pequeño)
+        val clockHandler = Handler(Looper.getMainLooper())
+        val clockRunnable = object : Runnable {
+            override fun run() {
+                val calendar = Calendar.getInstance()
+                val timeFormat = SimpleDateFormat("hh:mm", Locale.getDefault())
+                val amPmFormat = SimpleDateFormat("a", Locale.getDefault())
+                val timeStr = timeFormat.format(calendar.time)
+                val amPmStr = amPmFormat.format(calendar.time)
+                findViewById<TextView>(R.id.tv_time).text = timeStr
+                findViewById<TextView>(R.id.tv_ampm).text = amPmStr
+                clockHandler.postDelayed(this, 1000)
+            }
+        }
+        clockHandler.post(clockRunnable)
 
         // 7. Click en el Orbe - Usa VoiceModule
         orbView.setOnClickListener {
@@ -263,7 +258,7 @@ clockHandler.post(clockRunnable)
         }
         window.statusBarColor = ContextCompat.getColor(this, statusBarColor)
 
-        val isLightStatusBar = selectedTheme != "oscuro"
+        val isLightStatusBar = selectedTheme != "noche"
         if (android.os.Build.VERSION.SDK_INT >= android.os.Build.VERSION_CODES.M) {
             window.decorView.systemUiVisibility = if (isLightStatusBar) {
                 View.SYSTEM_UI_FLAG_LIGHT_STATUS_BAR
@@ -274,16 +269,15 @@ clockHandler.post(clockRunnable)
 
         val textColor = when (selectedTheme) {
             "caribe" -> ContextCompat.getColor(this, R.color.caribe_text)
-            "oscuro" -> ContextCompat.getColor(this, R.color.oscuro_text)
+            "noche" -> ContextCompat.getColor(this, R.color.oscuro_text)
             else -> ContextCompat.getColor(this, R.color.amanecer_text)
         }
-	findViewById<TextView>(R.id.tv_time).setTextColor(textColor)
-	findViewById<TextView>(R.id.tv_ampm).setTextColor(textColor)
+        findViewById<TextView>(R.id.tv_time).setTextColor(textColor)
+        findViewById<TextView>(R.id.tv_ampm).setTextColor(textColor)
         findViewById<TextView>(R.id.greeting_text)?.setTextColor(textColor)
     }
 
     // === PERMISOS ===
-
     private fun checkMicPermission() {
         if (ContextCompat.checkSelfPermission(this, Manifest.permission.RECORD_AUDIO) != PackageManager.PERMISSION_GRANTED) {
             ActivityCompat.requestPermissions(this, arrayOf(Manifest.permission.RECORD_AUDIO), 100)
@@ -307,9 +301,9 @@ clockHandler.post(clockRunnable)
         super.onResume()
         applyTheme()
         tts.updateSpeechSettings()
-	val hideClock = prefs.getBoolean("hide_clock", false)
-	findViewById<TextView>(R.id.tv_time).visibility = if (hideClock) View.GONE else View.VISIBLE
-	findViewById<TextView>(R.id.tv_ampm).visibility = if (hideClock) View.GONE else View.VISIBLE
+        val hideClock = prefs.getBoolean("hide_clock", false)
+        findViewById<TextView>(R.id.tv_time).visibility = if (hideClock) View.GONE else View.VISIBLE
+        findViewById<TextView>(R.id.tv_ampm).visibility = if (hideClock) View.GONE else View.VISIBLE
     }
 
     override fun onDestroy() {
