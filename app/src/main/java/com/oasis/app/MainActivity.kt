@@ -249,7 +249,7 @@ class MainActivity : AppCompatActivity() {
             "noche" -> R.color.oscuro_background
             else -> R.color.amanecer_background
         }
-        window.setBackgroundColor(ContextCompat.getColor(this, bgRes))
+        window.decorView.setBackgroundColor(ContextCompat.getColor(this, bgRes))
 
         val statusBarColor = when (selectedTheme) {
             "caribe" -> R.color.status_bar_caribe
