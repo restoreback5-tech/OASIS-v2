@@ -134,7 +134,7 @@ class SettingsActivity : AppCompatActivity() {
         themeText = findViewById(R.id.text_theme)
 
         val themes = mapOf("amanecer" to themeSol, "caribe" to themeNubes, "noche" to themeLuna)
-        val indicators = mapOf("amanecer" to indicatorSol, "caribe" to indicatorLuna, "oscuro" to indicatorNubes)
+        val indicators = mapOf("amanecer" to indicatorSol, "caribe" to indicatorNubes, "noche" to indicatorLuna)
 
         val currentTheme = prefs.getString("selected_theme", "amanecer") ?: "amanecer"
         updateThemeUI(currentTheme, themes, indicators)

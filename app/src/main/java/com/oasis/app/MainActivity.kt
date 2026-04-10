@@ -246,10 +246,10 @@ class MainActivity : AppCompatActivity() {
         val selectedTheme = prefs.getString("selected_theme", "amanecer") ?: "amanecer"
         val bgRes = when (selectedTheme) {
             "caribe" -> R.color.caribe_background
-            "noche" -> R.drawable.noche_background
+            "noche" -> R.color.oscuro_background
             else -> R.color.amanecer_background
         }
-        window.setBackgroundDrawableResource(bgRes)
+        window.setBackgroundColor(ContextCompat.getColor(this, bgRes))
 
         val statusBarColor = when (selectedTheme) {
             "caribe" -> R.color.status_bar_caribe
