@@ -6,14 +6,5 @@
     <path
         android:fillColor="#000000"
         android:pathData="M12,4C8.69,4 6,6.69 6,10v2c0,3.31 2.69,6 6,6s6-2.69 6-6v-2c0-3.31-2.69-6-6-6zM12,16c-2.21,0-4-1.79-4-4v-2c0-2.21 1.79-4 4-4s4,1.79 4,4v2c0,2.21-1.79,4-4,4z"/>
-    <circle
-        android:fillColor="#000000"
-        android:cx="9"
-        android:cy="11"
-        android:r="1"/>
-    <circle
-        android:fillColor="#000000"
-        android:cx="15"
-        android:cy="11"
-        android:r="1"/>
+    <path android:fillColor="#000000" android:pathData="M9,11h0a1,1 0 1,0 2,0a1,1 0 1,0 -2,0zM15,11h0a1,1 0 1,0 2,0a1,1 0 1,0 -2,0z"/>
 </vector>
