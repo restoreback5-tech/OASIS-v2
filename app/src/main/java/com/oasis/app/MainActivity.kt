@@ -19,6 +19,7 @@ import androidx.core.content.ContextCompat
 import com.google.android.material.button.MaterialButton
 import java.text.SimpleDateFormat
 import java.util.Locale
+import java.util.Calendar
 
 class MainActivity : AppCompatActivity() {
 
@@ -88,7 +89,8 @@ class MainActivity : AppCompatActivity() {
 
 	// Aplicar ocultar reloj si está activado
 	val hideClock = prefs.getBoolean("hide_clock", false)
-	val clockText = findViewById<TextView>(R.id.clock_text)
+	findViewById<TextView>(R.id.tv_time).visibility = if (hideClock) View.GONE else View.VISIBLE
+	findViewById<TextView>(R.id.tv_ampm).visibility = if (hideClock) View.GONE else View.VISIBLE
 	if (hideClock) {
     clockText.visibility = View.GONE
 } else {
@@ -306,7 +308,8 @@ clockHandler.post(clockRunnable)
         applyTheme()
         tts.updateSpeechSettings()
 	val hideClock = prefs.getBoolean("hide_clock", false)
-	findViewById<TextView>(R.id.clock_text).visibility = if (hideClock) View.GONE else View.VISIBLE
+	findViewById<TextView>(R.id.tv_time).visibility = if (hideClock) View.GONE else View.VISIBLE
+	findViewById<TextView>(R.id.tv_ampm).visibility = if (hideClock) View.GONE else View.VISIBLE
     }
 
     override fun onDestroy() {
