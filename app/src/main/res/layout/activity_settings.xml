@@ -175,8 +175,8 @@
                 android:gravity="center_vertical">
 
                 <ImageView
-                    android:layout_width="32dp"
-                    android:layout_height="32dp"
+                    android:layout_width="24dp"
+                    android:layout_height="24dp"
                     android:src="@drawable/ic_tortuga"
                     android:contentDescription="Lento" />
 
@@ -193,8 +193,8 @@
                     android:thumbTint="@color/settings_accent_blue" />
 
                 <ImageView
-                    android:layout_width="32dp"
-                    android:layout_height="32dp"
+                    android:layout_width="24dp"
+                    android:layout_height="24dp"
                     android:src="@drawable/ic_conejo"
                     android:contentDescription="Rápido" />
 
@@ -236,8 +236,8 @@
                 android:gravity="center_vertical">
 
                 <ImageView
-                    android:layout_width="32dp"
-                    android:layout_height="32dp"
+                    android:layout_width="24dp"
+                    android:layout_height="24dp"
                     android:src="@drawable/ic_koala"
                     android:contentDescription="Grave" />
 
@@ -254,8 +254,8 @@
                     android:thumbTint="@color/settings_accent_blue" />
 
                 <ImageView
-                    android:layout_width="32dp"
-                    android:layout_height="32dp"
+                    android:layout_width="24dp"
+                    android:layout_height="24dp"
                     android:src="@drawable/ic_ardilla"
                     android:contentDescription="Agudo" />
 
