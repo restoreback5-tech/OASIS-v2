@@ -140,8 +140,8 @@ class SettingsActivity : AppCompatActivity() {
         updateThemeUI(currentTheme, themes, indicators)
 
         themeSol.setOnClickListener { setTheme("amanecer", themes, indicators) }
-        themeLuna.setOnClickListener { setTheme("caribe", themes, indicators) }
-        themeNubes.setOnClickListener { setTheme("oscuro", themes, indicators) }
+        themeLuna.setOnClickListener { setTheme("noche", themes, indicators) }
+        themeNubes.setOnClickListener { setTheme("caribe", themes, indicators) }
     }
 
     private fun setTheme(themeKey: String, themes: Map<String, View>, indicators: Map<String, ImageView>) {

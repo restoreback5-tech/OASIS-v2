@@ -19,7 +19,7 @@
     <!-- Temas de fondo -->
     <color name="amanecer_background">#FFF8E7</color>
     <color name="caribe_background">#E0F7FA</color>
-    <color name="oscuro_background">#121212</color>
+    <color name="oscuro_background">#2C2C2C</color>
     
     <!-- Temas de texto -->
     <color name="amanecer_text">#5D4037</color>
