@@ -85,7 +85,7 @@
                 </LinearLayout>
 
                 <LinearLayout
-                    android:id="@+id/theme_luna"
+                    android:id="@+id/theme_nubes"
                     android:layout_width="0dp"
                     android:layout_height="wrap_content"
                     android:layout_weight="1"
@@ -111,7 +111,7 @@
                 </LinearLayout>
 
                 <LinearLayout
-                    android:id="@+id/theme_nubes"
+                    android:id="@+id/theme_luna"
                     android:layout_width="0dp"
                     android:layout_height="wrap_content"
                     android:layout_weight="1"

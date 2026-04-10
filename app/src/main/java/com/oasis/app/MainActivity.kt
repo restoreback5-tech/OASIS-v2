@@ -111,21 +111,21 @@ class MainActivity : AppCompatActivity() {
             startActivity(Intent(this, SettingsActivity::class.java))
         }
 
-        // 6. Reloj en tiempo real
-        val clockHandler = Handler(Looper.getMainLooper())
-        val clockRunnable = object : Runnable {
-            override fun run() {
-                val is24Hour = prefs.getBoolean("clock_24h", true)
-                val format = if (is24Hour) {
-                    SimpleDateFormat("HH:mm", Locale.getDefault())
-                } else {
-                    SimpleDateFormat("hh:mm a", Locale.getDefault())
-                }
-                findViewById<TextView>(R.id.clock_text).text = format.format(System.currentTimeMillis())
-                clockHandler.postDelayed(this, 1000)
-            }
-        }
-        clockHandler.post(clockRunnable)
+	// 6. Reloj en tiempo real (formato 12h con AM/PM pequeño)
+	val clockHandler = Handler(Looper.getMainLooper())
+	val clockRunnable = object : Runnable {
+        override fun run() {
+        val calendar = Calendar.getInstance()
+        val timeFormat = SimpleDateFormat("hh:mm", Locale.getDefault())
+        val amPmFormat = SimpleDateFormat("a", Locale.getDefault())
+        val timeStr = timeFormat.format(calendar.time)
+        val amPmStr = amPmFormat.format(calendar.time)
+        findViewById<TextView>(R.id.tv_time).text = timeStr
+        findViewById<TextView>(R.id.tv_ampm).text = amPmStr
+        clockHandler.postDelayed(this, 1000)
+    }
+}
+clockHandler.post(clockRunnable)
 
         // 7. Click en el Orbe - Usa VoiceModule
         orbView.setOnClickListener {
@@ -249,14 +249,14 @@ class MainActivity : AppCompatActivity() {
         val selectedTheme = prefs.getString("selected_theme", "amanecer") ?: "amanecer"
         val bgRes = when (selectedTheme) {
             "caribe" -> R.color.caribe_background
-            "oscuro" -> R.color.oscuro_background
+            "noche" -> R.drawable.noche_background
             else -> R.color.amanecer_background
         }
         window.setBackgroundDrawableResource(bgRes)
 
         val statusBarColor = when (selectedTheme) {
             "caribe" -> R.color.status_bar_caribe
-            "oscuro" -> R.color.status_bar_oscuro
+            "noche" -> R.color.status_bar_oscuro
             else -> R.color.status_bar_amanecer
         }
         window.statusBarColor = ContextCompat.getColor(this, statusBarColor)
@@ -275,7 +275,8 @@ class MainActivity : AppCompatActivity() {
             "oscuro" -> ContextCompat.getColor(this, R.color.oscuro_text)
             else -> ContextCompat.getColor(this, R.color.amanecer_text)
         }
-        findViewById<TextView>(R.id.clock_text).setTextColor(textColor)
+	findViewById<TextView>(R.id.tv_time).setTextColor(textColor)
+	findViewById<TextView>(R.id.tv_ampm).setTextColor(textColor)
         findViewById<TextView>(R.id.greeting_text)?.setTextColor(textColor)
     }
 

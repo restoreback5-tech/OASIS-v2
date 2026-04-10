@@ -133,7 +133,7 @@ class SettingsActivity : AppCompatActivity() {
         indicatorNubes = findViewById(R.id.indicator_nubes)
         themeText = findViewById(R.id.text_theme)
 
-        val themes = mapOf("amanecer" to themeSol, "caribe" to themeLuna, "oscuro" to themeNubes)
+        val themes = mapOf("amanecer" to themeSol, "caribe" to themeNubes, "noche" to themeLuna)
         val indicators = mapOf("amanecer" to indicatorSol, "caribe" to indicatorLuna, "oscuro" to indicatorNubes)
 
         val currentTheme = prefs.getString("selected_theme", "amanecer") ?: "amanecer"
@@ -150,7 +150,7 @@ class SettingsActivity : AppCompatActivity() {
         themeText.text = when (themeKey) {
             "amanecer" -> "Tema: Amanecer"
             "caribe" -> "Tema: Caribe"
-            else -> "Tema: Oscuro"
+            else -> "Tema: Noche"
         }
         Toast.makeText(this, "Tema cambiado a ${themeText.text}. Reinicia la app para ver los cambios.", Toast.LENGTH_SHORT).show()
         sound.play(R.raw.check_on)

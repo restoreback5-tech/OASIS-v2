@@ -18,21 +18,34 @@
     android:contentDescription="Ajustes"
     android:padding="12dp"
     android:background="?attr/selectableItemBackgroundBorderless"
-    android:tint="#000000" 
+    android:tint="#dadada" 
     android:elevation="4dp" />
 
     <!-- Reloj (oculto por defecto) -->
+	<LinearLayout
+    android:layout_width="wrap_content"
+    android:layout_height="wrap_content"
+    android:orientation="horizontal"
+    android:gravity="center_vertical">
+
     <TextView
-        android:id="@+id/clock_text"
+        android:id="@+id/tv_time"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
-        android:layout_alignParentTop="true"
-        android:layout_centerHorizontal="true"
-        android:layout_marginTop="24dp"
-        android:text="9:41"
-        android:textSize="64sp"
-        android:fontFamily="@font/sf_pro_display_bold"
-        android:visibility="gone" />
+        android:textSize="48sp"
+        android:textColor="#1C1C1E"
+        android:fontFamily="@font/samsungsans_medium" />
+
+    <TextView
+        android:id="@+id/tv_ampm"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:textSize="16sp"
+        android:textColor="#1C1C1E"
+        android:fontFamily="@font/samsungsans_medium"
+        android:layout_marginStart="4dp"
+        android:layout_marginBottom="12dp" />
+</LinearLayout>
 
     <!-- Orbe central - CENTRADO VERTICALMENTE -->
     <ImageView
