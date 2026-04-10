@@ -177,7 +177,7 @@
                 <ImageView
                     android:layout_width="24dp"
                     android:layout_height="24dp"
-                    android:src="@drawable/ic_tortuga"
+                    android:text="🐢" android:textSize="24sp" android:textColor="#000000"
                     android:contentDescription="Lento" />
 
                 <SeekBar
@@ -195,7 +195,7 @@
                 <ImageView
                     android:layout_width="24dp"
                     android:layout_height="24dp"
-                    android:src="@drawable/ic_conejo"
+                    android:text="🐇" android:textSize="24sp" android:textColor="#000000"
                     android:contentDescription="Rápido" />
 
             </LinearLayout>
@@ -238,7 +238,7 @@
                 <ImageView
                     android:layout_width="24dp"
                     android:layout_height="24dp"
-                    android:src="@drawable/ic_koala"
+                    android:text="🐨" android:textSize="24sp" android:textColor="#000000"
                     android:contentDescription="Grave" />
 
                 <SeekBar
@@ -256,7 +256,7 @@
                 <ImageView
                     android:layout_width="24dp"
                     android:layout_height="24dp"
-                    android:src="@drawable/ic_ardilla"
+                    android:text="🐿️" android:textSize="24sp" android:textColor="#000000"
                     android:contentDescription="Agudo" />
 
             </LinearLayout>
