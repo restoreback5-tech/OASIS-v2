@@ -49,16 +49,14 @@ class SettingsActivity : AppCompatActivity() {
     private lateinit var indicatorLuna: ImageView
     private lateinit var indicatorNubes: ImageView
 
-    // Launcher moderno (reemplaza startActivityForResult)
+    // Launcher moderno
     private val overlayPermissionLauncher = registerForActivityResult(
         ActivityResultContracts.StartActivityForResult()
     ) {
-        // Al volver de la pantalla de permiso de superposición
         val enabled = prefs.getBoolean("overlay_enabled", false)
         if (enabled && hasOverlayPermission()) {
             toggleOverlayService(true)
         } else if (enabled && !hasOverlayPermission()) {
-            // El usuario activó el switch pero denegó el permiso: revertir
             prefs.edit().putBoolean("overlay_enabled", false).apply()
             switchOverlay.isChecked = false
             updateOverlayUI(false)
@@ -104,7 +102,7 @@ class SettingsActivity : AppCompatActivity() {
         // Botón atrás
         findViewById<ImageView?>(R.id.btn_back)?.setOnClickListener { finish() }
 
-        // Configurar cada ajuste
+        // Configurar ajustes
         setupSounds()
         setupTtsEnabled()
         setupTheme()
@@ -170,14 +168,29 @@ class SettingsActivity : AppCompatActivity() {
         prefs.edit().putString("selected_theme", themeKey).apply()
         updateThemeUI(themeKey, indicators)
         themeText.text = labelForTheme(themeKey)
-        // Ya no es necesario reiniciar: MainActivity.onResume() aplica el tema
         Toast.makeText(this, "Tema cambiado", Toast.LENGTH_SHORT).show()
         sound.play(R.raw.check_on)
     }
 
     private fun updateThemeUI(themeKey: String, indicators: Map<String, ImageView>) {
+        // Ocultar todos los checks
         indicators.values.forEach { it.visibility = View.GONE }
+        // Mostrar el check del tema seleccionado
         indicators[themeKey]?.visibility = View.VISIBLE
+
+        // Quitar el fondo azul a todos los contenedores
+        themeSol.setBackgroundResource(0)
+        themeNubes.setBackgroundResource(0)
+        themeLuna.setBackgroundResource(0)
+
+        // Poner el fondo azul solo al seleccionado
+        val selectedView = when(themeKey) {
+            "amanecer" -> themeSol
+            "caribe" -> themeNubes
+            "noche" -> themeLuna
+            else -> themeSol
+        }
+        selectedView.setBackgroundResource(R.drawable.bg_theme_selected)
     }
 
     private fun labelForTheme(key: String): String = when (key) {
@@ -307,7 +320,6 @@ class SettingsActivity : AppCompatActivity() {
     // ====================== CICLO DE VIDA ======================
     override fun onResume() {
         super.onResume()
-        // Sincronización idempotente: no dependemos de un flag local
         val overlayEnabled = prefs.getBoolean("overlay_enabled", false)
         if (overlayEnabled && hasOverlayPermission()) {
             toggleOverlayService(true)

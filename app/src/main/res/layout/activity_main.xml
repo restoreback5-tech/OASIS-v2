@@ -7,7 +7,7 @@
     android:gravity="center_horizontal"
     android:background="#FDFBF7">
 
-    <!-- Icono de ajustes (engrane) - Esquina superior derecha -->
+    <!-- Icono de ajustes -->
     <ImageView
         android:id="@+id/btn_settings"
         android:layout_width="56dp"
@@ -29,7 +29,7 @@
         android:layout_height="wrap_content"
         android:layout_alignParentTop="true"
         android:layout_centerHorizontal="true"
-        android:layout_marginTop="24dp"
+        android:layout_marginTop="32dp"
         android:orientation="horizontal"
         android:gravity="center_vertical">
         
@@ -52,35 +52,128 @@
             android:layout_marginBottom="12dp" />
     </LinearLayout>
 
-    <!-- Orbe central - CENTRADO VERTICALMENTE -->
-    <ImageView
-        android:id="@+id/orb_view"
-        android:layout_width="150dp"
-        android:layout_height="150dp"
-        android:layout_centerInParent="true"
-        android:src="@drawable/orb_center"
-        android:layout_marginBottom="24dp" />
-
-    <!-- Texto de saludo - Debajo del orbe -->
-    <TextView
-        android:id="@+id/greeting_text"
-        android:layout_width="wrap_content"
+    <!-- Contenedor central: Orbe, Texto y Botones (todos juntos y centrados) -->
+    <LinearLayout
+        android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:layout_below="@id/orb_view"
-        android:layout_centerHorizontal="true"
-        android:layout_marginTop="16dp"
-        android:layout_marginBottom="24dp"
-        android:text="OASIS"
-        android:textSize="20sp" />
+        android:layout_centerInParent="true"
+        android:orientation="vertical"
+        android:gravity="center">
 
-    <!-- Debug text (oculto por defecto) -->
+        <!-- Orbe central -->
+        <ImageView
+            android:id="@+id/orb_view"
+            android:layout_width="150dp"
+            android:layout_height="150dp"
+            android:src="@drawable/orb_center"
+            android:layout_marginBottom="16dp" />
+
+        <!-- Texto de saludo -->
+        <TextView
+            android:id="@+id/greeting_text"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="OASIS"
+            android:textSize="22sp"
+            android:textColor="#1C1C1E"
+            android:fontFamily="sans-serif-medium"
+            android:layout_marginBottom="32dp" />
+
+        <!-- Fila 1: Llamar y Mensaje -->
+        <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginBottom="12dp"
+            android:orientation="horizontal">
+
+            <com.google.android.material.button.MaterialButton
+                android:id="@+id/btn_call"
+                android:layout_width="0dp"
+                android:layout_height="64dp"
+                android:layout_weight="1"
+                android:layout_marginEnd="6dp"
+                android:background="@drawable/btn_call_gradient"
+                android:stateListAnimator="@null"
+                android:text="Llamar"
+                android:textColor="#FFFFFF"
+                android:textSize="16sp"
+                app:backgroundTint="@null"
+                app:cornerRadius="32dp"
+                app:icon="@drawable/ic_phone"
+                app:iconGravity="textStart"
+                app:iconTint="#FFFFFF"
+                app:iconPadding="8dp" />
+
+            <com.google.android.material.button.MaterialButton
+                android:id="@+id/btn_message"
+                android:layout_width="0dp"
+                android:layout_height="64dp"
+                android:layout_weight="1"
+                android:layout_marginStart="6dp"
+                android:background="@drawable/btn_message_gradient"
+                android:stateListAnimator="@null"
+                android:text="Mensaje"
+                android:textColor="#FFFFFF"
+                android:textSize="16sp"
+                app:backgroundTint="@null"
+                app:cornerRadius="32dp"
+                app:icon="@drawable/ic_message"
+                app:iconGravity="textStart"
+                app:iconTint="#FFFFFF"
+                app:iconPadding="8dp" />
+        </LinearLayout>
+
+        <!-- Fila 2: Contactos y Apps -->
+        <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:orientation="horizontal">
+
+            <com.google.android.material.button.MaterialButton
+                android:id="@+id/btn_contacts"
+                android:layout_width="0dp"
+                android:layout_height="64dp"
+                android:layout_weight="1"
+                android:layout_marginEnd="6dp"
+                android:background="@drawable/btn_contacts_gradient"
+                android:stateListAnimator="@null"
+                android:text="Contactos"
+                android:textColor="#FFFFFF"
+                android:textSize="16sp"
+                app:backgroundTint="@null"
+                app:cornerRadius="32dp"
+                app:icon="@drawable/ic_contacts"
+                app:iconGravity="textStart"
+                app:iconTint="#FFFFFF"
+                app:iconPadding="8dp" />
+
+            <com.google.android.material.button.MaterialButton
+                android:id="@+id/btn_apps"
+                android:layout_width="0dp"
+                android:layout_height="64dp"
+                android:layout_weight="1"
+                android:layout_marginStart="6dp"
+                android:background="@drawable/btn_apps_gradient"
+                android:stateListAnimator="@null"
+                android:text="Apps"
+                android:textColor="#FFFFFF"
+                android:textSize="16sp"
+                app:backgroundTint="@null"
+                app:cornerRadius="32dp"
+                app:icon="@drawable/ic_apps"
+                app:iconGravity="textStart"
+                app:iconTint="#FFFFFF"
+                app:iconPadding="8dp" />
+        </LinearLayout>
+    </LinearLayout>
+
+    <!-- Debug text (oculto) -->
     <TextView
         android:id="@+id/debug_text"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:layout_below="@id/greeting_text"
-        android:layout_centerHorizontal="true"
-        android:layout_marginBottom="16dp"
+        android:layout_alignParentBottom="true"
+        android:layout_marginBottom="8dp"
         android:background="#1A1A1A"
         android:gravity="center"
         android:padding="8dp"
@@ -88,108 +181,5 @@
         android:textColor="#00FF00"
         android:textSize="14sp"
         android:visibility="gone" />
-
-    <!-- Fila 1: Llamar y Mensaje -->
-    <LinearLayout
-        android:id="@+id/row_1"
-        android:layout_width="match_parent"
-        android:layout_height="wrap_content"
-        android:layout_above="@id/row_2"
-        android:layout_marginBottom="12dp"
-        android:orientation="horizontal">
-
-        <com.google.android.material.button.MaterialButton
-            android:id="@+id/btn_call"
-            android:layout_width="0dp"
-            android:layout_height="70dp"
-            android:layout_weight="1"
-            android:layout_marginEnd="8dp"
-            android:background="@drawable/btn_call_gradient"
-            android:stateListAnimator="@null"
-            android:text="Llamar"
-            android:textColor="#FFFFFF"
-            android:textSize="16sp"
-            app:backgroundTint="@null"
-            app:cornerRadius="35dp"
-            app:icon="@drawable/ic_phone"
-            app:iconGravity="textStart"
-            app:iconTint="#FFFFFF"
-            app:iconPadding="12dp" />
-
-        <com.google.android.material.button.MaterialButton
-            android:id="@+id/btn_message"
-            android:layout_width="0dp"
-            android:layout_height="70dp"
-            android:layout_weight="1"
-            android:layout_marginStart="8dp"
-            android:background="@drawable/btn_message_gradient"
-            android:stateListAnimator="@null"
-            android:text="Enviar mensaje"
-            android:textColor="#FFFFFF"
-            android:textSize="16sp"
-            app:backgroundTint="@null"
-            app:cornerRadius="35dp"
-            app:icon="@drawable/ic_message"
-            app:iconGravity="textStart"
-            app:iconTint="#FFFFFF"
-            app:iconPadding="12dp" />
-    </LinearLayout>
-
-    <!-- Fila 2: Contactos y Apps -->
-    <LinearLayout
-        android:id="@+id/row_2"
-        android:layout_width="match_parent"
-        android:layout_height="wrap_content"
-        android:layout_above="@id/water_effect_view"
-        android:layout_marginBottom="16dp"
-        android:orientation="horizontal">
-
-        <com.google.android.material.button.MaterialButton
-            android:id="@+id/btn_contacts"
-            android:layout_width="0dp"
-            android:layout_height="70dp"
-            android:layout_weight="1"
-            android:layout_marginEnd="8dp"
-            android:background="@drawable/btn_contacts_gradient"
-            android:stateListAnimator="@null"
-            android:text="Contactos"
-            android:textColor="#FFFFFF"
-            android:textSize="16sp"
-            app:backgroundTint="@null"
-            app:cornerRadius="35dp"
-            app:icon="@drawable/ic_contacts"
-            app:iconGravity="textStart"
-            app:iconTint="#FFFFFF"
-            app:iconPadding="12dp" />
-
-        <com.google.android.material.button.MaterialButton
-            android:id="@+id/btn_apps"
-            android:layout_width="0dp"
-            android:layout_height="70dp"
-            android:layout_weight="1"
-            android:layout_marginStart="8dp"
-            android:background="@drawable/btn_apps_gradient"
-            android:stateListAnimator="@null"
-            android:text="Apps"
-            android:textColor="#FFFFFF"
-            android:textSize="16sp"
-            app:backgroundTint="@null"
-            app:cornerRadius="35dp"
-            app:icon="@drawable/ic_apps"
-            app:iconGravity="textStart"
-            app:iconTint="#FFFFFF"
-            app:iconPadding="12dp" />
-    </LinearLayout>
-
-    <!-- Efecto de agua en la parte inferior -->
-    <ImageView
-        android:id="@+id/water_effect_view"
-        android:layout_width="match_parent"
-        android:layout_height="120dp"
-        android:layout_alignParentBottom="true"
-        android:src="@drawable/water_effect"
-        android:scaleType="centerCrop"
-        android:alpha="0.85"
-        android:contentDescription="Efecto de agua" />
 
 </RelativeLayout>
