@@ -4,48 +4,53 @@
     android:layout_width="match_parent"
     android:layout_height="match_parent"
     android:padding="16dp"
-    android:gravity="center_horizontal">
+    android:gravity="center_horizontal"
+    android:background="#FDFBF7">
 
     <!-- Icono de ajustes (engrane) - Esquina superior derecha -->
     <ImageView
-    android:id="@+id/btn_settings"
-    android:layout_width="56dp"
-    android:layout_height="56dp"
-    android:layout_alignParentTop="true"
-    android:layout_alignParentEnd="true"
-    android:layout_margin="16dp"
-    android:src="@android:drawable/ic_menu_preferences"
-    android:contentDescription="Ajustes"
-    android:padding="12dp"
-    android:background="?attr/selectableItemBackgroundBorderless"
-    android:tint="#dadada" 
-    android:elevation="4dp" />
+        android:id="@+id/btn_settings"
+        android:layout_width="56dp"
+        android:layout_height="56dp"
+        android:layout_alignParentTop="true"
+        android:layout_alignParentEnd="true"
+        android:layout_margin="16dp"
+        android:src="@android:drawable/ic_menu_preferences"
+        android:contentDescription="Ajustes"
+        android:padding="12dp"
+        android:background="?attr/selectableItemBackgroundBorderless"
+        android:tint="#dadada"
+        android:elevation="4dp" />
 
-    <!-- Reloj (oculto por defecto) -->
-	<LinearLayout
-    android:layout_width="wrap_content"
-    android:layout_height="wrap_content"
-    android:orientation="horizontal"
-    android:gravity="center_vertical">
-
-    <TextView
-        android:id="@+id/tv_time"
+    <!-- Reloj -->
+    <LinearLayout
+        android:id="@+id/clock_container"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
-        android:textSize="48sp"
-        android:textColor="#1C1C1E"
-        android:fontFamily="@font/sf_pro_display_bold" />
-
-    <TextView
-        android:id="@+id/tv_ampm"
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:textSize="16sp"
-        android:textColor="#1C1C1E"
-        android:fontFamily="@font/sf_pro_display_bold"
-        android:layout_marginStart="4dp"
-        android:layout_marginBottom="12dp" />
-</LinearLayout>
+        android:layout_alignParentTop="true"
+        android:layout_centerHorizontal="true"
+        android:layout_marginTop="24dp"
+        android:orientation="horizontal"
+        android:gravity="center_vertical">
+        
+        <TextView
+            android:id="@+id/tv_time"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:textSize="48sp"
+            android:textColor="#1C1C1E"
+            android:fontFamily="@font/sf_pro_display_bold" />
+            
+        <TextView
+            android:id="@+id/tv_ampm"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:textSize="16sp"
+            android:textColor="#1C1C1E"
+            android:fontFamily="@font/sf_pro_display_bold"
+            android:layout_marginStart="4dp"
+            android:layout_marginBottom="12dp" />
+    </LinearLayout>
 
     <!-- Orbe central - CENTRADO VERTICALMENTE -->
     <ImageView
@@ -61,7 +66,8 @@
         android:id="@+id/greeting_text"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
-        android:layout_below="@id/orb_view"        android:layout_centerHorizontal="true"
+        android:layout_below="@id/orb_view"
+        android:layout_centerHorizontal="true"
         android:layout_marginTop="16dp"
         android:layout_marginBottom="24dp"
         android:text="OASIS"
@@ -83,12 +89,12 @@
         android:textSize="14sp"
         android:visibility="gone" />
 
-    <!-- Fila 1: Llamar y Mensaje - Debajo del saludo -->
+    <!-- Fila 1: Llamar y Mensaje -->
     <LinearLayout
         android:id="@+id/row_1"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:layout_below="@id/debug_text"
+        android:layout_above="@id/row_2"
         android:layout_marginBottom="12dp"
         android:orientation="horizontal">
 
@@ -104,13 +110,16 @@
             android:textColor="#FFFFFF"
             android:textSize="16sp"
             app:backgroundTint="@null"
+            app:cornerRadius="35dp"
             app:icon="@drawable/ic_phone"
             app:iconGravity="textStart"
-            app:iconTint="#FFFFFF" />
+            app:iconTint="#FFFFFF"
+            app:iconPadding="12dp" />
 
         <com.google.android.material.button.MaterialButton
             android:id="@+id/btn_message"
-            android:layout_width="0dp"            android:layout_height="70dp"
+            android:layout_width="0dp"
+            android:layout_height="70dp"
             android:layout_weight="1"
             android:layout_marginStart="8dp"
             android:background="@drawable/btn_message_gradient"
@@ -119,17 +128,20 @@
             android:textColor="#FFFFFF"
             android:textSize="16sp"
             app:backgroundTint="@null"
+            app:cornerRadius="35dp"
             app:icon="@drawable/ic_message"
             app:iconGravity="textStart"
-            app:iconTint="#FFFFFF" />
+            app:iconTint="#FFFFFF"
+            app:iconPadding="12dp" />
     </LinearLayout>
 
-    <!-- Fila 2: Contactos y Apps - Debajo de la fila 1 -->
+    <!-- Fila 2: Contactos y Apps -->
     <LinearLayout
         android:id="@+id/row_2"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:layout_below="@id/row_1"
+        android:layout_above="@id/water_effect_view"
+        android:layout_marginBottom="16dp"
         android:orientation="horizontal">
 
         <com.google.android.material.button.MaterialButton
@@ -144,9 +156,11 @@
             android:textColor="#FFFFFF"
             android:textSize="16sp"
             app:backgroundTint="@null"
+            app:cornerRadius="35dp"
             app:icon="@drawable/ic_contacts"
             app:iconGravity="textStart"
-            app:iconTint="#FFFFFF" />
+            app:iconTint="#FFFFFF"
+            app:iconPadding="12dp" />
 
         <com.google.android.material.button.MaterialButton
             android:id="@+id/btn_apps"
@@ -159,8 +173,23 @@
             android:text="Apps"
             android:textColor="#FFFFFF"
             android:textSize="16sp"
-            app:icon="@drawable/ic_apps"            app:iconGravity="textStart"
-            app:iconTint="#FFFFFF" />
+            app:backgroundTint="@null"
+            app:cornerRadius="35dp"
+            app:icon="@drawable/ic_apps"
+            app:iconGravity="textStart"
+            app:iconTint="#FFFFFF"
+            app:iconPadding="12dp" />
     </LinearLayout>
+
+    <!-- Efecto de agua en la parte inferior -->
+    <ImageView
+        android:id="@+id/water_effect_view"
+        android:layout_width="match_parent"
+        android:layout_height="120dp"
+        android:layout_alignParentBottom="true"
+        android:src="@drawable/water_effect"
+        android:scaleType="centerCrop"
+        android:alpha="0.85"
+        android:contentDescription="Efecto de agua" />
 
 </RelativeLayout>

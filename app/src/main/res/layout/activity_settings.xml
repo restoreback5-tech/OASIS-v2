@@ -1,14 +1,15 @@
 <?xml version="1.0" encoding="utf-8"?>
 <ScrollView xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
-    android:background="@drawable/settings_bg_gradient">
+    android:background="#FDFBF7">
 
     <LinearLayout
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
         android:orientation="vertical"
-        android:padding="16dp">
+        android:padding="20dp">
 
         <!-- Header -->
         <LinearLayout
@@ -16,7 +17,7 @@
             android:layout_height="wrap_content"
             android:orientation="horizontal"
             android:gravity="center_vertical"
-            android:layout_marginBottom="32dp">
+            android:layout_marginBottom="24dp">
 
             <ImageView
                 android:id="@+id/btn_back"
@@ -24,7 +25,7 @@
                 android:layout_height="48dp"
                 android:src="@android:drawable/ic_menu_revert"
                 android:contentDescription="Volver"
-                android:padding="8dp"
+                android:padding="10dp"
                 android:background="?attr/selectableItemBackgroundBorderless"
                 android:tint="#1C1C1E" />
 
@@ -34,9 +35,9 @@
                 android:layout_height="wrap_content"
                 android:layout_weight="1"
                 android:text="Ajustes"
-                android:textSize="24sp"
+                android:textSize="26sp"
                 android:textColor="#1C1C1E"
-                android:fontFamily="@font/googlesans_semibold"
+                android:fontFamily="sans-serif-medium"
                 android:gravity="center" />
 
             <View
@@ -44,377 +45,338 @@
                 android:layout_height="48dp" />
         </LinearLayout>
 
-        <!-- 1. Tema (selector de tres iconos) -->
-        <LinearLayout
+        <!-- SECCIÓN 1: Tema -->
+        <com.google.android.material.card.MaterialCardView
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:orientation="vertical"
-            android:paddingVertical="12dp">
+            app:cardCornerRadius="16dp"
+            app:cardElevation="0dp"
+            app:strokeWidth="1dp"
+            app:strokeColor="#E5E5EA"
+            android:layout_marginBottom="16dp"
+            app:cardBackgroundColor="#FFFFFF">
 
             <LinearLayout
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
-                android:orientation="horizontal"
-                android:gravity="center"
-                android:padding="8dp">
+                android:orientation="vertical"
+                android:padding="16dp">
 
                 <LinearLayout
-                    android:id="@+id/theme_sol"
-                    android:layout_width="0dp"
+                    android:layout_width="match_parent"
                     android:layout_height="wrap_content"
-                    android:layout_weight="1"
-                    android:orientation="vertical"
-                    android:gravity="center"
-                    android:clickable="true"
-                    android:focusable="true"
-                    android:background="?attr/selectableItemBackgroundBorderless">
+                    android:orientation="horizontal"
+                    android:gravity="center">
 
-                    <ImageView
-                        android:layout_width="48dp"
-                        android:layout_height="48dp"
-                        android:src="@drawable/ic_sol"
-                        android:contentDescription="Sol" />
+                    <LinearLayout
+                        android:id="@+id/theme_sol"
+                        android:layout_width="0dp"
+                        android:layout_height="wrap_content"
+                        android:layout_weight="1"
+                        android:orientation="vertical"
+                        android:gravity="center"
+                        android:padding="12dp"
+                        android:background="@drawable/bg_theme_selected"
+                        android:clickable="true"
+                        android:focusable="true">
 
-                    <ImageView
-                        android:id="@+id/indicator_sol"
-                        android:layout_width="20dp"
-                        android:layout_height="20dp"
-                        android:layout_marginTop="4dp"
-                        android:src="@drawable/ic_check_circle_blue"
-                        android:visibility="gone" />
+                        <ImageView
+                            android:layout_width="40dp"
+                            android:layout_height="40dp"
+                            android:src="@drawable/ic_sol"
+                            android:contentDescription="Sol" />
+
+                        <ImageView
+                            android:id="@+id/indicator_sol"
+                            android:layout_width="18dp"
+                            android:layout_height="18dp"
+                            android:layout_marginTop="6dp"
+                            android:src="@drawable/ic_check_circle_blue"
+                            android:visibility="visible" />
+                    </LinearLayout>
+
+                    <LinearLayout
+                        android:id="@+id/theme_nubes"
+                        android:layout_width="0dp"
+                        android:layout_height="wrap_content"
+                        android:layout_weight="1"
+                        android:orientation="vertical"
+                        android:gravity="center"
+                        android:padding="12dp"
+                        android:background="?attr/selectableItemBackgroundBorderless"
+                        android:clickable="true"
+                        android:focusable="true">
+
+                        <ImageView
+                            android:layout_width="40dp"
+                            android:layout_height="40dp"
+                            android:src="@drawable/ic_nubes"
+                            android:contentDescription="Nubes" />
+
+                        <ImageView
+                            android:id="@+id/indicator_nubes"
+                            android:layout_width="18dp"
+                            android:layout_height="18dp"
+                            android:layout_marginTop="6dp"
+                            android:src="@drawable/ic_check_circle_blue"
+                            android:visibility="gone" />
+                    </LinearLayout>
+
+                    <LinearLayout
+                        android:id="@+id/theme_luna"
+                        android:layout_width="0dp"
+                        android:layout_height="wrap_content"
+                        android:layout_weight="1"
+                        android:orientation="vertical"
+                        android:gravity="center"
+                        android:padding="12dp"
+                        android:background="?attr/selectableItemBackgroundBorderless"
+                        android:clickable="true"
+                        android:focusable="true">
+
+                        <ImageView
+                            android:layout_width="40dp"
+                            android:layout_height="40dp"
+                            android:src="@drawable/ic_luna"
+                            android:contentDescription="Luna" />
+
+                        <ImageView
+                            android:id="@+id/indicator_luna"
+                            android:layout_width="18dp"
+                            android:layout_height="18dp"
+                            android:layout_marginTop="6dp"
+                            android:src="@drawable/ic_check_circle_blue"
+                            android:visibility="gone" />
+                    </LinearLayout>
                 </LinearLayout>
 
-                <LinearLayout
-                    android:id="@+id/theme_nubes"
-                    android:layout_width="0dp"
+                <TextView
+                    android:id="@+id/text_theme"
+                    android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
-                    android:layout_weight="1"
-                    android:orientation="vertical"
-                    android:gravity="center"
-                    android:clickable="true"
-                    android:focusable="true"
-                    android:background="?attr/selectableItemBackgroundBorderless">
-
-                    <ImageView
-                        android:layout_width="48dp"
-                        android:layout_height="48dp"
-                        android:src="@drawable/ic_luna"
-                        android:contentDescription="Luna" />
-
-                    <ImageView
-                        android:id="@+id/indicator_luna"
-                        android:layout_width="20dp"
-                        android:layout_height="20dp"
-                        android:layout_marginTop="4dp"
-                        android:src="@drawable/ic_check_circle_blue"
-                        android:visibility="gone" />
-                </LinearLayout>
-
-                <LinearLayout
-                    android:id="@+id/theme_luna"
-                    android:layout_width="0dp"
-                    android:layout_height="wrap_content"
-                    android:layout_weight="1"
-                    android:orientation="vertical"
-                    android:gravity="center"
-                    android:clickable="true"
-                    android:focusable="true"
-                    android:background="?attr/selectableItemBackgroundBorderless">
-
-                    <ImageView
-                        android:layout_width="48dp"
-                        android:layout_height="48dp"
-                        android:src="@drawable/ic_nubes"
-                        android:contentDescription="Nubes" />
-
-                    <ImageView
-                        android:id="@+id/indicator_nubes"
-                        android:layout_width="20dp"
-                        android:layout_height="20dp"
-                        android:layout_marginTop="4dp"
-                        android:src="@drawable/ic_check_circle_blue"
-                        android:visibility="gone" />
-                </LinearLayout>
-
+                    android:layout_gravity="center"
+                    android:text="Tema: Amanecer"
+                    android:textSize="13sp"
+                    android:textColor="#888888"
+                    android:layout_marginTop="12dp" />
             </LinearLayout>
+        </com.google.android.material.card.MaterialCardView>
 
-            <TextView
-                android:id="@+id/text_theme"
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:layout_gravity="center"
-                android:text="Tema: Amanecer"
-                android:textSize="14sp"
-                android:textColor="#888888"
-                android:layout_marginTop="4dp" />
-
-        </LinearLayout>
-        <View android:layout_width="match_parent" android:layout_height="1dp" android:background="#E5E5EA"/>
-
-        <!-- 2. Velocidad de voz (slider con tortuga/conejo) -->
-        <LinearLayout
+        <!-- SECCIÓN 2: Sliders (Velocidad y Tono) -->
+        <com.google.android.material.card.MaterialCardView
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:orientation="vertical"
-            android:paddingVertical="16dp">
-
-            <TextView
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:layout_marginStart="8dp"
-                android:text="Velocidad de voz"
-                android:textSize="16sp"
-                android:textColor="#1C1C1E"
-                android:fontFamily="@font/googlesans_medium"
-                android:layout_marginBottom="8dp" />
+            app:cardCornerRadius="16dp"
+            app:cardElevation="0dp"
+            app:strokeWidth="1dp"
+            app:strokeColor="#E5E5EA"
+            android:layout_marginBottom="16dp"
+            app:cardBackgroundColor="#FFFFFF">
 
             <LinearLayout
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
-                android:orientation="horizontal"
-                android:gravity="center_vertical">
+                android:orientation="vertical"
+                android:padding="16dp">
 
-                <ImageView
-                    android:layout_width="24dp"
-                    android:layout_height="24dp"
-                    android:text="🐢" android:textSize="24sp" android:textColor="#000000"
-                    android:contentDescription="Lento" />
+                <!-- Velocidad de voz -->
+                <TextView
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:text="Velocidad de voz"
+                    android:textSize="15sp"
+                    android:textColor="#1C1C1E"
+                    android:fontFamily="sans-serif-medium"
+                    android:layout_marginBottom="12dp" />
 
-                <SeekBar
+                <com.google.android.material.slider.Slider
                     android:id="@+id/seekbar_tts_speed"
-                    android:layout_width="0dp"
+                    android:layout_width="match_parent"
                     android:layout_height="wrap_content"
-                    android:layout_weight="1"
-                    android:layout_marginStart="8dp"
-                    android:layout_marginEnd="8dp"
-                    android:max="100"
-                    android:progress="50"
-                    android:progressTint="@color/settings_accent_blue"
-                    android:thumbTint="@color/settings_accent_blue" />
+                    android:valueFrom="0.5"
+                    android:valueTo="2.0"
+                    android:value="1.0"
+                    android:stepSize="0.1"
+                    app:thumbColor="#007AFF"
+                    app:trackColorActive="#007AFF"
+                    app:trackColorInactive="#E5E5EA" />
 
-                <ImageView
-                    android:layout_width="24dp"
-                    android:layout_height="24dp"
-                    android:text="🐇" android:textSize="24sp" android:textColor="#000000"
-                    android:contentDescription="Rápido" />
+                <TextView
+                    android:id="@+id/text_tts_speed_value"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:text="Normal (1.0x)"
+                    android:textSize="13sp"
+                    android:textColor="#888888"
+                    android:gravity="center"
+                    android:layout_marginTop="4dp" />
 
+                <View
+                    android:layout_width="match_parent"
+                    android:layout_height="1dp"
+                    android:background="#F0F0F0"
+                    android:layout_marginVertical="16dp" />
+
+                <!-- Tono de voz -->
+                <TextView
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:text="Tono de voz"
+                    android:textSize="15sp"
+                    android:textColor="#1C1C1E"
+                    android:fontFamily="sans-serif-medium"
+                    android:layout_marginBottom="12dp" />
+
+                <com.google.android.material.slider.Slider
+                    android:id="@+id/seekbar_tts_pitch"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:valueFrom="0.5"
+                    android:valueTo="2.0"
+                    android:value="1.0"
+                    android:stepSize="0.1"
+                    app:thumbColor="#007AFF"
+                    app:trackColorActive="#007AFF"
+                    app:trackColorInactive="#E5E5EA" />
+
+                <TextView
+                    android:id="@+id/text_tts_pitch_value"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:text="Normal (1.0x)"
+                    android:textSize="13sp"
+                    android:textColor="#888888"
+                    android:gravity="center"
+                    android:layout_marginTop="4dp" />
             </LinearLayout>
+        </com.google.android.material.card.MaterialCardView>
 
-            <TextView
-                android:id="@+id/text_tts_speed_value"
-                android:layout_width="match_parent"
-                android:layout_height="wrap_content"
-                android:text="Normal"
-                android:textSize="14sp"
-                android:textColor="#1C1C1E"
-                android:gravity="center"
-                android:layout_marginTop="4dp" />
-        </LinearLayout>
-        <View android:layout_width="match_parent" android:layout_height="1dp" android:background="#E5E5EA"/>
-
-        <!-- 3. Tono de voz (slider con koala/ardilla) -->
-        <LinearLayout
+        <!-- SECCIÓN 3: Toggles (Switches) -->
+        <com.google.android.material.card.MaterialCardView
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:orientation="vertical"
-            android:paddingVertical="16dp">
-
-            <TextView
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:layout_marginStart="8dp"
-                android:text="Tono de voz"
-                android:textSize="16sp"
-                android:textColor="#1C1C1E"
-                android:fontFamily="@font/googlesans_medium"
-                android:layout_marginBottom="8dp" />
+            app:cardCornerRadius="16dp"
+            app:cardElevation="0dp"
+            app:strokeWidth="1dp"
+            app:strokeColor="#E5E5EA"
+            app:cardBackgroundColor="#FFFFFF">
 
             <LinearLayout
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
-                android:orientation="horizontal"
-                android:gravity="center_vertical">
+                android:orientation="vertical">
 
-                <ImageView
-                    android:layout_width="24dp"
-                    android:layout_height="24dp"
-                    android:text="🐨" android:textSize="24sp" android:textColor="#000000"
-                    android:contentDescription="Grave" />
-
-                <SeekBar
-                    android:id="@+id/seekbar_tts_pitch"
-                    android:layout_width="0dp"
+                <!-- Sonidos UI -->
+                <LinearLayout
+                    android:layout_width="match_parent"
                     android:layout_height="wrap_content"
-                    android:layout_weight="1"
-                    android:layout_marginStart="8dp"
-                    android:layout_marginEnd="8dp"
-                    android:max="100"
-                    android:progress="50"
-                    android:progressTint="@color/settings_accent_blue"
-                    android:thumbTint="@color/settings_accent_blue" />
+                    android:orientation="horizontal"
+                    android:gravity="center_vertical"
+                    android:padding="16dp">
 
-                <ImageView
-                    android:layout_width="24dp"
-                    android:layout_height="24dp"
-                    android:text="🐿️" android:textSize="24sp" android:textColor="#000000"
-                    android:contentDescription="Agudo" />
+                    <TextView
+                        android:id="@+id/text_sounds"
+                        android:layout_width="0dp"
+                        android:layout_height="wrap_content"
+                        android:layout_weight="1"
+                        android:text="Sonidos UI"
+                        android:textSize="15sp"
+                        android:textColor="#1C1C1E" />
 
+                    <com.google.android.material.switchmaterial.SwitchMaterial
+                        android:id="@+id/led_sounds"
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:checked="true"
+                        app:thumbTint="#FFFFFF"
+                        app:trackTint="#007AFF" />
+                </LinearLayout>
+
+                <View android:layout_width="match_parent" android:layout_height="1dp" android:background="#F0F0F0" />
+
+                <!-- Voz asistente -->
+                <LinearLayout
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:orientation="horizontal"
+                    android:gravity="center_vertical"
+                    android:padding="16dp">
+
+                    <TextView
+                        android:id="@+id/text_tts_enabled"
+                        android:layout_width="0dp"
+                        android:layout_height="wrap_content"
+                        android:layout_weight="1"
+                        android:text="Voz asistente"
+                        android:textSize="15sp"
+                        android:textColor="#1C1C1E" />
+
+                    <com.google.android.material.switchmaterial.SwitchMaterial
+                        android:id="@+id/led_tts_enabled"
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:checked="true"
+                        app:thumbTint="#FFFFFF"
+                        app:trackTint="#007AFF" />
+                </LinearLayout>
+
+                <View android:layout_width="match_parent" android:layout_height="1dp" android:background="#F0F0F0" />
+
+                <!-- Asistente flotante -->
+                <LinearLayout
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:orientation="horizontal"
+                    android:gravity="center_vertical"
+                    android:padding="16dp">
+
+                    <TextView
+                        android:id="@+id/text_overlay"
+                        android:layout_width="0dp"
+                        android:layout_height="wrap_content"
+                        android:layout_weight="1"
+                        android:text="Asistente flotante"
+                        android:textSize="15sp"
+                        android:textColor="#1C1C1E" />
+
+                    <com.google.android.material.switchmaterial.SwitchMaterial
+                        android:id="@+id/led_overlay"
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:checked="false"
+                        app:thumbTint="#FFFFFF"
+                        app:trackTint="#007AFF" />
+                </LinearLayout>
+
+                <View android:layout_width="match_parent" android:layout_height="1dp" android:background="#F0F0F0" />
+
+                <!-- Ocultar reloj -->
+                <LinearLayout
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:orientation="horizontal"
+                    android:gravity="center_vertical"
+                    android:padding="16dp">
+
+                    <TextView
+                        android:id="@+id/text_hide_clock"
+                        android:layout_width="0dp"
+                        android:layout_height="wrap_content"
+                        android:layout_weight="1"
+                        android:text="Ocultar reloj"
+                        android:textSize="15sp"
+                        android:textColor="#1C1C1E" />
+
+                    <com.google.android.material.switchmaterial.SwitchMaterial
+                        android:id="@+id/led_hide_clock"
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:checked="true"
+                        app:thumbTint="#FFFFFF"
+                        app:trackTint="#007AFF" />
+                </LinearLayout>
             </LinearLayout>
-
-            <TextView
-                android:id="@+id/text_tts_pitch_value"
-                android:layout_width="match_parent"
-                android:layout_height="wrap_content"
-                android:text="Normal"
-                android:textSize="14sp"
-                android:textColor="#1C1C1E"
-                android:gravity="center"
-                android:layout_marginTop="4dp" />
-        </LinearLayout>
-        <View android:layout_width="match_parent" android:layout_height="1dp" android:background="#E5E5EA"/>
-
-        <!-- 4. Sonidos UI (toggle) -->
-        <LinearLayout
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:orientation="horizontal"
-            android:gravity="center_vertical"
-            android:paddingVertical="12dp">
-
-            <FrameLayout
-                android:layout_width="48dp"
-                android:layout_height="48dp"
-                android:clickable="true"
-                android:focusable="true"
-                android:background="?attr/selectableItemBackgroundBorderless">
-
-                <ImageView
-                    android:id="@+id/led_sounds"
-                    android:layout_width="20dp"
-                    android:layout_height="20dp"
-                    android:layout_gravity="center"
-                    android:src="@drawable/led_indicator"
-                    android:contentDescription="Indicador sonidos" />
-            </FrameLayout>
-
-            <TextView
-                android:id="@+id/text_sounds"
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:layout_marginStart="8dp"
-                android:text="Sonidos UI"
-                android:textSize="16sp"
-                android:textColor="#1C1C1E"
-                android:fontFamily="@font/googlesans_medium" />
-        </LinearLayout>
-        <View android:layout_width="match_parent" android:layout_height="1dp" android:background="#E5E5EA"/>
-
-        <!-- 5. Voz asistente (toggle) -->
-        <LinearLayout
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:orientation="horizontal"
-            android:gravity="center_vertical"
-            android:paddingVertical="12dp">
-
-            <FrameLayout
-                android:layout_width="48dp"
-                android:layout_height="48dp"
-                android:clickable="true"
-                android:focusable="true"
-                android:background="?attr/selectableItemBackgroundBorderless">
-
-                <ImageView
-                    android:id="@+id/led_tts_enabled"
-                    android:layout_width="20dp"
-                    android:layout_height="20dp"
-                    android:layout_gravity="center"
-                    android:src="@drawable/led_indicator"
-                    android:contentDescription="Indicador voz TTS" />
-            </FrameLayout>
-
-            <TextView
-                android:id="@+id/text_tts_enabled"
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:layout_marginStart="8dp"
-                android:text="Voz asistente"
-                android:textSize="16sp"
-                android:textColor="#1C1C1E"
-                android:fontFamily="@font/googlesans_medium" />
-        </LinearLayout>
-        <View android:layout_width="match_parent" android:layout_height="1dp" android:background="#E5E5EA"/>
-
-        <!-- 6. Asistente flotante (toggle) -->
-        <LinearLayout
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:orientation="horizontal"
-            android:gravity="center_vertical"
-            android:paddingVertical="12dp">
-
-            <FrameLayout
-                android:layout_width="48dp"
-                android:layout_height="48dp"
-                android:clickable="true"
-                android:focusable="true"
-                android:background="?attr/selectableItemBackgroundBorderless">
-
-                <ImageView
-                    android:id="@+id/led_overlay"
-                    android:layout_width="20dp"
-                    android:layout_height="20dp"
-                    android:layout_gravity="center"
-                    android:src="@drawable/led_indicator"
-                    android:contentDescription="Indicador asistente flotante" />
-            </FrameLayout>
-
-            <TextView
-                android:id="@+id/text_overlay"
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:layout_marginStart="8dp"
-                android:text="Asistente flotante"
-                android:textSize="16sp"
-                android:textColor="#1C1C1E"
-                android:fontFamily="@font/googlesans_medium" />
-        </LinearLayout>
-        <View android:layout_width="match_parent" android:layout_height="1dp" android:background="#E5E5EA"/>
-
-        <!-- 7. Ocultar reloj (toggle) -->
-        <LinearLayout
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:orientation="horizontal"
-            android:gravity="center_vertical"
-            android:paddingVertical="12dp">
-
-            <FrameLayout
-                android:layout_width="48dp"
-                android:layout_height="48dp"
-                android:clickable="true"
-                android:focusable="true"
-                android:background="?attr/selectableItemBackgroundBorderless">
-
-                <ImageView
-                    android:id="@+id/led_hide_clock"
-                    android:layout_width="20dp"
-                    android:layout_height="20dp"
-                    android:layout_gravity="center"
-                    android:src="@drawable/led_indicator"
-                    android:contentDescription="Indicador ocultar reloj" />
-            </FrameLayout>
-
-            <TextView
-                android:id="@+id/text_hide_clock"
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:layout_marginStart="8dp"
-                android:text="Ocultar reloj"
-                android:textSize="16sp"
-                android:textColor="#1C1C1E"
-                android:fontFamily="@font/googlesans_medium" />
-        </LinearLayout>
+        </com.google.android.material.card.MaterialCardView>
 
     </LinearLayout>
 </ScrollView>
