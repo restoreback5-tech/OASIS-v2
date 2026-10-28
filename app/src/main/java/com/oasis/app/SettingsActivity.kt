@@ -8,11 +8,11 @@ import android.os.Bundle
 import android.provider.Settings
 import android.view.View
 import android.widget.ImageView
-import android.widget.SeekBar
 import android.widget.TextView
 import android.widget.Toast
 import androidx.appcompat.app.AppCompatActivity
-import androidx.core.content.ContextCompat
+import com.google.android.material.slider.Slider
+import com.google.android.material.switchmaterial.SwitchMaterial
 
 class SettingsActivity : AppCompatActivity() {
 
@@ -21,12 +21,24 @@ class SettingsActivity : AppCompatActivity() {
     private lateinit var sound: SoundModule
     private var overlayServiceRunning = false
 
-    // LEDs de toggles (sin incluir los de sliders)
-    private lateinit var ledSounds: ImageView
-    private lateinit var ledTtsEnabled: ImageView
-    private lateinit var ledOverlay: ImageView
-    private lateinit var ledHideClock: ImageView
+    // Switches (antes LEDs)
+    private lateinit var switchSounds: SwitchMaterial
+    private lateinit var switchTtsEnabled: SwitchMaterial
+    private lateinit var switchOverlay: SwitchMaterial
+    private lateinit var switchHideClock: SwitchMaterial
+
+    // Sliders (antes SeekBars)
+    private lateinit var sliderSpeed: Slider
+    private lateinit var sliderPitch: Slider
+
+    // Textos
+    private lateinit var soundsText: TextView
+    private lateinit var ttsEnabledText: TextView
+    private lateinit var overlayText: TextView
     private lateinit var hideClockText: TextView
+    private lateinit var speedValueText: TextView
+    private lateinit var pitchValueText: TextView
+    private lateinit var themeText: TextView
 
     // Tema
     private lateinit var themeSol: View
@@ -35,18 +47,6 @@ class SettingsActivity : AppCompatActivity() {
     private lateinit var indicatorSol: ImageView
     private lateinit var indicatorLuna: ImageView
     private lateinit var indicatorNubes: ImageView
-    private lateinit var themeText: TextView
-
-    // Textos de toggles
-    private lateinit var soundsText: TextView
-    private lateinit var ttsEnabledText: TextView
-    private lateinit var overlayText: TextView
-
-    // SeekBars y valores (sin LEDs asociados)
-    private lateinit var seekSpeed: SeekBar
-    private lateinit var seekPitch: SeekBar
-    private lateinit var speedValueText: TextView
-    private lateinit var pitchValueText: TextView
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -56,22 +56,32 @@ class SettingsActivity : AppCompatActivity() {
         ttsModule = TTSModule(this)
         sound = SoundModule(this)
 
-        // Inicializar vistas de toggles
-        ledSounds = findViewById(R.id.led_sounds)
-        ledTtsEnabled = findViewById(R.id.led_tts_enabled)
-        ledOverlay = findViewById(R.id.led_overlay)
-        ledHideClock = findViewById(R.id.led_hide_clock)
-        hideClockText = findViewById(R.id.text_hide_clock)
+        // Inicializar Switches
+        switchSounds = findViewById(R.id.led_sounds)
+        switchTtsEnabled = findViewById(R.id.led_tts_enabled)
+        switchOverlay = findViewById(R.id.led_overlay)
+        switchHideClock = findViewById(R.id.led_hide_clock)
 
+        // Inicializar Sliders
+        sliderSpeed = findViewById(R.id.seekbar_tts_speed)
+        sliderPitch = findViewById(R.id.seekbar_tts_pitch)
+
+        // Inicializar Textos
         soundsText = findViewById(R.id.text_sounds)
         ttsEnabledText = findViewById(R.id.text_tts_enabled)
         overlayText = findViewById(R.id.text_overlay)
-
-        // SeekBars
-        seekSpeed = findViewById(R.id.seekbar_tts_speed)
-        seekPitch = findViewById(R.id.seekbar_tts_pitch)
+        hideClockText = findViewById(R.id.text_hide_clock)
         speedValueText = findViewById(R.id.text_tts_speed_value)
         pitchValueText = findViewById(R.id.text_tts_pitch_value)
+        themeText = findViewById(R.id.text_theme)
+
+        // Tema
+        themeSol = findViewById(R.id.theme_sol)
+        themeLuna = findViewById(R.id.theme_luna)
+        themeNubes = findViewById(R.id.theme_nubes)
+        indicatorSol = findViewById(R.id.indicator_sol)
+        indicatorLuna = findViewById(R.id.indicator_luna)
+        indicatorNubes = findViewById(R.id.indicator_nubes)
 
         // Botón de regreso
         findViewById<ImageView>(R.id.btn_back).setOnClickListener { finish() }
@@ -88,87 +98,80 @@ class SettingsActivity : AppCompatActivity() {
 
     private fun setupSounds() {
         val soundsEnabled = prefs.getBoolean("sounds_enabled", true)
+        switchSounds.isChecked = soundsEnabled
         updateSoundsUI(soundsEnabled)
-        ledSounds.setOnClickListener {
-            val newValue = !prefs.getBoolean("sounds_enabled", true)
-            prefs.edit().putBoolean("sounds_enabled", newValue).apply()
-            updateSoundsUI(newValue)
+
+        switchSounds.setOnCheckedChangeListener { _, isChecked ->
+            prefs.edit().putBoolean("sounds_enabled", isChecked).apply()
+            updateSoundsUI(isChecked)
             sound.play(R.raw.check_on)
-            if (newValue) {
-                sound.play(R.raw.touch)
-            }
+            if (isChecked) sound.play(R.raw.touch)
         }
     }
 
     private fun updateSoundsUI(enabled: Boolean) {
-        val text = if (enabled) "Sonidos UI: Activados" else "Sonidos UI: Desactivados"
-        soundsText.text = text
-        ledSounds.setColorFilter(if (enabled) ContextCompat.getColor(this, R.color.settings_accent_blue) else 0xFF888888.toInt())
+        soundsText.text = if (enabled) "Sonidos UI: Activados" else "Sonidos UI: Desactivados"
     }
 
     private fun setupTtsEnabled() {
         val ttsEnabled = prefs.getBoolean("tts_enabled", true)
+        switchTtsEnabled.isChecked = ttsEnabled
         updateTtsEnabledUI(ttsEnabled)
-        ledTtsEnabled.setOnClickListener {
-            val newValue = !prefs.getBoolean("tts_enabled", true)
-            prefs.edit().putBoolean("tts_enabled", newValue).apply()
-            updateTtsEnabledUI(newValue)
+
+        switchTtsEnabled.setOnCheckedChangeListener { _, isChecked ->
+            prefs.edit().putBoolean("tts_enabled", isChecked).apply()
+            updateTtsEnabledUI(isChecked)
             sound.play(R.raw.check_on)
-            if (newValue) ttsModule.speak("Voz activada")
+            if (isChecked) ttsModule.speak("Voz activada")
         }
     }
 
     private fun updateTtsEnabledUI(enabled: Boolean) {
-        val text = if (enabled) "Voz asistente: Activada" else "Voz asistente: Desactivada"
-        ttsEnabledText.text = text
-        ledTtsEnabled.setColorFilter(if (enabled) ContextCompat.getColor(this, R.color.settings_accent_blue) else 0xFF888888.toInt())
+        ttsEnabledText.text = if (enabled) "Voz asistente: Activada" else "Voz asistente: Desactivada"
     }
 
     private fun setupTheme() {
-        themeSol = findViewById(R.id.theme_sol)
-        themeLuna = findViewById(R.id.theme_luna)
-        themeNubes = findViewById(R.id.theme_nubes)
-        indicatorSol = findViewById(R.id.indicator_sol)
-        indicatorLuna = findViewById(R.id.indicator_luna)
-        indicatorNubes = findViewById(R.id.indicator_nubes)
-        themeText = findViewById(R.id.text_theme)
-
-        val themes = mapOf("amanecer" to themeSol, "caribe" to themeNubes, "noche" to themeLuna)
         val indicators = mapOf("amanecer" to indicatorSol, "caribe" to indicatorNubes, "noche" to indicatorLuna)
-
         val currentTheme = prefs.getString("selected_theme", "amanecer") ?: "amanecer"
-        updateThemeUI(currentTheme, themes, indicators)
 
-        themeSol.setOnClickListener { setTheme("amanecer", themes, indicators) }
-        themeLuna.setOnClickListener { setTheme("caribe", themes, indicators) }
-        themeNubes.setOnClickListener { setTheme("noche", themes, indicators) }
+        updateThemeUI(currentTheme, indicators)
+        themeText.text = when (currentTheme) {
+            "amanecer" -> "Tema: Amanecer"
+            "caribe" -> "Tema: Caribe"
+            else -> "Tema: Noche"
+        }
+
+        themeSol.setOnClickListener { setTheme("amanecer", indicators) }
+        themeNubes.setOnClickListener { setTheme("caribe", indicators) }
+        themeLuna.setOnClickListener { setTheme("noche", indicators) }
     }
 
-    private fun setTheme(themeKey: String, themes: Map<String, View>, indicators: Map<String, ImageView>) {
+    private fun setTheme(themeKey: String, indicators: Map<String, ImageView>) {
         prefs.edit().putString("selected_theme", themeKey).apply()
-        updateThemeUI(themeKey, themes, indicators)
+        updateThemeUI(themeKey, indicators)
         themeText.text = when (themeKey) {
             "amanecer" -> "Tema: Amanecer"
             "caribe" -> "Tema: Caribe"
             else -> "Tema: Noche"
         }
-        Toast.makeText(this, "Tema cambiado a ${themeText.text}. Reinicia la app para ver los cambios.", Toast.LENGTH_SHORT).show()
+        Toast.makeText(this, "Tema cambiado. Reinicia la app para ver los cambios.", Toast.LENGTH_SHORT).show()
         sound.play(R.raw.check_on)
     }
 
-    private fun updateThemeUI(themeKey: String, themes: Map<String, View>, indicators: Map<String, ImageView>) {
+    private fun updateThemeUI(themeKey: String, indicators: Map<String, ImageView>) {
         indicators.values.forEach { it.visibility = View.GONE }
         indicators[themeKey]?.visibility = View.VISIBLE
     }
 
     private fun setupOverlay() {
         val overlayEnabled = prefs.getBoolean("overlay_enabled", false)
+        switchOverlay.isChecked = overlayEnabled
         updateOverlayUI(overlayEnabled)
-        ledOverlay.setOnClickListener {
-            val newState = !prefs.getBoolean("overlay_enabled", false)
-            prefs.edit().putBoolean("overlay_enabled", newState).apply()
-            updateOverlayUI(newState)
-            toggleOverlayService(newState)
+
+        switchOverlay.setOnCheckedChangeListener { _, isChecked ->
+            prefs.edit().putBoolean("overlay_enabled", isChecked).apply()
+            updateOverlayUI(isChecked)
+            toggleOverlayService(isChecked)
             sound.play(R.raw.check_on)
         }
     }
@@ -195,9 +198,7 @@ class SettingsActivity : AppCompatActivity() {
     }
 
     private fun updateOverlayUI(enabled: Boolean) {
-        val text = if (enabled) "Asistente flotante: Activado" else "Asistente flotante: Desactivado"
-        overlayText.text = text
-        ledOverlay.setColorFilter(if (enabled) ContextCompat.getColor(this, R.color.settings_accent_blue) else 0xFF888888.toInt())
+        overlayText.text = if (enabled) "Asistente flotante: Activado" else "Asistente flotante: Desactivado"
     }
 
     private fun hasOverlayPermission(): Boolean {
@@ -218,28 +219,21 @@ class SettingsActivity : AppCompatActivity() {
 
     private fun setupTtsSpeed() {
         val savedSpeed = prefs.getFloat("voice_speed", 1.0f)
-        val progress = ((savedSpeed - 0.5f) / 1.5f * 100).toInt().coerceIn(0, 100)
-        seekSpeed.progress = progress
-        updateSpeedText(progress)
+        sliderSpeed.value = savedSpeed
+        updateSpeedText(savedSpeed)
 
-        seekSpeed.setOnSeekBarChangeListener(object : SeekBar.OnSeekBarChangeListener {
-            override fun onProgressChanged(seekBar: SeekBar?, progress: Int, fromUser: Boolean) {
-                if (fromUser) {
-                    val speed = 0.5f + (progress / 100f) * 1.5f
-                    prefs.edit().putFloat("voice_speed", speed).apply()
-                    updateSpeedText(progress)
-                    ttsModule.updateSpeechSettings()
-                    if (prefs.getBoolean("tts_enabled", true)) ttsModule.speak("Velocidad ajustada")
-                    sound.play(R.raw.deslizar)
-                }
+        sliderSpeed.addOnChangeListener { _, value, fromUser ->
+            if (fromUser) {
+                prefs.edit().putFloat("voice_speed", value).apply()
+                updateSpeedText(value)
+                ttsModule.updateSpeechSettings()
+                if (prefs.getBoolean("tts_enabled", true)) ttsModule.speak("Velocidad ajustada")
+                sound.play(R.raw.deslizar)
             }
-            override fun onStartTrackingTouch(seekBar: SeekBar?) {}
-            override fun onStopTrackingTouch(seekBar: SeekBar?) {}
-        })
+        }
     }
 
-    private fun updateSpeedText(progress: Int) {
-        val speed = 0.5f + (progress / 100f) * 1.5f
+    private fun updateSpeedText(speed: Float) {
         val speedText = when {
             speed < 0.8f -> "Lenta"
             speed < 1.2f -> "Normal"
@@ -250,28 +244,21 @@ class SettingsActivity : AppCompatActivity() {
 
     private fun setupTtsPitch() {
         val savedPitch = prefs.getFloat("voice_pitch", 1.0f)
-        val progress = ((savedPitch - 0.5f) / 1.0f * 100).toInt().coerceIn(0, 100)
-        seekPitch.progress = progress
-        updatePitchText(progress)
+        sliderPitch.value = savedPitch
+        updatePitchText(savedPitch)
 
-        seekPitch.setOnSeekBarChangeListener(object : SeekBar.OnSeekBarChangeListener {
-            override fun onProgressChanged(seekBar: SeekBar?, progress: Int, fromUser: Boolean) {
-                if (fromUser) {
-                    val pitch = 0.5f + (progress / 100f) * 1.0f
-                    prefs.edit().putFloat("voice_pitch", pitch).apply()
-                    updatePitchText(progress)
-                    ttsModule.updateSpeechSettings()
-                    if (prefs.getBoolean("tts_enabled", true)) ttsModule.speak("Tono ajustado")
-                    sound.play(R.raw.deslizar)
-                }
+        sliderPitch.addOnChangeListener { _, value, fromUser ->
+            if (fromUser) {
+                prefs.edit().putFloat("voice_pitch", value).apply()
+                updatePitchText(value)
+                ttsModule.updateSpeechSettings()
+                if (prefs.getBoolean("tts_enabled", true)) ttsModule.speak("Tono ajustado")
+                sound.play(R.raw.deslizar)
             }
-            override fun onStartTrackingTouch(seekBar: SeekBar?) {}
-            override fun onStopTrackingTouch(seekBar: SeekBar?) {}
-        })
+        }
     }
 
-    private fun updatePitchText(progress: Int) {
-        val pitch = 0.5f + (progress / 100f) * 1.0f
+    private fun updatePitchText(pitch: Float) {
         val pitchText = when {
             pitch < 0.8f -> "Grave"
             pitch < 1.2f -> "Normal"
@@ -282,19 +269,18 @@ class SettingsActivity : AppCompatActivity() {
 
     private fun setupHideClock() {
         val hideClock = prefs.getBoolean("hide_clock", false)
+        switchHideClock.isChecked = hideClock
         updateHideClockUI(hideClock)
-        ledHideClock.setOnClickListener {
-            val newValue = !prefs.getBoolean("hide_clock", false)
-            prefs.edit().putBoolean("hide_clock", newValue).apply()
-            updateHideClockUI(newValue)
+
+        switchHideClock.setOnCheckedChangeListener { _, isChecked ->
+            prefs.edit().putBoolean("hide_clock", isChecked).apply()
+            updateHideClockUI(isChecked)
             sound.play(R.raw.check_on)
         }
     }
 
     private fun updateHideClockUI(hideClock: Boolean) {
-        val text = if (hideClock) "Ocultar reloj: Sí" else "Ocultar reloj: No"
-        hideClockText.text = text
-        ledHideClock.setColorFilter(if (hideClock) ContextCompat.getColor(this, R.color.settings_accent_blue) else 0xFF888888.toInt())
+        hideClockText.text = if (hideClock) "Ocultar reloj: Sí" else "Ocultar reloj: No"
     }
 
     override fun onResume() {
