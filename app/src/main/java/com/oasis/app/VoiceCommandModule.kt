@@ -19,36 +19,8 @@ class VoiceCommandModule(
     private var speechRecognizer: SpeechRecognizer? = null
     private var isListening = false
 
-    // Mapeo de nombres comunes a Paquetes de Android (para ayudar al reconocimiento)
-    private val appAliases = mapOf(
-        "whatsapp" to "whatsapp",
-        "wasap" to "whatsapp",
-        "wsp" to "whatsapp",
-        "facebook" to "facebook",
-        "fb" to "facebook",
-        "instagram" to "instagram",
-        "insta" to "instagram",
-        "youtube" to "youtube",
-        "tubo" to "youtube",
-        "chrome" to "chrome",
-        "navegador" to "chrome",
-        "google" to "chrome",
-        "camara" to "camara",
-        "cámara" to "camara",
-        "fotos" to "galeria",
-        "galería" to "galeria",
-        "ajustes" to "ajustes",
-        "configuracion" to "ajustes",
-        "configuración" to "ajustes",
-        "settings" to "ajustes",
-        "reloj" to "reloj",
-        "alarma" to "reloj",
-        "calculadora" to "calculadora",
-        "spotify" to "spotify",
-        "maps" to "maps",
-        "mapas" to "maps",
-        "uber" to "uber",
-        "netflix" to "netflix"    )
+    /** Cache: ¿el dispositivo soporta reconocimiento de voz? (no cambia en runtime) */
+    private var speechAvailableCache: Boolean? = null
 
     init {
         setupSpeechRecognizer()
@@ -90,6 +62,7 @@ class VoiceCommandModule(
                 override fun onError(error: Int) {
                     isListening = false
                     onListening(false)
+                    // Mismos mensajes que antes, solo formateados uno por línea
                     val errorMsg = when (error) {
                         1 -> "Error de audio"
                         2 -> "Error del cliente"
@@ -97,7 +70,8 @@ class VoiceCommandModule(
                         4 -> "Sin conexión"
                         5 -> "No entendí"
                         6 -> "Ocupado"
-                        7 -> "Error del servidor"                        8 -> "Tiempo agotado"
+                        7 -> "Error del servidor"
+                        8 -> "Tiempo agotado"
                         else -> "Error $error"
                     }
                     onError(errorMsg)
@@ -128,60 +102,77 @@ class VoiceCommandModule(
     }
 
     fun stopListening() {
-        speechRecognizer?.stopListening()
+        try { speechRecognizer?.stopListening() } catch (_: Exception) {}
         isListening = false
         onListening(false)
     }
 
     fun destroy() {
-        speechRecognizer?.destroy()
+        try { speechRecognizer?.destroy() } catch (_: Exception) {}
         speechRecognizer = null
     }
 
     private fun isSpeechAvailable(): Boolean {
+        speechAvailableCache?.let { return it }
         val pm = context.packageManager
         val activities = pm.queryIntentActivities(
             Intent(RecognizerIntent.ACTION_RECOGNIZE_SPEECH),
             PackageManager.MATCH_DEFAULT_ONLY
         )
-        return activities.isNotEmpty()
+        val result = activities.isNotEmpty()
+        speechAvailableCache = result
+        return result
     }
+
     private fun parseAndExecute(commandText: String) {
         val params = mutableMapOf<String, String>()
         var command = ""
 
         when {
             // --- COMANDO: ABRIR APP ---
-            commandText.contains("abrir") || commandText.contains("abre") || commandText.contains("lanza") || commandText.contains("inicia") -> {
+            commandText.contains("abrir") || commandText.contains("abre") ||
+                    commandText.contains("lanza") || commandText.contains("inicia") -> {
                 command = "open_app"
-                // Extraemos el nombre de la app y lo normalizamos
-                val rawAppName = extractName(commandText, listOf("abrir", "abre", "lanza", "inicia", "la app", "el", "la"))
-                
-                // Buscamos si es un alias conocido (ej: "wasap" -> "whatsapp")
-                val normalizedAppName = appAliases.entries.find { rawAppName.contains(it.key) }?.value ?: rawAppName
-                
+                // Extraemos el nombre de la app (MISMA función, MISMO resultado)
+                val rawAppName = extractName(
+                    commandText,
+                    listOf("abrir", "abre", "lanza", "inicia", "la app", "el", "la")
+                )
+                // Antes: appAliases.entries.find{...}?.value ?: rawAppName
+                // Ahora: AppRegistry resuelve alias del registro central
+                val normalizedAppName = AppRegistry.canonicalAliasFor(rawAppName)
                 params["app"] = normalizedAppName
             }
 
             // --- COMANDO: LLAMAR ---
-            commandText.contains("llamar") || commandText.contains("llama a") || commandText.contains("telefonear") -> {
+            commandText.contains("llamar") || commandText.contains("llama a") ||
+                    commandText.contains("telefonear") -> {
                 command = "call"
-                params["contact"] = extractName(commandText, listOf("llamar", "llama a", "telefonear", "a"))
+                params["contact"] = extractName(
+                    commandText,
+                    listOf("llamar", "llama a", "telefonear", "a")
+                )
             }
 
             // --- COMANDO: MENSAJE ---
-            commandText.contains("mensaje") || commandText.contains("mandar") || commandText.contains("enviar") || commandText.contains("escribir") -> {
+            commandText.contains("mensaje") || commandText.contains("mandar") ||
+                    commandText.contains("enviar") || commandText.contains("escribir") -> {
                 command = "message"
-                params["contact"] = extractName(commandText, listOf("mensaje", "mandar", "enviar", "escribir", "a"))
+                params["contact"] = extractName(
+                    commandText,
+                    listOf("mensaje", "mandar", "enviar", "escribir", "a")
+                )
             }
 
             // --- COMANDO: CANCELAR / DETENER ---
-            commandText.contains("cancelar") || commandText.contains("detener") || commandText.contains("parar") || commandText.contains("basta") -> {
+            commandText.contains("cancelar") || commandText.contains("detener") ||
+                    commandText.contains("parar") || commandText.contains("basta") -> {
                 command = "cancel"
             }
 
             // --- COMANDO: AYUDA ---
-            commandText.contains("ayuda") || commandText.contains("qué puedes hacer") || commandText.contains("que haces") -> {
+            commandText.contains("ayuda") || commandText.contains("qué puedes hacer") ||
+                    commandText.contains("que haces") -> {
                 command = "help"
             }
 
@@ -195,24 +186,32 @@ class VoiceCommandModule(
             onCommandDetected(command, params)
         }
     }
+
     /**
      * Extrae el nombre relevante eliminando palabras clave y artículos.
      * Ej: "abre la aplicación de whatsapp" -> "whatsapp"
+     *
+     * ⚠️ Esta función se mantiene IDÉNTICA al original. NO se debe tocar
+     * sin tests exhaustivos, porque de aquí depende la comunicación con
+     * el usuario.
      */
     private fun extractName(text: String, keywords: List<String>): String {
         var result = text
-        
+
         // 1. Eliminar palabras clave de acción
         for (kw in keywords) {
             result = result.replace(kw, "").trim()
         }
-        
+
         // 2. Eliminar artículos y preposiciones comunes en español
-        result = result.replace(Regex("\\b(el|la|los|las|un|una|unos|unas|a|de|del|para|por|con|sin|sobre|tras|hacia|hasta)\\b"), "").trim()
-        
+        result = result.replace(
+            Regex("\\b(el|la|los|las|un|una|unos|unas|a|de|del|para|por|con|sin|sobre|tras|hacia|hasta)\\b"),
+            ""
+        ).trim()
+
         // 3. Eliminar caracteres especiales, dejando solo letras y espacios
         result = result.replace(Regex("[^a-zA-ZáéíóúÁÉÍÓÚñÑ\\s]"), "").trim()
-        
+
         // 4. Si queda vacío, devolvemos un string genérico para evitar errores
         return if (result.isEmpty()) "desconocido" else result
     }

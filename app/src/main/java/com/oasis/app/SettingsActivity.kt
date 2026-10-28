@@ -6,10 +6,12 @@ import android.net.Uri
 import android.os.Build
 import android.os.Bundle
 import android.provider.Settings
+import android.util.Log
 import android.view.View
 import android.widget.ImageView
 import android.widget.TextView
 import android.widget.Toast
+import androidx.activity.result.contract.ActivityResultContracts
 import androidx.appcompat.app.AppCompatActivity
 import com.google.android.material.slider.Slider
 import com.google.android.material.switchmaterial.SwitchMaterial
@@ -19,15 +21,14 @@ class SettingsActivity : AppCompatActivity() {
     private lateinit var prefs: SharedPreferences
     private lateinit var ttsModule: TTSModule
     private lateinit var sound: SoundModule
-    private var overlayServiceRunning = false
 
-    // Switches (antes LEDs)
+    // Switches
     private lateinit var switchSounds: SwitchMaterial
     private lateinit var switchTtsEnabled: SwitchMaterial
     private lateinit var switchOverlay: SwitchMaterial
     private lateinit var switchHideClock: SwitchMaterial
 
-    // Sliders (antes SeekBars)
+    // Sliders
     private lateinit var sliderSpeed: Slider
     private lateinit var sliderPitch: Slider
 
@@ -48,6 +49,23 @@ class SettingsActivity : AppCompatActivity() {
     private lateinit var indicatorLuna: ImageView
     private lateinit var indicatorNubes: ImageView
 
+    // Launcher moderno (reemplaza startActivityForResult)
+    private val overlayPermissionLauncher = registerForActivityResult(
+        ActivityResultContracts.StartActivityForResult()
+    ) {
+        // Al volver de la pantalla de permiso de superposición
+        val enabled = prefs.getBoolean("overlay_enabled", false)
+        if (enabled && hasOverlayPermission()) {
+            toggleOverlayService(true)
+        } else if (enabled && !hasOverlayPermission()) {
+            // El usuario activó el switch pero denegó el permiso: revertir
+            prefs.edit().putBoolean("overlay_enabled", false).apply()
+            switchOverlay.isChecked = false
+            updateOverlayUI(false)
+            Toast.makeText(this, "Permiso de superposición necesario para el flotante", Toast.LENGTH_LONG).show()
+        }
+    }
+
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         setContentView(R.layout.activity_settings)
@@ -56,17 +74,17 @@ class SettingsActivity : AppCompatActivity() {
         ttsModule = TTSModule(this)
         sound = SoundModule(this)
 
-        // Inicializar Switches
+        // Switches
         switchSounds = findViewById(R.id.led_sounds)
         switchTtsEnabled = findViewById(R.id.led_tts_enabled)
         switchOverlay = findViewById(R.id.led_overlay)
         switchHideClock = findViewById(R.id.led_hide_clock)
 
-        // Inicializar Sliders
+        // Sliders
         sliderSpeed = findViewById(R.id.seekbar_tts_speed)
         sliderPitch = findViewById(R.id.seekbar_tts_pitch)
 
-        // Inicializar Textos
+        // Textos
         soundsText = findViewById(R.id.text_sounds)
         ttsEnabledText = findViewById(R.id.text_tts_enabled)
         overlayText = findViewById(R.id.text_overlay)
@@ -83,8 +101,8 @@ class SettingsActivity : AppCompatActivity() {
         indicatorLuna = findViewById(R.id.indicator_luna)
         indicatorNubes = findViewById(R.id.indicator_nubes)
 
-        // Botón de regreso
-        findViewById<ImageView>(R.id.btn_back).setOnClickListener { finish() }
+        // Botón atrás
+        findViewById<ImageView?>(R.id.btn_back)?.setOnClickListener { finish() }
 
         // Configurar cada ajuste
         setupSounds()
@@ -96,10 +114,11 @@ class SettingsActivity : AppCompatActivity() {
         setupHideClock()
     }
 
+    // ====================== SONIDOS ======================
     private fun setupSounds() {
-        val soundsEnabled = prefs.getBoolean("sounds_enabled", true)
-        switchSounds.isChecked = soundsEnabled
-        updateSoundsUI(soundsEnabled)
+        val enabled = prefs.getBoolean("sounds_enabled", true)
+        switchSounds.isChecked = enabled
+        updateSoundsUI(enabled)
 
         switchSounds.setOnCheckedChangeListener { _, isChecked ->
             prefs.edit().putBoolean("sounds_enabled", isChecked).apply()
@@ -113,10 +132,11 @@ class SettingsActivity : AppCompatActivity() {
         soundsText.text = if (enabled) "Sonidos UI: Activados" else "Sonidos UI: Desactivados"
     }
 
+    // ====================== TTS ON/OFF ======================
     private fun setupTtsEnabled() {
-        val ttsEnabled = prefs.getBoolean("tts_enabled", true)
-        switchTtsEnabled.isChecked = ttsEnabled
-        updateTtsEnabledUI(ttsEnabled)
+        val enabled = prefs.getBoolean("tts_enabled", true)
+        switchTtsEnabled.isChecked = enabled
+        updateTtsEnabledUI(enabled)
 
         switchTtsEnabled.setOnCheckedChangeListener { _, isChecked ->
             prefs.edit().putBoolean("tts_enabled", isChecked).apply()
@@ -130,16 +150,16 @@ class SettingsActivity : AppCompatActivity() {
         ttsEnabledText.text = if (enabled) "Voz asistente: Activada" else "Voz asistente: Desactivada"
     }
 
+    // ====================== TEMA ======================
     private fun setupTheme() {
-        val indicators = mapOf("amanecer" to indicatorSol, "caribe" to indicatorNubes, "noche" to indicatorLuna)
-        val currentTheme = prefs.getString("selected_theme", "amanecer") ?: "amanecer"
-
-        updateThemeUI(currentTheme, indicators)
-        themeText.text = when (currentTheme) {
-            "amanecer" -> "Tema: Amanecer"
-            "caribe" -> "Tema: Caribe"
-            else -> "Tema: Noche"
-        }
+        val indicators = mapOf(
+            "amanecer" to indicatorSol,
+            "caribe" to indicatorNubes,
+            "noche" to indicatorLuna
+        )
+        val current = prefs.getString("selected_theme", "amanecer") ?: "amanecer"
+        updateThemeUI(current, indicators)
+        themeText.text = labelForTheme(current)
 
         themeSol.setOnClickListener { setTheme("amanecer", indicators) }
         themeNubes.setOnClickListener { setTheme("caribe", indicators) }
@@ -149,12 +169,9 @@ class SettingsActivity : AppCompatActivity() {
     private fun setTheme(themeKey: String, indicators: Map<String, ImageView>) {
         prefs.edit().putString("selected_theme", themeKey).apply()
         updateThemeUI(themeKey, indicators)
-        themeText.text = when (themeKey) {
-            "amanecer" -> "Tema: Amanecer"
-            "caribe" -> "Tema: Caribe"
-            else -> "Tema: Noche"
-        }
-        Toast.makeText(this, "Tema cambiado. Reinicia la app para ver los cambios.", Toast.LENGTH_SHORT).show()
+        themeText.text = labelForTheme(themeKey)
+        // Ya no es necesario reiniciar: MainActivity.onResume() aplica el tema
+        Toast.makeText(this, "Tema cambiado", Toast.LENGTH_SHORT).show()
         sound.play(R.raw.check_on)
     }
 
@@ -163,38 +180,51 @@ class SettingsActivity : AppCompatActivity() {
         indicators[themeKey]?.visibility = View.VISIBLE
     }
 
+    private fun labelForTheme(key: String): String = when (key) {
+        "amanecer" -> "Tema: Amanecer"
+        "caribe" -> "Tema: Caribe"
+        else -> "Tema: Noche"
+    }
+
+    // ====================== OVERLAY ======================
     private fun setupOverlay() {
-        val overlayEnabled = prefs.getBoolean("overlay_enabled", false)
-        switchOverlay.isChecked = overlayEnabled
-        updateOverlayUI(overlayEnabled)
+        val enabled = prefs.getBoolean("overlay_enabled", false)
+        switchOverlay.isChecked = enabled
+        updateOverlayUI(enabled)
 
         switchOverlay.setOnCheckedChangeListener { _, isChecked ->
             prefs.edit().putBoolean("overlay_enabled", isChecked).apply()
             updateOverlayUI(isChecked)
-            toggleOverlayService(isChecked)
+            if (isChecked) {
+                if (hasOverlayPermission()) toggleOverlayService(true)
+                else requestOverlayPermission()
+            } else {
+                toggleOverlayService(false)
+            }
             sound.play(R.raw.check_on)
         }
     }
 
     private fun toggleOverlayService(start: Boolean) {
         val intent = Intent(this, OverlayService::class.java)
-        if (start) {
-            if (hasOverlayPermission()) {
+        try {
+            if (start) {
                 if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) startForegroundService(intent)
                 else startService(intent)
-                overlayServiceRunning = true
             } else {
-                requestOverlayPermission()
+                stopService(intent)
             }
-        } else {
-            stopService(intent)
-            overlayServiceRunning = false
+        } catch (e: Exception) {
+            Log.w("SettingsActivity", "toggleOverlayService falló: ${e.message}")
         }
     }
 
     private fun requestOverlayPermission() {
-        val intent = Intent(Settings.ACTION_MANAGE_OVERLAY_PERMISSION, Uri.parse("package:$packageName"))
-        startActivityForResult(intent, REQUEST_OVERLAY_PERMISSION)
+        val intent = Intent(
+            Settings.ACTION_MANAGE_OVERLAY_PERMISSION,
+            Uri.parse("package:$packageName")
+        )
+        overlayPermissionLauncher.launch(intent)
     }
 
     private fun updateOverlayUI(enabled: Boolean) {
@@ -205,22 +235,11 @@ class SettingsActivity : AppCompatActivity() {
         return if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.M) Settings.canDrawOverlays(this) else true
     }
 
-    override fun onActivityResult(requestCode: Int, resultCode: Int, data: Intent?) {
-        super.onActivityResult(requestCode, resultCode, data)
-        if (requestCode == REQUEST_OVERLAY_PERMISSION) {
-            if (hasOverlayPermission()) {
-                val overlayEnabled = prefs.getBoolean("overlay_enabled", false)
-                if (overlayEnabled) toggleOverlayService(true)
-            } else {
-                Toast.makeText(this, "Permiso de superposición necesario para el flotante", Toast.LENGTH_LONG).show()
-            }
-        }
-    }
-
+    // ====================== VELOCIDAD ======================
     private fun setupTtsSpeed() {
-        val savedSpeed = prefs.getFloat("voice_speed", 1.0f)
-        sliderSpeed.value = savedSpeed
-        updateSpeedText(savedSpeed)
+        val saved = prefs.getFloat("voice_speed", 1.0f)
+        sliderSpeed.value = saved
+        updateSpeedText(saved)
 
         sliderSpeed.addOnChangeListener { _, value, fromUser ->
             if (fromUser) {
@@ -234,18 +253,19 @@ class SettingsActivity : AppCompatActivity() {
     }
 
     private fun updateSpeedText(speed: Float) {
-        val speedText = when {
+        val label = when {
             speed < 0.8f -> "Lenta"
             speed < 1.2f -> "Normal"
             else -> "Rápida"
         }
-        speedValueText.text = "$speedText (${String.format("%.1f", speed)}x)"
+        speedValueText.text = "$label (${String.format("%.1f", speed)}x)"
     }
 
+    // ====================== TONO ======================
     private fun setupTtsPitch() {
-        val savedPitch = prefs.getFloat("voice_pitch", 1.0f)
-        sliderPitch.value = savedPitch
-        updatePitchText(savedPitch)
+        val saved = prefs.getFloat("voice_pitch", 1.0f)
+        sliderPitch.value = saved
+        updatePitchText(saved)
 
         sliderPitch.addOnChangeListener { _, value, fromUser ->
             if (fromUser) {
@@ -259,18 +279,19 @@ class SettingsActivity : AppCompatActivity() {
     }
 
     private fun updatePitchText(pitch: Float) {
-        val pitchText = when {
+        val label = when {
             pitch < 0.8f -> "Grave"
             pitch < 1.2f -> "Normal"
             else -> "Agudo"
         }
-        pitchValueText.text = "$pitchText (${String.format("%.1f", pitch)}x)"
+        pitchValueText.text = "$label (${String.format("%.1f", pitch)}x)"
     }
 
+    // ====================== OCULTAR RELOJ ======================
     private fun setupHideClock() {
-        val hideClock = prefs.getBoolean("hide_clock", false)
-        switchHideClock.isChecked = hideClock
-        updateHideClockUI(hideClock)
+        val hide = prefs.getBoolean("hide_clock", false)
+        switchHideClock.isChecked = hide
+        updateHideClockUI(hide)
 
         switchHideClock.setOnCheckedChangeListener { _, isChecked ->
             prefs.edit().putBoolean("hide_clock", isChecked).apply()
@@ -283,25 +304,22 @@ class SettingsActivity : AppCompatActivity() {
         hideClockText.text = if (hideClock) "Ocultar reloj: Sí" else "Ocultar reloj: No"
     }
 
+    // ====================== CICLO DE VIDA ======================
     override fun onResume() {
         super.onResume()
+        // Sincronización idempotente: no dependemos de un flag local
         val overlayEnabled = prefs.getBoolean("overlay_enabled", false)
-        val hasPermission = hasOverlayPermission()
-        updateOverlayUI(overlayEnabled)
-        if (overlayEnabled && hasPermission && !overlayServiceRunning) {
+        if (overlayEnabled && hasOverlayPermission()) {
             toggleOverlayService(true)
-        } else if (!overlayEnabled && overlayServiceRunning) {
+        } else if (!overlayEnabled) {
             toggleOverlayService(false)
         }
+        updateOverlayUI(overlayEnabled)
     }
 
     override fun onDestroy() {
         super.onDestroy()
         ttsModule.shutdown()
         sound.release()
-    }
-
-    companion object {
-        private const val REQUEST_OVERLAY_PERMISSION = 1001
     }
 }

@@ -2,6 +2,7 @@ package com.oasis.app
 
 import android.content.Context
 import android.media.MediaPlayer
+import android.util.Log
 import android.util.SparseArray
 
 class SoundModule(private val context: Context) {
@@ -9,7 +10,6 @@ class SoundModule(private val context: Context) {
     private val players = SparseArray<MediaPlayer>()
 
     init {
-        // Precargar todos los sonidos necesarios
         preload(R.raw.touch)
         preload(R.raw.confirmar)
         preload(R.raw.cancelar)
@@ -29,30 +29,43 @@ class SoundModule(private val context: Context) {
             player?.isLooping = false
             players.put(resId, player)
         } catch (e: Exception) {
-            // Ignorar error de precarga
+            Log.w("SoundModule", "Preload falló para $resId: ${e.message}")
         }
     }
 
     fun play(resId: Int) {
         val player = players.get(resId)
         if (player != null) {
-            // Reiniciar si estaba en curso
-            if (player.isPlaying) player.seekTo(0)
-            player.start()
+            try {
+                if (player.isPlaying) {
+                    player.pause()
+                }
+                player.seekTo(0)
+                player.start()
+            } catch (e: IllegalStateException) {
+                Log.w("SoundModule", "Player inválido, recreando: ${e.message}")
+                try { player.release() } catch (_: Exception) {}
+                players.remove(resId)
+                preload(resId)
+                try { players.get(resId)?.start() } catch (_: Exception) {}
+            } catch (e: Exception) {
+                Log.w("SoundModule", "Error al reproducir: ${e.message}")
+            }
         } else {
-            // Fallback: cargar sobre la marcha (no debería ocurrir)
             try {
                 MediaPlayer.create(context, resId)?.apply {
                     start()
                     setOnCompletionListener { release() }
                 }
-            } catch (e: Exception) { }
+            } catch (e: Exception) {
+                Log.w("SoundModule", "Fallback play falló: ${e.message}")
+            }
         }
     }
 
     fun release() {
         for (i in 0 until players.size()) {
-            players.valueAt(i)?.release()
+            try { players.valueAt(i)?.release() } catch (_: Exception) {}
         }
         players.clear()
     }

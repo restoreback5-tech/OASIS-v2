@@ -1,5 +1,6 @@
 package com.oasis.app
 
+import android.util.Log
 import android.view.animation.AnimationUtils
 import android.widget.ImageView
 
@@ -10,8 +11,8 @@ class AnimationModule(private val view: ImageView) {
         try {
             val rippleAnim = AnimationUtils.loadAnimation(view.context, R.anim.orb_ripple)
             view.startAnimation(rippleAnim)
-        } catch (e: Exception) { 
-            Config.SAFE_MODE = true 
+        } catch (e: Exception) {
+            Log.w("AnimationModule", "Ripple falló: ${e.message}")
         }
     }
     

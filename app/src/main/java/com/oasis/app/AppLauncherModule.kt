@@ -4,18 +4,24 @@ import android.app.AlertDialog
 import android.content.Context
 import android.content.Intent
 import android.content.pm.PackageManager
+import android.hardware.camera2.CameraCharacteristics
+import android.hardware.camera2.CameraManager
+import android.provider.Settings
+import android.util.Log
 import android.view.LayoutInflater
 import android.widget.Button
 import android.widget.Toast
 import androidx.recyclerview.widget.GridLayoutManager
+import androidx.recyclerview.widget.RecyclerView
 
 class AppLauncherModule(
     private val context: Context,
     private val sound: SoundModule
 ) {
     private val pm: PackageManager = context.packageManager
+    private var flashlightOn = false
 
-    // Mapeo de aliases a package names (VERSIÓN COMPLETA)
+    // Mapeo de aliases a package names
     private val appAliases = mapOf(
         // Mensajería
         "whatsapp" to "com.whatsapp",
@@ -56,17 +62,11 @@ class AppLauncherModule(
         "amazon" to "com.amazon.avod.thirdpartyclient",
 
         // Utilidades
-        "camara" to "com.google.android.camera",
-        "cámara" to "com.google.android.camera",
-        "calculadora" to "com.google.android.calculator",
         "reloj" to "com.google.android.deskclock",
         "alarma" to "com.google.android.deskclock",
-        "ajustes" to "com.android.settings",
+        "contactos" to "com.google.android.contacts",
         "configuración" to "com.android.settings",
         "settings" to "com.android.settings",
-        "archivos" to "com.google.android.documentsui",
-        "contactos" to "com.google.android.contacts",
-        "calendario" to "com.google.android.calendar",
 
         // Transporte
         "uber" to "com.ubercab",
@@ -79,26 +79,36 @@ class AppLauncherModule(
         "santander" to "com.santander.app"
     )
 
-
     fun launchApp(appName: String): Boolean {
         val normalized = appName.lowercase().trim()
 
-        // 1. Buscar en aliases
+        // 1. Casos especiales con lógica dedicada
+        when {
+            normalized.contains("linterna") || normalized.contains("flashlight") ->
+                return toggleFlashlight()
+
+            normalized.contains("cámara") || normalized.contains("camara") ->
+                return launchCameraApp()
+
+            normalized.contains("calculadora") ->
+                return launchCalculatorApp()
+
+            normalized.contains("archivos") || normalized.contains("file manager") ->
+                return launchFilesApp()
+
+            normalized.contains("ajustes") || normalized.contains("settings") ||
+                    normalized.contains("configuración") || normalized.contains("configuracion") ->
+                return launchSettingsApp()
+
+            normalized.contains("calendario") || normalized.contains("calendar") ->
+                return launchCalendarApp()
+        }
+
+        // 2. Buscar en aliases (apps conocidas)
         val knownPackage = appAliases.entries.find {
             normalized.contains(it.key)
         }?.value
-
-        if (knownPackage != null) {
-            if (launchPackage(knownPackage)) return true
-        }
-
-        // 2. Casos especiales
-        when {
-            normalized.contains("camara") || normalized.contains("cámara") ->
-                return launchCameraApp()
-            normalized.contains("calculadora") ->
-                return launchCalculatorApp()
-        }
+        if (knownPackage != null && launchPackage(knownPackage)) return true
 
         // 3. Búsqueda por nombre visible
         return searchAndLaunchByLabel(normalized)
@@ -110,9 +120,11 @@ class AppLauncherModule(
             if (intent != null) {
                 intent.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK)
                 context.startActivity(intent)
+                sound.play(R.raw.apps_launch)
                 true
             } else false
         } catch (e: Exception) {
+            Log.w("AppLauncher", "launchPackage '$packageName' falló: ${e.message}")
             false
         }
     }
@@ -139,7 +151,10 @@ class AppLauncherModule(
             if (intent.resolveActivity(pm) != null) {
                 context.startActivity(intent)
                 true
-            } else false
+            } else {
+                // Fallback: buscar por label
+                searchAndLaunchByLabel("calculadora")
+            }
         } catch (e: Exception) {
             false
         }
@@ -152,7 +167,11 @@ class AppLauncherModule(
             if (intent.resolveActivity(pm) != null) {
                 context.startActivity(intent)
                 true
-            } else false
+            } else {
+                // Fallback: DocumentsUI
+                launchPackage("com.google.android.documentsui") ||
+                        launchPackage("com.android.documentsui")
+            }
         } catch (e: Exception) {
             false
         }
@@ -160,7 +179,7 @@ class AppLauncherModule(
 
     private fun launchSettingsApp(): Boolean {
         return try {
-            val intent = Intent(android.provider.Settings.ACTION_SETTINGS)
+            val intent = Intent(Settings.ACTION_SETTINGS)
             intent.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK)
             context.startActivity(intent)
             true
@@ -178,51 +197,83 @@ class AppLauncherModule(
             if (intent.resolveActivity(pm) != null) {
                 context.startActivity(intent)
                 true
-            } else false
+            } else {
+                searchAndLaunchByLabel("calendario")
+            }
         } catch (e: Exception) {
             false
         }
     }
 
-    private fun showFlashlightMessage() {
-        Toast.makeText(context, "Activa la linterna desde el panel de notificaciones", Toast.LENGTH_LONG).show()
+    /**
+     * Enciende o apaga la linterna. Retorna true si la acción tuvo éxito.
+     */
+    private fun toggleFlashlight(): Boolean {
+        return try {
+            val cm = context.getSystemService(Context.CAMERA_SERVICE) as CameraManager
+            val cameraId = cm.cameraIdList.firstOrNull { id ->
+                cm.getCameraCharacteristics(id)
+                    .get(CameraCharacteristics.FLASH_INFO_AVAILABLE) == true
+            } ?: run {
+                Toast.makeText(context, "Este dispositivo no tiene linterna", Toast.LENGTH_SHORT).show()
+                return false
+            }
+
+            val newState = !flashlightOn
+            cm.setTorchMode(cameraId, newState)
+            flashlightOn = newState
+            Toast.makeText(
+                context,
+                if (newState) "Linterna encendida" else "Linterna apagada",
+                Toast.LENGTH_SHORT
+            ).show()
+            true
+        } catch (e: Exception) {
+            Log.w("AppLauncher", "Linterna falló: ${e.message}")
+            Toast.makeText(context, "No pude controlar la linterna", Toast.LENGTH_SHORT).show()
+            false
+        }
     }
 
     private fun searchAndLaunchByLabel(name: String): Boolean {
-        val intent = Intent(Intent.ACTION_MAIN, null)
-        intent.addCategory(Intent.CATEGORY_LAUNCHER)
-
-        val apps = pm.queryIntentActivities(intent, 0)
-        val match = apps.firstOrNull {
-            it.loadLabel(pm).toString().lowercase().contains(name)
+        return try {
+            val intent = Intent(Intent.ACTION_MAIN, null)
+            intent.addCategory(Intent.CATEGORY_LAUNCHER)
+            val apps = pm.queryIntentActivities(intent, 0)
+            val match = apps.firstOrNull {
+                it.loadLabel(pm).toString().lowercase().contains(name)
+            }
+            if (match != null) launchPackage(match.activityInfo.packageName) else false
+        } catch (e: Exception) {
+            false
         }
-
-        return if (match != null) {
-            launchPackage(match.activityInfo.packageName)
-        } else false
     }
- 
+
     fun showAllApps() {
-    val intent = Intent(Intent.ACTION_MAIN, null)
-    intent.addCategory(Intent.CATEGORY_LAUNCHER)
-    val apps = pm.queryIntentActivities(intent, 0)
-    
-    val dialogView = LayoutInflater.from(context).inflate(R.layout.dialog_all_apps, null)
-    val recyclerView = dialogView.findViewById<androidx.recyclerview.widget.RecyclerView>(R.id.rv_apps)
-    recyclerView.layoutManager = androidx.recyclerview.widget.GridLayoutManager(context, 3)
-    recyclerView.adapter = AppListAdapter(context, apps, pm)
-    
-    val dialog = AlertDialog.Builder(context)
-        .setView(dialogView)
-        .setCancelable(true)
-        .create()
-    
-    dialogView.findViewById<Button>(R.id.btn_close_apps).setOnClickListener {
-        dialog.dismiss()
-    }
-    
-    sound.play(R.raw.apps_launch)
-    dialog.show()
-}
+        try {
+            val intent = Intent(Intent.ACTION_MAIN, null)
+            intent.addCategory(Intent.CATEGORY_LAUNCHER)
+            val apps = pm.queryIntentActivities(intent, 0)
 
+            val dialogView = LayoutInflater.from(context).inflate(R.layout.dialog_all_apps, null)
+            val recyclerView = dialogView.findViewById<RecyclerView>(R.id.rv_apps)
+            recyclerView.layoutManager = GridLayoutManager(context, 3)
+            recyclerView.adapter = AppListAdapter(context, apps, pm)
+
+            val dialog = AlertDialog.Builder(context)
+                .setView(dialogView)
+                .setCancelable(true)
+                .create()
+
+            dialogView.findViewById<Button>(R.id.btn_close_apps).setOnClickListener {
+                dialog.dismiss()
+            }
+
+            sound.play(R.raw.apps_launch)
+            dialog.show()
+        } catch (e: Exception) {
+            Log.e("AppLauncher", "showAllApps falló: ${e.message}")
+            Toast.makeText(context, "No pude abrir la lista de apps", Toast.LENGTH_SHORT).show()
+        }
+    }
 }

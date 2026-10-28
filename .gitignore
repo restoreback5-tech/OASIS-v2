@@ -1,3 +1,4 @@
+# Android / Gradle
 *.iml
 .gradle
 /local.properties
@@ -9,8 +10,18 @@
 .cxx
 local.properties
 app/build/
-*.apk
-*.aab
 build/
 .gradle/
+
+# Builds generados
+*.apk
+*.aab
+
+# Backups locales de edición (Termux)
 *.bak
+*.bak2
+*.bak3
+
+# Archivos temporales
+*.tmp
+*~

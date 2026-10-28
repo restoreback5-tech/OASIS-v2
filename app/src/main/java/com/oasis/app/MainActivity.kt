@@ -4,26 +4,24 @@ import android.Manifest
 import android.content.Intent
 import android.content.SharedPreferences
 import android.content.pm.PackageManager
-import android.net.Uri
+import android.graphics.drawable.Animatable
 import android.os.Bundle
 import android.os.Handler
 import android.os.Looper
-import android.provider.Settings
+import android.util.Log
 import android.view.View
 import android.widget.ImageView
 import android.widget.TextView
-import androidx.appcompat.app.AlertDialog
 import androidx.appcompat.app.AppCompatActivity
-import androidx.core.app.ActivityCompat
 import androidx.core.content.ContextCompat
 import com.google.android.material.button.MaterialButton
 import java.text.SimpleDateFormat
-import java.util.Locale
 import java.util.Calendar
+import java.util.Locale
 
 class MainActivity : AppCompatActivity() {
 
-    // === DECLARACIÓN DE MÓDULOS ===
+    // === MÓDULOS ===
     private lateinit var sound: SoundModule
     private lateinit var toast: ToastModule
     private lateinit var anim: AnimationModule
@@ -33,30 +31,43 @@ class MainActivity : AppCompatActivity() {
     private lateinit var prefs: SharedPreferences
     private lateinit var phoneActions: PhoneActionsModule
 
-    // === ORBE VIVO - VARIABLES ===
+    // === ORBE ===
     private var orbState = "idle"
     private lateinit var orbView: ImageView
     private lateinit var orbBreatheAnim: android.view.animation.Animation
     private lateinit var orbFastAnim: android.view.animation.Animation
 
+    // === RELOJ ===
+    private val clockHandler = Handler(Looper.getMainLooper())
+    private val clockRunnable = object : Runnable {
+        override fun run() {
+            val cal = Calendar.getInstance()
+            tv(R.id.tv_time)?.text = SimpleDateFormat("hh:mm", Locale.getDefault()).format(cal.time)
+            tv(R.id.tv_ampm)?.text = SimpleDateFormat("a", Locale.getDefault()).format(cal.time)
+            clockHandler.postDelayed(this, 1000)
+        }
+    }
+
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         setContentView(R.layout.activity_main)
 
-        // 1. Configuración del Orbe Vivo
+        prefs = getSharedPreferences("oasis_settings", MODE_PRIVATE)
+
+        // 1. Orbe
         orbView = findViewById(R.id.orb_view)
         orbBreatheAnim = android.view.animation.AnimationUtils.loadAnimation(this, R.anim.orb_breathe)
         orbFastAnim = android.view.animation.AnimationUtils.loadAnimation(this, R.anim.orb_fast_pulse)
         setOrbToListening()
 
-        // 2. Inicialización de Módulos
+        // 2. Módulos
         sound = SoundModule(this)
         toast = ToastModule(this)
         anim = AnimationModule(orbView)
         tts = TTSModule(this)
         phoneActions = PhoneActionsModule(this, tts, sound)
+        appLauncher = AppLauncherModule(this, sound)
 
-        // VoiceCommandModule con callbacks
         voice = VoiceCommandModule(
             context = this,
             sound = sound,
@@ -82,18 +93,9 @@ class MainActivity : AppCompatActivity() {
             }
         )
 
-        // AppLauncherModule - Lanzador de aplicaciones
-        appLauncher = AppLauncherModule(this, sound)
-
-        prefs = getSharedPreferences("oasis_settings", MODE_PRIVATE)
-
-        // Aplicar ocultar reloj si está activado
-        val hideClock = prefs.getBoolean("hide_clock", false)
-        findViewById<TextView>(R.id.tv_time).visibility = if (hideClock) View.GONE else View.VISIBLE
-        findViewById<TextView>(R.id.tv_ampm).visibility = if (hideClock) View.GONE else View.VISIBLE
-
-        // 3. Tema y Permisos
+        // 3. Tema, reloj y permisos
         applyTheme()
+        applyClockVisibility()
         checkMicPermission()
 
         // 4. Secuencia de inicio
@@ -102,29 +104,16 @@ class MainActivity : AppCompatActivity() {
         anim.startRippleAnimation()
 
         // 5. Botón Ajustes
-        findViewById<ImageView>(R.id.btn_settings).setOnClickListener {
+        findViewById<ImageView?>(R.id.btn_settings)?.setOnClickListener {
             sound.play(R.raw.touch)
             tts.speak("Ajustes")
             startActivity(Intent(this, SettingsActivity::class.java))
         }
 
-        // 6. Reloj en tiempo real (formato 12h con AM/PM pequeño)
-        val clockHandler = Handler(Looper.getMainLooper())
-        val clockRunnable = object : Runnable {
-            override fun run() {
-                val calendar = Calendar.getInstance()
-                val timeFormat = SimpleDateFormat("hh:mm", Locale.getDefault())
-                val amPmFormat = SimpleDateFormat("a", Locale.getDefault())
-                val timeStr = timeFormat.format(calendar.time)
-                val amPmStr = amPmFormat.format(calendar.time)
-                findViewById<TextView>(R.id.tv_time).text = timeStr
-                findViewById<TextView>(R.id.tv_ampm).text = amPmStr
-                clockHandler.postDelayed(this, 1000)
-            }
-        }
+        // 6. Reloj en tiempo real
         clockHandler.post(clockRunnable)
 
-        // 7. Click en el Orbe - Usa VoiceModule
+        // 7. Click en el Orbe
         orbView.setOnClickListener {
             sound.play(R.raw.touch)
             voice.startListening()
@@ -137,10 +126,13 @@ class MainActivity : AppCompatActivity() {
         setupBtn(R.id.btn_apps, "Apps") { appLauncher.showAllApps() }
     }
 
+    // ====================== HELPERS ======================
+    private fun tv(id: Int): TextView? = findViewById<TextView?>(id)
+
     private fun setupBtn(id: Int, text: String, action: () -> Unit) {
-        findViewById<MaterialButton>(id).setOnClickListener {
+        findViewById<MaterialButton?>(id)?.setOnClickListener { v ->
             sound.play(R.raw.touch)
-            pulseAnimation(findViewById(id))
+            pulseAnimation(v)
             toast.show(text)
             tts.speak(text)
             action()
@@ -148,40 +140,46 @@ class MainActivity : AppCompatActivity() {
     }
 
     private fun pulseAnimation(view: View) {
-        val scaleX = android.animation.ObjectAnimator.ofFloat(view, "scaleX", 1f, 0.94f, 1f)
-        val scaleY = android.animation.ObjectAnimator.ofFloat(view, "scaleY", 1f, 0.94f, 1f)
+        val sx = android.animation.ObjectAnimator.ofFloat(view, "scaleX", 1f, 0.94f, 1f)
+        val sy = android.animation.ObjectAnimator.ofFloat(view, "scaleY", 1f, 0.94f, 1f)
         android.animation.AnimatorSet().apply {
-            playTogether(scaleX, scaleY)
+            playTogether(sx, sy)
             duration = 180
             interpolator = android.view.animation.DecelerateInterpolator()
             start()
         }
     }
 
-    // ====================== ORBE VIVO ======================
+    // ====================== ORBE ======================
     private fun setOrbToListening() {
         orbState = "idle"
-        orbView.clearAnimation()
-        orbView.setImageResource(R.drawable.orb_listening)
-        (orbView.drawable as? android.graphics.drawable.Animatable)?.start()
-        orbView.startAnimation(orbBreatheAnim)
+        try {
+            orbView.clearAnimation()
+            orbView.setImageResource(R.drawable.orb_listening)
+            (orbView.drawable as? Animatable)?.start()
+            orbView.startAnimation(orbBreatheAnim)
+        } catch (e: Exception) {
+            Log.w("MainActivity", "Orbe idle falló: ${e.message}")
+        }
     }
 
     private fun setOrbToActive() {
         orbState = "active"
-        orbView.clearAnimation()
-        orbView.setImageResource(R.drawable.orb_active)
-        (orbView.drawable as? android.graphics.drawable.Animatable)?.start()
-        orbView.startAnimation(orbFastAnim)
-    }
-
-    private fun resetOrbToIdle() {
-        if (orbState == "active") {
-            setOrbToListening()
+        try {
+            orbView.clearAnimation()
+            orbView.setImageResource(R.drawable.orb_active)
+            (orbView.drawable as? Animatable)?.start()
+            orbView.startAnimation(orbFastAnim)
+        } catch (e: Exception) {
+            Log.w("MainActivity", "Orbe active falló: ${e.message}")
         }
     }
 
-    // ====================== MANEJO DE COMANDOS (VoiceModule) ======================
+    private fun resetOrbToIdle() {
+        if (orbState == "active") setOrbToListening()
+    }
+
+    // ====================== COMANDOS DE VOZ ======================
     private fun handleVoiceCommand(command: String, params: Map<String, String>) {
         toast.show("Comando: $command")
 
@@ -189,51 +187,36 @@ class MainActivity : AppCompatActivity() {
             "open_app" -> {
                 val appName = params["app"] ?: "desconocido"
                 if (appName != "desconocido") {
-                    val success = appLauncher.launchApp(appName)
-                    if (success) {
-                        tts.speak("Abriendo $appName")
-                    } else {
-                        tts.speak("No encontré la aplicación $appName")
-                    }
+                    val ok = appLauncher.launchApp(appName)
+                    tts.speak(if (ok) "Abriendo $appName" else "No encontré la aplicación $appName")
                 } else {
                     tts.speak("¿Qué aplicación quieres abrir?")
                 }
             }
-
             "call" -> {
-                val contact = params["contact"] ?: ""
+                val contact = params["contact"].orEmpty()
                 if (contact.isNotEmpty()) {
-                    if (contact.any { it.isDigit() }) {
-                        phoneActions.dialNumber(contact)
-                    } else {
+                    if (contact.any { it.isDigit() }) phoneActions.dialNumber(contact)
+                    else {
                         tts.speak("Buscando a $contact")
                         phoneActions.searchContactAndDial(contact)
                     }
-                } else {
-                    tts.speak("¿A quién quieres llamar?")
-                }
+                } else tts.speak("¿A quién quieres llamar?")
             }
-
             "message" -> {
-                val contact = params["contact"] ?: ""
-                if (contact.isNotEmpty()) {
-                    phoneActions.openSmsToContact(contact)
-                } else {
-                    phoneActions.openSms()
-                }
+                val contact = params["contact"].orEmpty()
+                if (contact.isNotEmpty()) phoneActions.openSmsToContact(contact)
+                else phoneActions.openSms()
             }
-
             "cancel" -> {
                 sound.play(R.raw.cancelar)
                 tts.speak("Cancelando")
                 resetOrbToIdle()
             }
-
             "help" -> {
                 tts.speak("Puedo abrir apps, hacer llamadas y enviar mensajes")
                 resetOrbToIdle()
             }
-
             else -> {
                 tts.speak("No entendí. Intenta de nuevo")
                 resetOrbToIdle()
@@ -241,73 +224,91 @@ class MainActivity : AppCompatActivity() {
         }
     }
 
-    // === TEMAS ===
+    // ====================== TEMAS ======================
     private fun applyTheme() {
-        val selectedTheme = prefs.getString("selected_theme", "amanecer") ?: "amanecer"
-        val bgRes = when (selectedTheme) {
-            "caribe" -> R.color.caribe_background
-            "noche" -> R.color.oscuro_background
-            else -> R.color.amanecer_background
-        }
-        window.decorView.setBackgroundColor(ContextCompat.getColor(this, bgRes))
+        val theme = prefs.getString("selected_theme", "amanecer") ?: "amanecer"
+        Log.d("MainActivity", "Aplicando tema: $theme")
 
-        val statusBarColor = when (selectedTheme) {
-            "caribe" -> R.color.status_bar_caribe
-            "noche" -> R.color.status_bar_oscuro
-            else -> R.color.status_bar_amanecer
-        }
-        window.statusBarColor = ContextCompat.getColor(this, statusBarColor)
-
-        val isLightStatusBar = selectedTheme != "noche"
-        if (android.os.Build.VERSION.SDK_INT >= android.os.Build.VERSION_CODES.M) {
-            window.decorView.systemUiVisibility = if (isLightStatusBar) {
-                View.SYSTEM_UI_FLAG_LIGHT_STATUS_BAR
-            } else {
-                0
+        try {
+            // Fondo
+            val bgRes = when (theme) {
+                "caribe" -> R.color.caribe_background
+                "noche"  -> R.color.oscuro_background
+                else     -> R.color.amanecer_background
             }
-        }
+            window.decorView.setBackgroundColor(ContextCompat.getColor(this, bgRes))
 
-        val textColor = when (selectedTheme) {
-            "caribe" -> ContextCompat.getColor(this, R.color.caribe_text)
-            "noche" -> ContextCompat.getColor(this, R.color.oscuro_text)
-            else -> ContextCompat.getColor(this, R.color.amanecer_text)
+            // Status bar
+            val statusRes = when (theme) {
+                "caribe" -> R.color.status_bar_caribe
+                "noche"  -> R.color.status_bar_oscuro
+                else     -> R.color.status_bar_amanecer
+            }
+            window.statusBarColor = ContextCompat.getColor(this, statusRes)
+
+            // Iconos status bar (claro/oscuro)
+            if (android.os.Build.VERSION.SDK_INT >= android.os.Build.VERSION_CODES.M) {
+                val light = theme != "noche"
+                @Suppress("DEPRECATION")
+                window.decorView.systemUiVisibility = if (light)
+                    View.SYSTEM_UI_FLAG_LIGHT_STATUS_BAR else 0
+            }
+
+            // Texto
+            val textRes = when (theme) {
+                "caribe" -> R.color.caribe_text
+                "noche"  -> R.color.oscuro_text
+                else     -> R.color.amanecer_text
+            }
+            val color = ContextCompat.getColor(this, textRes)
+            tv(R.id.tv_time)?.setTextColor(color)
+            tv(R.id.tv_ampm)?.setTextColor(color)
+            tv(R.id.greeting_text)?.setTextColor(color)
+        } catch (e: Exception) {
+            Log.e("MainActivity", "Error aplicando tema '$theme': ${e.message}")
         }
-        findViewById<TextView>(R.id.tv_time).setTextColor(textColor)
-        findViewById<TextView>(R.id.tv_ampm).setTextColor(textColor)
-        findViewById<TextView>(R.id.greeting_text)?.setTextColor(textColor)
     }
 
-    // === PERMISOS ===
+    private fun applyClockVisibility() {
+        val hide = prefs.getBoolean("hide_clock", false)
+        val vis = if (hide) View.GONE else View.VISIBLE
+        tv(R.id.tv_time)?.visibility = vis
+        tv(R.id.tv_ampm)?.visibility = vis
+    }
+
+    // ====================== PERMISOS ======================
     private fun checkMicPermission() {
-        if (ContextCompat.checkSelfPermission(this, Manifest.permission.RECORD_AUDIO) != PackageManager.PERMISSION_GRANTED) {
-            ActivityCompat.requestPermissions(this, arrayOf(Manifest.permission.RECORD_AUDIO), 100)
+        if (ContextCompat.checkSelfPermission(this, Manifest.permission.RECORD_AUDIO)
+            != PackageManager.PERMISSION_GRANTED) {
+            androidx.core.app.ActivityCompat.requestPermissions(
+                this, arrayOf(Manifest.permission.RECORD_AUDIO), 100
+            )
         }
     }
 
-    override fun onRequestPermissionsResult(requestCode: Int, permissions: Array<out String>, grantResults: IntArray) {
+    override fun onRequestPermissionsResult(
+        requestCode: Int, permissions: Array<out String>, grantResults: IntArray
+    ) {
         super.onRequestPermissionsResult(requestCode, permissions, grantResults)
-        when (requestCode) {
-            100 -> {
-                if (grantResults.isNotEmpty() && grantResults[0] == PackageManager.PERMISSION_GRANTED) {
-                    tts.speak("Permiso de micrófono concedido")
-                } else {
-                    tts.speak("Necesito permiso de micrófono para escucharte")
-                }
-            }
+        if (requestCode == 100) {
+            val granted = grantResults.isNotEmpty() &&
+                    grantResults[0] == PackageManager.PERMISSION_GRANTED
+            tts.speak(if (granted) "Permiso de micrófono concedido"
+                      else "Necesito permiso de micrófono para escucharte")
         }
     }
 
+    // ====================== CICLO DE VIDA ======================
     override fun onResume() {
         super.onResume()
         applyTheme()
+        applyClockVisibility()
         tts.updateSpeechSettings()
-        val hideClock = prefs.getBoolean("hide_clock", false)
-        findViewById<TextView>(R.id.tv_time).visibility = if (hideClock) View.GONE else View.VISIBLE
-        findViewById<TextView>(R.id.tv_ampm).visibility = if (hideClock) View.GONE else View.VISIBLE
     }
 
     override fun onDestroy() {
         super.onDestroy()
+        clockHandler.removeCallbacks(clockRunnable)
         sound.release()
         tts.shutdown()
         voice.destroy()

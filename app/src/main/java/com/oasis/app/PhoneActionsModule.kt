@@ -6,8 +6,8 @@ import android.content.Intent
 import android.content.pm.PackageManager
 import android.net.Uri
 import android.provider.ContactsContract
+import android.util.Log
 import android.widget.Toast
-import androidx.core.app.ActivityCompat
 import androidx.core.content.ContextCompat
 
 class PhoneActionsModule(
@@ -44,21 +44,18 @@ class PhoneActionsModule(
                 context.startActivity(intent)
                 return
             }
-            // Fallback: Google Dialer
             val dialerIntent = context.packageManager.getLaunchIntentForPackage("com.google.android.dialer")
             if (dialerIntent != null) {
                 dialerIntent.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK)
                 context.startActivity(dialerIntent)
                 return
             }
-            // Fallback: Motorola Dialer
             val motorolaDialer = context.packageManager.getLaunchIntentForPackage("com.motorola.dialer")
             if (motorolaDialer != null) {
                 motorolaDialer.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK)
                 context.startActivity(motorolaDialer)
                 return
             }
-            // Fallback: Android Dialer genérico
             val genericDialer = context.packageManager.getLaunchIntentForPackage("com.android.dialer")
             if (genericDialer != null) {
                 genericDialer.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK)
@@ -89,7 +86,6 @@ class PhoneActionsModule(
             tts.speak("Necesito permiso para acceder a tus contactos")
             return
         }
-
         try {
             val intent = Intent(Intent.ACTION_VIEW).apply {
                 data = ContactsContract.Contacts.CONTENT_URI
@@ -135,21 +131,74 @@ class PhoneActionsModule(
         tts.speak("No hay aplicación de mensajes disponible")
     }
 
+    /**
+     * Envía SMS a un contacto. Distingue:
+     *  - "whatsapp" → abre WhatsApp
+     *  - número con ≥3 dígitos → smsto:<numero>
+     *  - nombre → busca número en Contactos y abre smsto:<numero>
+     *  - no encontrado → avisa por TTS + abre app SMS genérica
+     */
     fun openSmsToContact(contactName: String) {
         val lowerContact = contactName.lowercase()
+
+        // Caso 1: WhatsApp directo
         if (lowerContact.contains("whatsapp") || lowerContact.contains("wasap")) {
             openWhatsApp()
             return
         }
 
-        try {
-            val intent = Intent(Intent.ACTION_SENDTO).apply {
-                data = Uri.parse("smsto:$contactName")
+        // Caso 2: ya es un número (o contiene dígitos suficientes)
+        val digits = contactName.replace(Regex("[^0-9+#*]"), "")
+        if (digits.length >= 3) {
+            try {
+                val intent = Intent(Intent.ACTION_SENDTO).apply {
+                    data = Uri.parse("smsto:$digits")
+                }
+                startActivitySafe(intent, "No hay aplicación de mensajes")
+                tts.speak("Mensaje para $contactName")
+            } catch (e: Exception) {
+                tts.speak("No pude abrir mensajes")
             }
-            startActivitySafe(intent, "No hay aplicación de mensajes")
-            tts.speak("Mensaje para $contactName")
+            return
+        }
+
+        // Caso 3: es un nombre → buscar su número en Contactos
+        val number = lookupContactNumber(contactName)
+        if (number != null) {
+            try {
+                val intent = Intent(Intent.ACTION_SENDTO).apply {
+                    data = Uri.parse("smsto:$number")
+                }
+                startActivitySafe(intent, "No hay aplicación de mensajes")
+                tts.speak("Mensaje para $contactName")
+            } catch (e: Exception) {
+                tts.speak("No pude abrir mensajes")
+            }
+        } else {
+            tts.speak("No encontré el contacto $contactName")
+            openSms()
+        }
+    }
+
+    /**
+     * Busca el primer número de teléfono asociado al nombre del contacto.
+     * Devuelve null si no hay permiso, no se encuentra, o hay error.
+     */
+    private fun lookupContactNumber(name: String): String? {
+        if (!hasPermission(Manifest.permission.READ_CONTACTS)) return null
+        return try {
+            val uri = ContactsContract.CommonDataKinds.Phone.CONTENT_URI
+            val projection = arrayOf(ContactsContract.CommonDataKinds.Phone.NUMBER)
+            val selection = "${ContactsContract.CommonDataKinds.Phone.DISPLAY_NAME} LIKE ?"
+            val args = arrayOf("%$name%")
+            context.contentResolver.query(uri, projection, selection, args, null)?.use { cursor ->
+                if (cursor.moveToFirst()) {
+                    cursor.getString(0)?.replace(Regex("[^0-9+#*]"), "")
+                } else null
+            }
         } catch (e: Exception) {
-            tts.speak("No pude abrir mensajes")
+            Log.w("PhoneActions", "lookupContactNumber falló: ${e.message}")
+            null
         }
     }
 
@@ -180,7 +229,6 @@ class PhoneActionsModule(
             tts.speak("Necesito permiso para acceder a tus contactos")
             return
         }
-
         try {
             val intent = Intent(Intent.ACTION_VIEW).apply {
                 data = ContactsContract.Contacts.CONTENT_URI
@@ -190,32 +238,24 @@ class PhoneActionsModule(
                 context.startActivity(intent)
                 return
             }
-
-            // Fallback: Google Contacts
             val googleContacts = context.packageManager.getLaunchIntentForPackage("com.google.android.contacts")
             if (googleContacts != null) {
                 googleContacts.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK)
                 context.startActivity(googleContacts)
                 return
             }
-
-            // Fallback: Motorola Contacts
             val motorolaContacts = context.packageManager.getLaunchIntentForPackage("com.motorola.contacts")
             if (motorolaContacts != null) {
                 motorolaContacts.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK)
                 context.startActivity(motorolaContacts)
                 return
             }
-
-            // Fallback: Android Contacts genérico
             val genericContacts = context.packageManager.getLaunchIntentForPackage("com.android.contacts")
             if (genericContacts != null) {
                 genericContacts.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK)
                 context.startActivity(genericContacts)
                 return
             }
-
-            // Fallback por categoría
             val fallbackIntent = Intent(Intent.ACTION_MAIN).apply {
                 addCategory(Intent.CATEGORY_APP_CONTACTS)
             }
@@ -225,7 +265,7 @@ class PhoneActionsModule(
         }
     }
 
-    // === LANZADOR DE APPS ===
+    // === LANZADOR ===
 
     fun openAppDrawer() {
         try {
