@@ -5,7 +5,8 @@
     android:layout_height="match_parent"
     android:padding="16dp"
     android:gravity="center_horizontal"
-    android:background="#FDFBF7">
+    android:clipChildren="false"
+    android:clipToPadding="false">
 
     <!-- Icono de ajustes -->
     <ImageView
@@ -52,31 +53,33 @@
             android:layout_marginBottom="12dp" />
     </LinearLayout>
 
-    <!-- Contenedor central: Orbe, Texto y Botones (todos juntos y centrados) -->
+    <!-- Contenedor central -->
     <LinearLayout
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
         android:layout_centerInParent="true"
         android:orientation="vertical"
-        android:gravity="center">
+        android:gravity="center"
+        android:clipChildren="false">
 
-        <!-- Orbe central -->
+        <!-- Orbe central (con tamaño extra para que no se corte) -->
         <ImageView
             android:id="@+id/orb_view"
-            android:layout_width="150dp"
-            android:layout_height="150dp"
+            android:layout_width="180dp"
+            android:layout_height="180dp"
             android:src="@drawable/orb_center"
             android:layout_marginBottom="16dp" />
 
-        <!-- Texto de saludo -->
+        <!-- Texto OASIS (Color corregido) -->
         <TextView
             android:id="@+id/greeting_text"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:text="OASIS"
-            android:textSize="22sp"
+            android:textSize="24sp"
             android:textColor="#1C1C1E"
             android:fontFamily="sans-serif-medium"
+            android:letterSpacing="0.1"
             android:layout_marginBottom="32dp" />
 
         <!-- Fila 1: Llamar y Mensaje -->
@@ -166,20 +169,4 @@
                 app:iconPadding="8dp" />
         </LinearLayout>
     </LinearLayout>
-
-    <!-- Debug text (oculto) -->
-    <TextView
-        android:id="@+id/debug_text"
-        android:layout_width="match_parent"
-        android:layout_height="wrap_content"
-        android:layout_alignParentBottom="true"
-        android:layout_marginBottom="8dp"
-        android:background="#1A1A1A"
-        android:gravity="center"
-        android:padding="8dp"
-        android:text="🔍 Debug"
-        android:textColor="#00FF00"
-        android:textSize="14sp"
-        android:visibility="gone" />
-
 </RelativeLayout>

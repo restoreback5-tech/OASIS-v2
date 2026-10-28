@@ -1,86 +1,25 @@
 <?xml version="1.0" encoding="utf-8"?>
 <manifest xmlns:android="http://schemas.android.com/apk/res/android"
-    xmlns:tools="http://schemas.android.com/tools">
+    package="com.oasis.app">
 
-    <!-- Permisos existentes -->
-    <uses-permission android:name="android.permission.INTERNET" />
+    <!-- Permisos necesarios -->
     <uses-permission android:name="android.permission.RECORD_AUDIO" />
-    <uses-permission android:name="android.permission.CALL_PHONE" />
     <uses-permission android:name="android.permission.READ_CONTACTS" />
-    <uses-permission android:name="android.permission.SEND_SMS" />
-    <uses-permission android:name="android.permission.VIBRATE" />
-    <uses-permission android:name="android.permission.FOREGROUND_SERVICE" />
-    <uses-permission android:name="android.permission.FOREGROUND_SERVICE_MICROPHONE" />
-    <uses-permission android:name="android.permission.QUERY_ALL_PACKAGES" />
-
-    <!-- Permiso para overlay -->
+    <uses-permission android:name="android.permission.CALL_PHONE" />
     <uses-permission android:name="android.permission.SYSTEM_ALERT_WINDOW" />
-
-    <!-- ============================================ -->
-    <!-- QUERIES: Permitir consultar apps externas (Android 11+) -->
-    <!-- ============================================ -->
-    <queries>
-        <!-- Mensajería -->
-        <package android:name="com.whatsapp" />
-        <package android:name="org.telegram.messenger" />
-
-        <!-- Redes sociales -->
-        <package android:name="com.facebook.katana" />
-        <package android:name="com.instagram.android" />
-        <package android:name="com.twitter.android" />
-
-        <!-- Multimedia -->
-        <package android:name="com.google.android.youtube" />
-        <package android:name="com.spotify.music" />
-        <package android:name="com.zhiliaoapp.musically" />
-
-        <!-- Netflix -->
-        <package android:name="com.netflix.mediaclient" />
-
-        <!-- Navegación y utilidades -->
-        <package android:name="com.android.chrome" />
-        <package android:name="com.google.android.apps.maps" />
-        <package android:name="com.android.camera2" />
-        <package android:name="com.google.android.deskclock" />
-        <package android:name="com.android.calculator2" />
-
-        <!-- Sistema -->
-        <package android:name="com.android.settings" />
-        <package android:name="com.google.android.gm" />
-
-        <!-- Para abrir el marcador/teléfono -->
-        <intent>
-            <action android:name="android.intent.action.DIAL" />
-            <data android:scheme="tel" />
-        </intent>
-
-        <!-- Para abrir SMS -->
-        <intent>
-            <action android:name="android.intent.action.SENDTO" />
-            <data android:scheme="smsto" />
-        </intent>
-
-        <!-- Paquetes de teléfono y contactos -->
-        <package android:name="com.google.android.dialer" />
-        <package android:name="com.google.android.contacts" />
-        <package android:name="com.motorola.dialer" />
-        <package android:name="com.motorola.contacts" />
-        <package android:name="com.android.dialer" />
-        <package android:name="com.android.contacts" />
-    </queries>
-
-    <!-- ============================================ -->
+    <uses-permission android:name="android.permission.FOREGROUND_SERVICE" />
+    <uses-permission android:name="android.permission.QUERY_ALL_PACKAGES" 
+        tools:ignore="QueryAllPackagesPermission" xmlns:tools="http://schemas.android.com/tools" />
 
     <application
         android:allowBackup="true"
-        android:icon="@drawable/ic_launcher"
+        android:icon="@mipmap/ic_launcher"
         android:label="OASIS"
-        android:roundIcon="@drawable/ic_launcher"
+        android:roundIcon="@mipmap/ic_launcher_round"
         android:supportsRtl="true"
-        android:theme="@style/Theme.OASIS"
-        tools:targetApi="34">
+        android:theme="@style/Theme.OASIS">
 
-        <!-- SplashActivity -->
+        <!-- Splash Activity (Pantalla de carga) -->
         <activity
             android:name=".SplashActivity"
             android:exported="true"
@@ -91,32 +30,41 @@
             </intent-filter>
         </activity>
 
-        <!-- MainActivity -->
+        <!-- Main Activity (Aquí está la magia del Launcher) -->
         <activity
             android:name=".MainActivity"
-            android:exported="false"
-            android:screenOrientation="portrait"
-            android:theme="@style/Theme.OASIS" />
+            android:exported="true"
+            android:launchMode="singleTask">
+            
+            <!-- Abrir como app normal -->
+            <intent-filter>
+                <action android:name="android.intent.action.MAIN" />
+                <category android:name="android.intent.category.LAUNCHER" />
+            </intent-filter>
 
-        <!-- OverlayService -->
-        <service
-            android:name=".OverlayService"
-            android:enabled="true"
-            android:exported="false"
-            android:foregroundServiceType="microphone" />
+            <!-- ESTO LO CONVIERTE EN LAUNCHER (Pantalla de inicio) -->
+            <intent-filter>
+                <action android:name="android.intent.action.MAIN" />
+                <category android:name="android.intent.category.HOME" />
+                <category android:name="android.intent.category.DEFAULT" />
+            </intent-filter>
+        </activity>
 
-        <!-- SettingsActivity -->
+        <!-- Settings Activity -->
         <activity
             android:name=".SettingsActivity"
-            android:exported="false"
-            android:screenOrientation="portrait"
-            android:theme="@style/Theme.OASIS" />
+            android:exported="false" />
 
-        <!-- OverlayPermissionActivity -->
+        <!-- Overlay Permission -->
         <activity
             android:name=".OverlayPermissionActivity"
+            android:exported="false" />
+
+        <!-- Servicio Flotante -->
+        <service
+            android:name=".OverlayService"
             android:exported="false"
-            android:theme="@style/Theme.OASIS" />
+            android:foregroundServiceType="specialUse" />
 
     </application>
 </manifest>
