@@ -64,6 +64,15 @@
                 android:src="@drawable/ic_close" />
         </LinearLayout>
 
+        <TextView
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginBottom="6dp"
+            android:gravity="center"
+            android:text="Mantén presionada una app para fijarla en inicio"
+            android:textColor="#8E8E93"
+            android:textSize="12sp" />
+
         <androidx.recyclerview.widget.RecyclerView
             android:id="@+id/rv_apps"
             android:layout_width="match_parent"

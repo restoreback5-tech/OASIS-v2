@@ -1,6 +1,7 @@
 package com.oasis.app
 
 import android.app.Dialog
+import android.content.ComponentName
 import android.content.Context
 import android.content.Intent
 import android.content.pm.PackageManager
@@ -254,6 +255,34 @@ class AppLauncherModule(
 
     private var drawerDialog: Dialog? = null
 
+    /** MainActivity se suscribe para refrescar las apps fijadas en inicio. */
+    var onPinsChanged: (() -> Unit)? = null
+
+    fun launchComponent(cn: ComponentName): Boolean {
+        return try {
+            val intent = Intent(Intent.ACTION_MAIN)
+                .addCategory(Intent.CATEGORY_LAUNCHER)
+                .setComponent(cn)
+                .addFlags(Intent.FLAG_ACTIVITY_NEW_TASK or Intent.FLAG_ACTIVITY_RESET_TASK_IF_NEEDED)
+            context.startActivity(intent)
+            sound.play(R.raw.apps_launch)
+            true
+        } catch (e: Exception) {
+            Log.w("AppLauncher", "launchComponent falló: ${e.message}")
+            false
+        }
+    }
+
+    private fun togglePin(cn: ComponentName) {
+        val msg = when {
+            PinnedApps.isPinned(context, cn) -> { PinnedApps.unpin(context, cn); "Quitada de inicio" }
+            PinnedApps.pin(context, cn) -> "Fijada en inicio"
+            else -> "Inicio lleno (máximo ${PinnedApps.MAX})"
+        }
+        Toast.makeText(context, msg, Toast.LENGTH_SHORT).show()
+        onPinsChanged?.invoke()
+    }
+
     /** Cajón de aplicaciones: A-Z, con buscador. Se abre con el botón Apps o deslizando hacia arriba. */
     fun showAllApps() {
         if (drawerDialog?.isShowing == true) return
@@ -265,7 +294,14 @@ class AppLauncherModule(
 
             val view = LayoutInflater.from(context).inflate(R.layout.dialog_all_apps, null)
             val dialog = Dialog(context, R.style.Theme_OASIS_AppDrawer)
-            val appsAdapter = AppListAdapter(context, apps, pm) { dialog.dismiss() }
+            val appsAdapter = AppListAdapter(
+                context = context,
+                apps = apps,
+                packageManager = pm,
+                isPinned = { PinnedApps.isPinned(context, it) },
+                onTogglePin = { togglePin(it) },
+                onLaunched = { dialog.dismiss() }
+            )
 
             view.findViewById<RecyclerView>(R.id.rv_apps).apply {
                 layoutManager = GridLayoutManager(context, 4)

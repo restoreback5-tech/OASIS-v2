@@ -1,11 +1,15 @@
 package com.oasis.app
 
 import android.Manifest
+import android.app.WallpaperColors
+import android.app.WallpaperManager
+import android.content.ComponentName
 import android.content.Intent
 import android.content.SharedPreferences
 import android.content.pm.PackageManager
 import android.content.res.ColorStateList
 import android.graphics.drawable.Animatable
+import android.os.Build
 import android.os.Bundle
 import android.os.Handler
 import android.os.Looper
@@ -19,10 +23,13 @@ import androidx.activity.OnBackPressedCallback
 import androidx.activity.result.contract.ActivityResultContracts
 import androidx.appcompat.app.AppCompatActivity
 import androidx.core.content.ContextCompat
+import androidx.core.graphics.ColorUtils
 import androidx.core.view.ViewCompat
 import androidx.core.view.WindowCompat
 import androidx.core.view.WindowInsetsCompat
 import androidx.core.view.updatePadding
+import androidx.recyclerview.widget.GridLayoutManager
+import androidx.recyclerview.widget.RecyclerView
 import java.text.SimpleDateFormat
 import java.util.Calendar
 import java.util.Locale
@@ -39,6 +46,7 @@ class MainActivity : AppCompatActivity() {
     private lateinit var appLauncher: AppLauncherModule
     private lateinit var prefs: SharedPreferences
     private lateinit var phoneActions: PhoneActionsModule
+    private lateinit var pinnedAdapter: PinnedAdapter
 
     // === LAUNCHER ===
     private lateinit var swipeDetector: GestureDetector
@@ -124,6 +132,9 @@ class MainActivity : AppCompatActivity() {
         sound.play(R.raw.inicio)
         orbView.postDelayed({ tts.speak("Bienvenido a OASIS") }, 1000)
         anim.startRippleAnimation()
+
+        // 4b. Apps fijadas en inicio
+        setupPinnedApps()
 
         // 5. Botón Ajustes
         findViewById<ImageView?>(R.id.btn_settings)?.setOnClickListener {
@@ -295,25 +306,93 @@ class MainActivity : AppCompatActivity() {
         }
     }
 
+    // ====================== APPS FIJADAS ======================
+    private fun setupPinnedApps() {
+        pinnedAdapter = PinnedAdapter(
+            context = this,
+            onLaunch = { cn: ComponentName ->
+                sound.play(R.raw.touch)
+                if (!appLauncher.launchComponent(cn)) {
+                    tts.speak("No pude abrir la aplicación")
+                    refreshPinned()
+                }
+            },
+            onRemove = { cn: ComponentName ->
+                PinnedApps.unpin(this, cn)
+                refreshPinned()
+            }
+        )
+        findViewById<RecyclerView>(R.id.rv_pinned).apply {
+            layoutManager = GridLayoutManager(this@MainActivity, 4)
+            adapter = pinnedAdapter
+        }
+        appLauncher.onPinsChanged = { refreshPinned() }
+        refreshPinned()
+    }
+
+    private fun refreshPinned() {
+        val count = pinnedAdapter.reload()
+        findViewById<View>(R.id.rv_pinned).visibility = if (count == 0) View.GONE else View.VISIBLE
+        findViewById<View>(R.id.tv_pinned_hint).visibility = if (count == 0) View.VISIBLE else View.GONE
+    }
+
     // ====================== TEMAS ======================
+    /** ¿El fondo de pantalla del teléfono es claro (conviene texto oscuro)? */
+    private fun wallpaperPrefersDarkText(): Boolean {
+        if (Build.VERSION.SDK_INT < Build.VERSION_CODES.O_MR1) return true
+        return try {
+            val colors = WallpaperManager.getInstance(this)
+                .getWallpaperColors(WallpaperManager.FLAG_SYSTEM) ?: return true
+            if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.S) {
+                // Android 12+: el sistema ya dice si el fondo admite texto oscuro
+                (colors.colorHints and WallpaperColors.HINT_SUPPORTS_DARK_TEXT) != 0
+            } else {
+                // Android 8.1–11: aproximamos por la luminosidad del color principal
+                ColorUtils.calculateLuminance(colors.primaryColor.toArgb()) > 0.5
+            }
+        } catch (e: Exception) {
+            true
+        }
+    }
+
     private fun applyTheme() {
         val p = ThemePalette.from(this, prefs.getString("selected_theme", "amanecer"))
         Log.d("MainActivity", "Aplicando tema: ${p.key}")
         try {
-            findViewById<View>(R.id.scrim).setBackgroundColor(p.scrim)
-            findViewById<View>(R.id.dock).backgroundTintList = ColorStateList.valueOf(p.dock)
+            // Texto oscuro u claro según el fondo de pantalla real; "noche" siempre claro
+            val darkText = p.key != "noche" && wallpaperPrefersDarkText()
+            val fg = if (darkText) p.text else 0xFFFFFFFF.toInt()
+            val fg2 = if (darkText) p.textSecondary else 0xCCFFFFFF.toInt()
 
-            // Iconos de la barra de estado/navegación (oscuros sobre fondos claros)
+            // Velo y dock casi transparentes: dejan ver el fondo de pantalla
+            val scrim = if (darkText || p.key == "noche") p.scrim else 0x33000000
+            val dock = if (darkText) p.dock else 0x73000000
+            findViewById<View>(R.id.scrim).setBackgroundColor(scrim)
+            findViewById<View>(R.id.dock).backgroundTintList = ColorStateList.valueOf(dock)
+
             WindowCompat.getInsetsController(window, window.decorView).apply {
-                isAppearanceLightStatusBars = p.lightSystemBarIcons
-                isAppearanceLightNavigationBars = p.lightSystemBarIcons
+                isAppearanceLightStatusBars = darkText
+                isAppearanceLightNavigationBars = darkText
             }
 
             listOf(R.id.tv_time, R.id.tv_ampm, R.id.greeting_text,
                 R.id.lbl_call, R.id.lbl_message, R.id.lbl_contacts, R.id.lbl_apps
-            ).forEach { tv(it)?.setTextColor(p.text) }
-            tv(R.id.status_text)?.setTextColor(p.textSecondary)
-            findViewById<ImageView?>(R.id.btn_settings)?.imageTintList = ColorStateList.valueOf(p.text)
+            ).forEach { id ->
+                tv(id)?.apply {
+                    setTextColor(fg)
+                    if (darkText) setShadowLayer(0f, 0f, 0f, 0)
+                    else setShadowLayer(8f, 0f, 2f, 0x80000000.toInt())
+                }
+            }
+            listOf(R.id.status_text, R.id.tv_pinned_hint).forEach { id ->
+                tv(id)?.apply {
+                    setTextColor(fg2)
+                    if (darkText) setShadowLayer(0f, 0f, 0f, 0)
+                    else setShadowLayer(8f, 0f, 2f, 0x80000000.toInt())
+                }
+            }
+            findViewById<ImageView?>(R.id.btn_settings)?.imageTintList = ColorStateList.valueOf(fg)
+            if (::pinnedAdapter.isInitialized) pinnedAdapter.restyle(fg, !darkText)
         } catch (e: Exception) {
             Log.e("MainActivity", "Error aplicando tema '${p.key}': ${e.message}")
         }
@@ -353,6 +432,7 @@ class MainActivity : AppCompatActivity() {
         super.onResume()
         applyTheme()
         applyClockVisibility()
+        refreshPinned()
         tts.updateSpeechSettings()
     }
 

@@ -8,7 +8,7 @@ import androidx.core.content.ContextCompat
  * Única fuente de colores para MainActivity y SettingsActivity.
  *
  * Si el texto se lee mal sobre algún fondo de pantalla, sube el alfa de [scrim]
- * (los dos primeros dígitos hex: 0xB8 = 72 %).
+ * (los dos primeros dígitos hex: 0x29 = 16 %, 0x66 = 40 %).
  */
 data class ThemePalette(
     val key: String,
@@ -26,9 +26,9 @@ data class ThemePalette(
             "caribe" -> ThemePalette(
                 key = "caribe",
                 background = ContextCompat.getColor(ctx, R.color.caribe_background),
-                scrim = 0xB8E0F7FA.toInt(),
+                scrim = 0x29E0F7FA.toInt(),
                 card = 0xFFFFFFFF.toInt(),
-                dock = 0xD9FFFFFF.toInt(),
+                dock = 0x80FFFFFF.toInt(),
                 text = ContextCompat.getColor(ctx, R.color.caribe_text),
                 textSecondary = 0xFF4F8F94.toInt(),
                 accent = 0xFF00ACC1.toInt(),
@@ -37,9 +37,9 @@ data class ThemePalette(
             "noche" -> ThemePalette(
                 key = "noche",
                 background = 0xFF121212.toInt(),
-                scrim = 0xB3000000.toInt(),
+                scrim = 0x66000000.toInt(),
                 card = 0xFF1E1E20.toInt(),
-                dock = 0xD92C2C2E.toInt(),
+                dock = 0x73000000.toInt(),
                 text = 0xFFFFFFFF.toInt(),
                 textSecondary = 0xFFA1A1A6.toInt(),
                 accent = 0xFF4FACFE.toInt(),
@@ -48,9 +48,9 @@ data class ThemePalette(
             else -> ThemePalette(
                 key = "amanecer",
                 background = ContextCompat.getColor(ctx, R.color.amanecer_background),
-                scrim = 0xB8FFF8E7.toInt(),
+                scrim = 0x29FFF8E7.toInt(),
                 card = 0xFFFFFFFF.toInt(),
-                dock = 0xD9FFFFFF.toInt(),
+                dock = 0x80FFFFFF.toInt(),
                 text = ContextCompat.getColor(ctx, R.color.amanecer_text),
                 textSecondary = 0xFF8D6E63.toInt(),
                 accent = 0xFFF57C00.toInt(),

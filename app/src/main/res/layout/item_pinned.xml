@@ -1,0 +1,28 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    android:layout_width="match_parent"
+    android:layout_height="wrap_content"
+    android:foreground="?attr/selectableItemBackgroundBorderless"
+    android:gravity="center"
+    android:orientation="vertical"
+    android:paddingTop="6dp"
+    android:paddingBottom="6dp"
+    android:paddingStart="2dp"
+    android:paddingEnd="2dp">
+
+    <ImageView
+        android:id="@+id/iv_pinned_icon"
+        android:layout_width="52dp"
+        android:layout_height="52dp"
+        android:importantForAccessibility="no" />
+
+    <TextView
+        android:id="@+id/tv_pinned_name"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_marginTop="4dp"
+        android:ellipsize="end"
+        android:gravity="center"
+        android:maxLines="1"
+        android:textSize="11sp" />
+</LinearLayout>

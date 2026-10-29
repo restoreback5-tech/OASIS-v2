@@ -1,5 +1,6 @@
 package com.oasis.app
 
+import android.content.ComponentName
 import android.content.Context
 import android.content.Intent
 import android.content.pm.PackageManager
@@ -8,6 +9,7 @@ import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
 import android.widget.ImageView
+import android.widget.PopupMenu
 import android.widget.TextView
 import androidx.recyclerview.widget.RecyclerView
 
@@ -15,6 +17,8 @@ class AppListAdapter(
     private val context: Context,
     apps: List<ResolveInfo>,
     private val packageManager: PackageManager,
+    private val isPinned: (ComponentName) -> Boolean = { false },
+    private val onTogglePin: ((ComponentName) -> Unit)? = null,
     private val onLaunched: () -> Unit = {}
 ) : RecyclerView.Adapter<AppListAdapter.AppViewHolder>() {
 
@@ -54,6 +58,15 @@ class AppListAdapter(
         holder.name.text = entry.label
         holder.icon.setImageDrawable(entry.info.loadIcon(packageManager))
         holder.itemView.setOnClickListener { launch(entry) }
+        holder.itemView.setOnLongClickListener { v ->
+            val toggle = onTogglePin ?: return@setOnLongClickListener false
+            val cn = ComponentName(entry.info.activityInfo.packageName, entry.info.activityInfo.name)
+            PopupMenu(context, v).apply {
+                menu.add(if (isPinned(cn)) "Quitar de inicio" else "Fijar en inicio")
+                setOnMenuItemClickListener { toggle(cn); true }
+            }.show()
+            true
+        }
     }
 
     private fun launch(entry: Entry) {
