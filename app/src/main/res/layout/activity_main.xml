@@ -1,172 +1,253 @@
 <?xml version="1.0" encoding="utf-8"?>
-<RelativeLayout xmlns:android="http://schemas.android.com/apk/res/android"
+<FrameLayout xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:app="http://schemas.android.com/apk/res-auto"
+    android:id="@+id/root"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
-    android:padding="16dp"
-    android:gravity="center_horizontal"
-    android:clipChildren="false"
-    android:clipToPadding="false">
+    android:clipChildren="false">
 
-    <!-- Icono de ajustes -->
-    <ImageView
-        android:id="@+id/btn_settings"
-        android:layout_width="56dp"
-        android:layout_height="56dp"
-        android:layout_alignParentTop="true"
-        android:layout_alignParentEnd="true"
-        android:layout_margin="16dp"
-        android:src="@android:drawable/ic_menu_preferences"
-        android:contentDescription="Ajustes"
-        android:padding="12dp"
-        android:background="?attr/selectableItemBackgroundBorderless"
-        android:tint="#dadada"
-        android:elevation="4dp" />
-
-    <!-- Reloj -->
-    <LinearLayout
-        android:id="@+id/clock_container"
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:layout_alignParentTop="true"
-        android:layout_centerHorizontal="true"
-        android:layout_marginTop="32dp"
-        android:orientation="horizontal"
-        android:gravity="center_vertical">
-        
-        <TextView
-            android:id="@+id/tv_time"
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:textSize="48sp"
-            android:textColor="#1C1C1E"
-            android:fontFamily="@font/sf_pro_display_bold" />
-            
-        <TextView
-            android:id="@+id/tv_ampm"
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:textSize="16sp"
-            android:textColor="#1C1C1E"
-            android:fontFamily="@font/sf_pro_display_bold"
-            android:layout_marginStart="4dp"
-            android:layout_marginBottom="12dp" />
-    </LinearLayout>
-
-    <!-- Contenedor central -->
-    <LinearLayout
+    <!-- Velo de color del tema sobre el fondo de pantalla del teléfono -->
+    <View
+        android:id="@+id/scrim"
         android:layout_width="match_parent"
-        android:layout_height="wrap_content"
-        android:layout_centerInParent="true"
-        android:orientation="vertical"
-        android:gravity="center"
+        android:layout_height="match_parent" />
+
+    <androidx.constraintlayout.widget.ConstraintLayout
+        android:id="@+id/content"
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"
         android:clipChildren="false">
 
-        <!-- Orbe central (con tamaño extra para que no se corte) -->
-        <ImageView
-            android:id="@+id/orb_view"
-            android:layout_width="180dp"
-            android:layout_height="180dp"
-            android:src="@drawable/orb_center"
-            android:layout_marginBottom="16dp" />
-
-        <!-- Texto OASIS (Color corregido) -->
-        <TextView
-            android:id="@+id/greeting_text"
+        <!-- Reloj -->
+        <LinearLayout
+            android:id="@+id/clock_container"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:text="OASIS"
-            android:textSize="24sp"
-            android:textColor="#1C1C1E"
-            android:fontFamily="sans-serif-medium"
-            android:letterSpacing="0.1"
-            android:layout_marginBottom="32dp" />
+            android:layout_marginTop="28dp"
+            android:gravity="center_vertical"
+            android:orientation="horizontal"
+            app:layout_constraintEnd_toEndOf="parent"
+            app:layout_constraintStart_toStartOf="parent"
+            app:layout_constraintTop_toTopOf="parent">
 
-        <!-- Fila 1: Llamar y Mensaje -->
+            <TextView
+                android:id="@+id/tv_time"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:fontFamily="@font/sf_pro_display_medium"
+                android:textSize="64sp" />
+
+            <TextView
+                android:id="@+id/tv_ampm"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_marginStart="6dp"
+                android:layout_marginBottom="12dp"
+                android:fontFamily="@font/sf_pro_display_medium"
+                android:textSize="18sp" />
+        </LinearLayout>
+
+        <!-- Ajustes -->
+        <ImageView
+            android:id="@+id/btn_settings"
+            android:layout_width="48dp"
+            android:layout_height="48dp"
+            android:layout_marginTop="12dp"
+            android:layout_marginEnd="16dp"
+            android:background="@drawable/bg_icon_button"
+            android:contentDescription="Ajustes"
+            android:padding="12dp"
+            android:src="@drawable/ic_settings"
+            app:layout_constraintEnd_toEndOf="parent"
+            app:layout_constraintTop_toTopOf="parent" />
+
+        <!-- Orbe + nombre + estado -->
         <LinearLayout
-            android:layout_width="match_parent"
+            android:id="@+id/center_block"
+            android:layout_width="0dp"
             android:layout_height="wrap_content"
+            android:gravity="center"
+            android:orientation="vertical"
+            android:clipChildren="false"
+            app:layout_constraintBottom_toTopOf="@id/swipe_handle"
+            app:layout_constraintEnd_toEndOf="parent"
+            app:layout_constraintStart_toStartOf="parent"
+            app:layout_constraintTop_toBottomOf="@id/clock_container">
+
+            <ImageView
+                android:id="@+id/orb_view"
+                android:layout_width="200dp"
+                android:layout_height="200dp"
+                android:contentDescription="Toca para hablar"
+                android:src="@drawable/orb_center" />
+
+            <TextView
+                android:id="@+id/greeting_text"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="12dp"
+                android:fontFamily="sans-serif-medium"
+                android:letterSpacing="0.2"
+                android:text="OASIS"
+                android:textSize="24sp" />
+
+            <TextView
+                android:id="@+id/status_text"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="4dp"
+                android:minHeight="20dp"
+                android:textSize="14sp" />
+        </LinearLayout>
+
+        <!-- Indicador "desliza hacia arriba" -->
+        <View
+            android:id="@+id/swipe_handle"
+            android:layout_width="40dp"
+            android:layout_height="4dp"
             android:layout_marginBottom="12dp"
-            android:orientation="horizontal">
+            android:background="@drawable/bg_handle"
+            app:layout_constraintBottom_toTopOf="@id/dock"
+            app:layout_constraintEnd_toEndOf="parent"
+            app:layout_constraintStart_toStartOf="parent" />
 
-            <com.google.android.material.button.MaterialButton
-                android:id="@+id/btn_call"
-                android:layout_width="0dp"
-                android:layout_height="64dp"
-                android:layout_weight="1"
-                android:layout_marginEnd="6dp"
-                android:background="@drawable/btn_call_gradient"
-                android:stateListAnimator="@null"
-                android:text="Llamar"
-                android:textColor="#FFFFFF"
-                android:textSize="16sp"
-                app:backgroundTint="@null"
-                app:cornerRadius="32dp"
-                app:icon="@drawable/ic_phone"
-                app:iconGravity="textStart"
-                app:iconTint="#FFFFFF"
-                app:iconPadding="8dp" />
-
-            <com.google.android.material.button.MaterialButton
-                android:id="@+id/btn_message"
-                android:layout_width="0dp"
-                android:layout_height="64dp"
-                android:layout_weight="1"
-                android:layout_marginStart="6dp"
-                android:background="@drawable/btn_message_gradient"
-                android:stateListAnimator="@null"
-                android:text="Mensaje"
-                android:textColor="#FFFFFF"
-                android:textSize="16sp"
-                app:backgroundTint="@null"
-                app:cornerRadius="32dp"
-                app:icon="@drawable/ic_message"
-                app:iconGravity="textStart"
-                app:iconTint="#FFFFFF"
-                app:iconPadding="8dp" />
-        </LinearLayout>
-
-        <!-- Fila 2: Contactos y Apps -->
+        <!-- Dock -->
         <LinearLayout
-            android:layout_width="match_parent"
+            android:id="@+id/dock"
+            android:layout_width="0dp"
             android:layout_height="wrap_content"
-            android:orientation="horizontal">
+            android:layout_marginStart="16dp"
+            android:layout_marginEnd="16dp"
+            android:layout_marginBottom="20dp"
+            android:background="@drawable/dock_bg"
+            android:elevation="6dp"
+            android:orientation="horizontal"
+            android:paddingHorizontal="8dp"
+            android:paddingVertical="14dp"
+            app:layout_constraintBottom_toBottomOf="parent"
+            app:layout_constraintEnd_toEndOf="parent"
+            app:layout_constraintStart_toStartOf="parent">
 
-            <com.google.android.material.button.MaterialButton
-                android:id="@+id/btn_contacts"
-                android:layout_width="0dp"
-                android:layout_height="64dp"
-                android:layout_weight="1"
-                android:layout_marginEnd="6dp"
-                android:background="@drawable/btn_contacts_gradient"
-                android:stateListAnimator="@null"
-                android:text="Contactos"
-                android:textColor="#FFFFFF"
-                android:textSize="16sp"
-                app:backgroundTint="@null"
-                app:cornerRadius="32dp"
-                app:icon="@drawable/ic_contacts"
-                app:iconGravity="textStart"
-                app:iconTint="#FFFFFF"
-                app:iconPadding="8dp" />
+        <LinearLayout
+            android:id="@+id/btn_call"
+            android:layout_width="0dp"
+            android:layout_height="wrap_content"
+            android:layout_weight="1"
+            android:orientation="vertical"
+            android:gravity="center_horizontal"
+            android:paddingVertical="4dp"
+            android:clickable="true"
+            android:focusable="true"
+            android:contentDescription="Llamar">
 
-            <com.google.android.material.button.MaterialButton
-                android:id="@+id/btn_apps"
-                android:layout_width="0dp"
-                android:layout_height="64dp"
-                android:layout_weight="1"
-                android:layout_marginStart="6dp"
-                android:background="@drawable/btn_apps_gradient"
-                android:stateListAnimator="@null"
-                android:text="Apps"
-                android:textColor="#FFFFFF"
-                android:textSize="16sp"
-                app:backgroundTint="@null"
-                app:cornerRadius="32dp"
-                app:icon="@drawable/ic_apps"
-                app:iconGravity="textStart"
-                app:iconTint="#FFFFFF"
-                app:iconPadding="8dp" />
+            <ImageView
+                android:layout_width="60dp"
+                android:layout_height="60dp"
+                android:background="@drawable/btn_call_gradient"
+                android:elevation="4dp"
+                android:importantForAccessibility="no"
+                android:padding="16dp"
+                android:src="@drawable/ic_phone" />
+
+            <TextView
+                android:id="@+id/lbl_call"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="8dp"
+                android:fontFamily="sans-serif-medium"
+                android:text="Llamar"
+                android:textSize="12sp" />
         </LinearLayout>
-    </LinearLayout>
-</RelativeLayout>
+        <LinearLayout
+            android:id="@+id/btn_message"
+            android:layout_width="0dp"
+            android:layout_height="wrap_content"
+            android:layout_weight="1"
+            android:orientation="vertical"
+            android:gravity="center_horizontal"
+            android:paddingVertical="4dp"
+            android:clickable="true"
+            android:focusable="true"
+            android:contentDescription="Mensaje">
+
+            <ImageView
+                android:layout_width="60dp"
+                android:layout_height="60dp"
+                android:background="@drawable/btn_message_gradient"
+                android:elevation="4dp"
+                android:importantForAccessibility="no"
+                android:padding="16dp"
+                android:src="@drawable/ic_message" />
+
+            <TextView
+                android:id="@+id/lbl_message"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="8dp"
+                android:fontFamily="sans-serif-medium"
+                android:text="Mensaje"
+                android:textSize="12sp" />
+        </LinearLayout>
+        <LinearLayout
+            android:id="@+id/btn_contacts"
+            android:layout_width="0dp"
+            android:layout_height="wrap_content"
+            android:layout_weight="1"
+            android:orientation="vertical"
+            android:gravity="center_horizontal"
+            android:paddingVertical="4dp"
+            android:clickable="true"
+            android:focusable="true"
+            android:contentDescription="Contactos">
+
+            <ImageView
+                android:layout_width="60dp"
+                android:layout_height="60dp"
+                android:background="@drawable/btn_contacts_gradient"
+                android:elevation="4dp"
+                android:importantForAccessibility="no"
+                android:padding="16dp"
+                android:src="@drawable/ic_contacts" />
+
+            <TextView
+                android:id="@+id/lbl_contacts"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="8dp"
+                android:fontFamily="sans-serif-medium"
+                android:text="Contactos"
+                android:textSize="12sp" />
+        </LinearLayout>
+        <LinearLayout
+            android:id="@+id/btn_apps"
+            android:layout_width="0dp"
+            android:layout_height="wrap_content"
+            android:layout_weight="1"
+            android:orientation="vertical"
+            android:gravity="center_horizontal"
+            android:paddingVertical="4dp"
+            android:clickable="true"
+            android:focusable="true"
+            android:contentDescription="Apps">
+
+            <ImageView
+                android:layout_width="60dp"
+                android:layout_height="60dp"
+                android:background="@drawable/btn_apps_gradient"
+                android:elevation="4dp"
+                android:importantForAccessibility="no"
+                android:padding="16dp"
+                android:src="@drawable/ic_apps" />
+
+            <TextView
+                android:id="@+id/lbl_apps"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="8dp"
+                android:fontFamily="sans-serif-medium"
+                android:text="Apps"
+                android:textSize="12sp" />
+        </LinearLayout>
+        </LinearLayout>
+    </androidx.constraintlayout.widget.ConstraintLayout>
+</FrameLayout>

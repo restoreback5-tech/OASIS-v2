@@ -4,4 +4,29 @@
         <item name="android:statusBarColor">@color/status_bar_amanecer</item>
         <item name="android:windowLightStatusBar">true</item>
     </style>
+
+    <!-- Pantalla de inicio: transparente para que se vea el fondo de pantalla del teléfono -->
+    <style name="Theme.OASIS.Launcher">
+        <item name="android:windowShowWallpaper">true</item>
+        <item name="android:windowBackground">@android:color/transparent</item>
+        <item name="android:statusBarColor">@android:color/transparent</item>
+        <item name="android:navigationBarColor">@android:color/transparent</item>
+        <item name="android:windowLightStatusBar">true</item>
+    </style>
+
+    <!-- Cajón de aplicaciones a pantalla completa -->
+    <style name="Theme.OASIS.AppDrawer" parent="android:Theme.Material.NoActionBar">
+        <item name="android:windowBackground">@android:color/transparent</item>
+        <item name="android:windowIsFloating">false</item>
+        <item name="android:windowIsTranslucent">true</item>
+        <item name="android:statusBarColor">@android:color/transparent</item>
+        <item name="android:navigationBarColor">@android:color/transparent</item>
+        <item name="android:windowSoftInputMode">adjustResize</item>
+        <item name="android:windowAnimationStyle">@style/AppDrawerAnimation</item>
+    </style>
+
+    <style name="AppDrawerAnimation" parent="@android:style/Animation">
+        <item name="android:windowEnterAnimation">@anim/drawer_in</item>
+        <item name="android:windowExitAnimation">@anim/drawer_out</item>
+    </style>
 </resources>

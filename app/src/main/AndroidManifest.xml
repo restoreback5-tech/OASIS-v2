@@ -8,6 +8,8 @@
     <uses-permission android:name="android.permission.CALL_PHONE" />
     <uses-permission android:name="android.permission.SYSTEM_ALERT_WINDOW" />
     <uses-permission android:name="android.permission.FOREGROUND_SERVICE" />
+    <!-- Android 14+: obligatorio para foregroundServiceType="specialUse" -->
+    <uses-permission android:name="android.permission.FOREGROUND_SERVICE_SPECIAL_USE" />
     <uses-permission android:name="android.permission.QUERY_ALL_PACKAGES" 
         tools:ignore="QueryAllPackagesPermission" />
 
@@ -29,19 +31,19 @@
             </intent-filter>
         </activity>
 
-        <!-- Main Activity (Launcher) -->
+        <!-- Main Activity: pantalla de inicio (launcher). El icono de la app lo da SplashActivity. -->
         <activity
             android:name=".MainActivity"
             android:exported="true"
-            android:launchMode="singleTask">
-            
-            <!-- Abrir como app normal -->
-            <intent-filter>
-                <action android:name="android.intent.action.MAIN" />
-                <category android:name="android.intent.category.LAUNCHER" />
-            </intent-filter>
+            android:launchMode="singleTask"
+            android:theme="@style/Theme.OASIS.Launcher"
+            android:clearTaskOnLaunch="true"
+            android:stateNotNeeded="true"
+            android:resumeWhilePausing="true"
+            android:screenOrientation="portrait"
+            android:windowSoftInputMode="adjustPan">
 
-            <!-- ESTO LO CONVIERTE EN LAUNCHER (Pantalla de inicio) -->
+            <!-- Esto hace que Android lo ofrezca como "Aplicación de inicio" -->
             <intent-filter>
                 <action android:name="android.intent.action.MAIN" />
                 <category android:name="android.intent.category.HOME" />
@@ -63,7 +65,11 @@
         <service
             android:name=".OverlayService"
             android:exported="false"
-            android:foregroundServiceType="specialUse" />
+            android:foregroundServiceType="specialUse">
+            <property
+                android:name="android.app.PROPERTY_SPECIAL_USE_FGS_SUBTYPE"
+                android:value="floating_voice_assistant" />
+        </service>
 
     </application>
 </manifest>

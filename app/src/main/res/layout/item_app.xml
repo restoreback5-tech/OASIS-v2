@@ -2,23 +2,29 @@
 <LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
     android:layout_width="match_parent"
     android:layout_height="wrap_content"
-    android:orientation="vertical"
+    android:layout_margin="2dp"
+    android:foreground="?attr/selectableItemBackground"
     android:gravity="center"
-    android:padding="8dp"
-    android:layout_margin="2dp">
+    android:orientation="vertical"
+    android:paddingTop="10dp"
+    android:paddingBottom="10dp"
+    android:paddingStart="4dp"
+    android:paddingEnd="4dp">
 
     <ImageView
         android:id="@+id/iv_app_icon"
-        android:layout_width="48dp"
-        android:layout_height="48dp" />
+        android:layout_width="56dp"
+        android:layout_height="56dp"
+        android:importantForAccessibility="no" />
 
     <TextView
         android:id="@+id/tv_app_name"
-        android:layout_width="wrap_content"
+        android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:layout_marginTop="8dp"
-        android:textSize="12sp"
+        android:layout_marginTop="6dp"
+        android:ellipsize="end"
         android:gravity="center"
-        android:textColor="#1C1C1E" />
-
+        android:maxLines="1"
+        android:textColor="#1C1C1E"
+        android:textSize="12sp" />
 </LinearLayout>

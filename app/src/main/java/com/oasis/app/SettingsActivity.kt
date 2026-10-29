@@ -2,17 +2,23 @@ package com.oasis.app
 
 import android.content.Intent
 import android.content.SharedPreferences
+import android.content.res.ColorStateList
 import android.net.Uri
 import android.os.Build
 import android.os.Bundle
 import android.provider.Settings
 import android.util.Log
 import android.view.View
+import android.view.ViewGroup
 import android.widget.ImageView
 import android.widget.TextView
 import android.widget.Toast
 import androidx.activity.result.contract.ActivityResultContracts
 import androidx.appcompat.app.AppCompatActivity
+import androidx.core.view.WindowCompat
+import androidx.core.widget.ImageViewCompat
+import com.google.android.material.button.MaterialButton
+import com.google.android.material.card.MaterialCardView
 import com.google.android.material.slider.Slider
 import com.google.android.material.switchmaterial.SwitchMaterial
 
@@ -48,6 +54,14 @@ class SettingsActivity : AppCompatActivity() {
     private lateinit var indicatorSol: ImageView
     private lateinit var indicatorLuna: ImageView
     private lateinit var indicatorNubes: ImageView
+
+    // Launcher predeterminado
+    private lateinit var textLauncher: TextView
+    private lateinit var btnSetLauncher: MaterialButton
+    private var palette: ThemePalette? = null
+    private val roleLauncher = registerForActivityResult(
+        ActivityResultContracts.StartActivityForResult()
+    ) { updateLauncherUI() }
 
     // Launcher moderno
     private val overlayPermissionLauncher = registerForActivityResult(
@@ -102,6 +116,14 @@ class SettingsActivity : AppCompatActivity() {
         // Botón atrás
         findViewById<ImageView?>(R.id.btn_back)?.setOnClickListener { finish() }
 
+        // Launcher predeterminado
+        textLauncher = findViewById(R.id.text_launcher)
+        btnSetLauncher = findViewById(R.id.btn_set_launcher)
+        btnSetLauncher.setOnClickListener {
+            sound.play(R.raw.touch)
+            LauncherHelper.requestDefaultLauncher(this, roleLauncher)
+        }
+
         // Configurar ajustes
         setupSounds()
         setupTtsEnabled()
@@ -110,6 +132,64 @@ class SettingsActivity : AppCompatActivity() {
         setupTtsSpeed()
         setupTtsPitch()
         setupHideClock()
+        applyPalette()
+        updateLauncherUI()
+    }
+
+    // ====================== LAUNCHER PREDETERMINADO ======================
+    private fun updateLauncherUI() {
+        val isDefault = LauncherHelper.isDefaultLauncher(this)
+        textLauncher.text = if (isDefault) "OASIS es tu pantalla de inicio"
+                            else "Usar OASIS como pantalla de inicio"
+        btnSetLauncher.visibility = if (isDefault) View.GONE else View.VISIBLE
+    }
+
+    // ====================== PALETA DEL TEMA ======================
+    /** Pinta fondo, tarjetas, textos, iconos, sliders e interruptores con el tema elegido. */
+    private fun applyPalette() {
+        val p = ThemePalette.from(this, prefs.getString("selected_theme", "amanecer"))
+        palette = p
+
+        findViewById<View>(R.id.settings_root).setBackgroundColor(p.background)
+        window.statusBarColor = p.background
+        window.navigationBarColor = p.background
+        WindowCompat.getInsetsController(window, window.decorView).apply {
+            isAppearanceLightStatusBars = p.lightSystemBarIcons
+            isAppearanceLightNavigationBars = p.lightSystemBarIcons
+        }
+
+        paintTree(findViewById(R.id.settings_root), p)
+
+        listOf(R.id.btn_back, R.id.icon_sol, R.id.icon_nubes, R.id.icon_luna).forEach {
+            ImageViewCompat.setImageTintList(findViewById<ImageView>(it), ColorStateList.valueOf(p.text))
+        }
+        btnSetLauncher.backgroundTintList = ColorStateList.valueOf(p.accent)
+
+        val accent = ColorStateList.valueOf(p.accent)
+        val trackOff = ColorStateList.valueOf(0x338E8E93)
+        listOf(sliderSpeed, sliderPitch).forEach {
+            it.thumbTintList = accent
+            it.trackActiveTintList = accent
+            it.trackInactiveTintList = trackOff
+            it.haloTintList = ColorStateList.valueOf((p.accent and 0x00FFFFFF) or 0x33000000)
+        }
+        val states = arrayOf(intArrayOf(android.R.attr.state_checked), intArrayOf())
+        val thumb = ColorStateList(states, intArrayOf(0xFFFFFFFF.toInt(), 0xFFF4F4F5.toInt()))
+        val track = ColorStateList(states, intArrayOf(p.accent, 0xFFB0B0B5.toInt()))
+        listOf(switchSounds, switchTtsEnabled, switchOverlay, switchHideClock).forEach {
+            it.thumbTintList = thumb
+            it.trackTintList = track
+        }
+    }
+
+    private fun paintTree(v: View, p: ThemePalette) {
+        when {
+            v is MaterialCardView -> v.setCardBackgroundColor(p.card)
+            v is MaterialButton -> {}
+            v is TextView -> v.setTextColor(if (v.tag == "secondary") p.textSecondary else p.text)
+        }
+        if (v.tag == "divider") v.setBackgroundColor(if (p.key == "noche") 0x33FFFFFF else 0x1F000000)
+        if (v is ViewGroup) for (i in 0 until v.childCount) paintTree(v.getChildAt(i), p)
     }
 
     // ====================== SONIDOS ======================
@@ -168,29 +248,17 @@ class SettingsActivity : AppCompatActivity() {
         prefs.edit().putString("selected_theme", themeKey).apply()
         updateThemeUI(themeKey, indicators)
         themeText.text = labelForTheme(themeKey)
-        Toast.makeText(this, "Tema cambiado", Toast.LENGTH_SHORT).show()
+        applyPalette() // se ve el cambio al instante
         sound.play(R.raw.check_on)
     }
 
     private fun updateThemeUI(themeKey: String, indicators: Map<String, ImageView>) {
-        // Ocultar todos los checks
-        indicators.values.forEach { it.visibility = View.GONE }
-        // Mostrar el check del tema seleccionado
-        indicators[themeKey]?.visibility = View.VISIBLE
-
-        // Quitar el fondo azul a todos los contenedores
-        themeSol.setBackgroundResource(0)
-        themeNubes.setBackgroundResource(0)
-        themeLuna.setBackgroundResource(0)
-
-        // Poner el fondo azul solo al seleccionado
-        val selectedView = when(themeKey) {
-            "amanecer" -> themeSol
-            "caribe" -> themeNubes
-            "noche" -> themeLuna
-            else -> themeSol
+        // Un solo origen de verdad: "selected" controla el fondo y el check de cada opción
+        val options = mapOf("amanecer" to themeSol, "caribe" to themeNubes, "noche" to themeLuna)
+        options.forEach { (key, view) -> view.isSelected = key == themeKey }
+        indicators.forEach { (key, check) ->
+            check.visibility = if (key == themeKey) View.VISIBLE else View.GONE
         }
-        selectedView.setBackgroundResource(R.drawable.bg_theme_selected)
     }
 
     private fun labelForTheme(key: String): String = when (key) {
@@ -327,6 +395,7 @@ class SettingsActivity : AppCompatActivity() {
             toggleOverlayService(false)
         }
         updateOverlayUI(overlayEnabled)
+        updateLauncherUI()
     }
 
     override fun onDestroy() {

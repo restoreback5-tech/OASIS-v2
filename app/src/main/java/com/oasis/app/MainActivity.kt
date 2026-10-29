@@ -4,20 +4,29 @@ import android.Manifest
 import android.content.Intent
 import android.content.SharedPreferences
 import android.content.pm.PackageManager
+import android.content.res.ColorStateList
 import android.graphics.drawable.Animatable
 import android.os.Bundle
 import android.os.Handler
 import android.os.Looper
 import android.util.Log
+import android.view.GestureDetector
+import android.view.MotionEvent
 import android.view.View
 import android.widget.ImageView
 import android.widget.TextView
+import androidx.activity.OnBackPressedCallback
+import androidx.activity.result.contract.ActivityResultContracts
 import androidx.appcompat.app.AppCompatActivity
 import androidx.core.content.ContextCompat
-import com.google.android.material.button.MaterialButton
+import androidx.core.view.ViewCompat
+import androidx.core.view.WindowCompat
+import androidx.core.view.WindowInsetsCompat
+import androidx.core.view.updatePadding
 import java.text.SimpleDateFormat
 import java.util.Calendar
 import java.util.Locale
+import kotlin.math.abs
 
 class MainActivity : AppCompatActivity() {
 
@@ -30,6 +39,12 @@ class MainActivity : AppCompatActivity() {
     private lateinit var appLauncher: AppLauncherModule
     private lateinit var prefs: SharedPreferences
     private lateinit var phoneActions: PhoneActionsModule
+
+    // === LAUNCHER ===
+    private lateinit var swipeDetector: GestureDetector
+    private val roleLauncher = registerForActivityResult(
+        ActivityResultContracts.StartActivityForResult()
+    ) { /* el sistema ya aplica la elección del usuario */ }
 
     // === ORBE ===
     private var orbState = "idle"
@@ -50,7 +65,14 @@ class MainActivity : AppCompatActivity() {
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
+        // Pantalla completa: el fondo de pantalla del teléfono se ve detrás de las barras
+        WindowCompat.setDecorFitsSystemWindows(window, false)
         setContentView(R.layout.activity_main)
+        ViewCompat.setOnApplyWindowInsetsListener(findViewById(R.id.content)) { v, insets ->
+            val bars = insets.getInsets(WindowInsetsCompat.Type.systemBars())
+            v.updatePadding(top = bars.top, bottom = bars.bottom, left = bars.left, right = bars.right)
+            insets
+        }
 
         prefs = getSharedPreferences("oasis_settings", MODE_PRIVATE)
 
@@ -119,6 +141,9 @@ class MainActivity : AppCompatActivity() {
             voice.startListening()
         }
 
+        // 7b. Comportamiento de launcher
+        setupLauncherBehavior()
+
         // 8. Botones principales
         setupBtn(R.id.btn_call, "Llamar") { phoneActions.openDialer() }
         setupBtn(R.id.btn_message, "Enviar mensaje") { phoneActions.openSms() }
@@ -130,7 +155,7 @@ class MainActivity : AppCompatActivity() {
     private fun tv(id: Int): TextView? = findViewById<TextView?>(id)
 
     private fun setupBtn(id: Int, text: String, action: () -> Unit) {
-        findViewById<MaterialButton?>(id)?.setOnClickListener { v ->
+        findViewById<View?>(id)?.setOnClickListener { v ->
             sound.play(R.raw.touch)
             pulseAnimation(v)
             toast.show(text)
@@ -224,48 +249,73 @@ class MainActivity : AppCompatActivity() {
         }
     }
 
+    // ====================== LAUNCHER ======================
+    private fun setupLauncherBehavior() {
+        // Deslizar hacia arriba abre el cajón de apps
+        swipeDetector = GestureDetector(this, object : GestureDetector.SimpleOnGestureListener() {
+            override fun onFling(e1: MotionEvent?, e2: MotionEvent, velocityX: Float, velocityY: Float): Boolean {
+                if (e1 == null) return false
+                val dy = e1.y - e2.y
+                val dx = e2.x - e1.x
+                if (dy > 150 && velocityY < -800 && dy > abs(dx)) {
+                    appLauncher.showAllApps()
+                    return true
+                }
+                return false
+            }
+        })
+
+        // Como launcher, "Atrás" no debe cerrar la pantalla de inicio
+        onBackPressedDispatcher.addCallback(this, object : OnBackPressedCallback(true) {
+            override fun handleOnBackPressed() {
+                if (!LauncherHelper.isDefaultLauncher(this@MainActivity)) finish()
+            }
+        })
+
+        // Una sola vez: ofrecer ser el launcher predeterminado
+        if (!LauncherHelper.isDefaultLauncher(this) && !prefs.getBoolean("launcher_prompt_done", false)) {
+            prefs.edit().putBoolean("launcher_prompt_done", true).apply()
+            orbView.postDelayed({
+                if (!isFinishing) LauncherHelper.requestDefaultLauncher(this, roleLauncher)
+            }, 2500)
+        }
+    }
+
+    override fun dispatchTouchEvent(ev: MotionEvent): Boolean {
+        if (::swipeDetector.isInitialized) swipeDetector.onTouchEvent(ev)
+        return super.dispatchTouchEvent(ev)
+    }
+
+    /** El botón Inicio estando ya en OASIS: cierra el cajón y vuelve al estado base. */
+    override fun onNewIntent(intent: Intent) {
+        super.onNewIntent(intent)
+        if (intent.hasCategory(Intent.CATEGORY_HOME)) {
+            appLauncher.dismissAllApps()
+            resetOrbToIdle()
+        }
+    }
+
     // ====================== TEMAS ======================
     private fun applyTheme() {
-        val theme = prefs.getString("selected_theme", "amanecer") ?: "amanecer"
-        Log.d("MainActivity", "Aplicando tema: $theme")
-
+        val p = ThemePalette.from(this, prefs.getString("selected_theme", "amanecer"))
+        Log.d("MainActivity", "Aplicando tema: ${p.key}")
         try {
-            // Fondo
-            val bgRes = when (theme) {
-                "caribe" -> R.color.caribe_background
-                "noche"  -> R.color.oscuro_background
-                else     -> R.color.amanecer_background
-            }
-            window.decorView.setBackgroundColor(ContextCompat.getColor(this, bgRes))
+            findViewById<View>(R.id.scrim).setBackgroundColor(p.scrim)
+            findViewById<View>(R.id.dock).backgroundTintList = ColorStateList.valueOf(p.dock)
 
-            // Status bar
-            val statusRes = when (theme) {
-                "caribe" -> R.color.status_bar_caribe
-                "noche"  -> R.color.status_bar_oscuro
-                else     -> R.color.status_bar_amanecer
-            }
-            window.statusBarColor = ContextCompat.getColor(this, statusRes)
-
-            // Iconos status bar (claro/oscuro)
-            if (android.os.Build.VERSION.SDK_INT >= android.os.Build.VERSION_CODES.M) {
-                val light = theme != "noche"
-                @Suppress("DEPRECATION")
-                window.decorView.systemUiVisibility = if (light)
-                    View.SYSTEM_UI_FLAG_LIGHT_STATUS_BAR else 0
+            // Iconos de la barra de estado/navegación (oscuros sobre fondos claros)
+            WindowCompat.getInsetsController(window, window.decorView).apply {
+                isAppearanceLightStatusBars = p.lightSystemBarIcons
+                isAppearanceLightNavigationBars = p.lightSystemBarIcons
             }
 
-            // Texto
-            val textRes = when (theme) {
-                "caribe" -> R.color.caribe_text
-                "noche"  -> R.color.oscuro_text
-                else     -> R.color.amanecer_text
-            }
-            val color = ContextCompat.getColor(this, textRes)
-            tv(R.id.tv_time)?.setTextColor(color)
-            tv(R.id.tv_ampm)?.setTextColor(color)
-            tv(R.id.greeting_text)?.setTextColor(color)
+            listOf(R.id.tv_time, R.id.tv_ampm, R.id.greeting_text,
+                R.id.lbl_call, R.id.lbl_message, R.id.lbl_contacts, R.id.lbl_apps
+            ).forEach { tv(it)?.setTextColor(p.text) }
+            tv(R.id.status_text)?.setTextColor(p.textSecondary)
+            findViewById<ImageView?>(R.id.btn_settings)?.imageTintList = ColorStateList.valueOf(p.text)
         } catch (e: Exception) {
-            Log.e("MainActivity", "Error aplicando tema '$theme': ${e.message}")
+            Log.e("MainActivity", "Error aplicando tema '${p.key}': ${e.message}")
         }
     }
 

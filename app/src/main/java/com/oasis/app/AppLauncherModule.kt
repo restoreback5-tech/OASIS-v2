@@ -1,6 +1,6 @@
 package com.oasis.app
 
-import android.app.AlertDialog
+import android.app.Dialog
 import android.content.Context
 import android.content.Intent
 import android.content.pm.PackageManager
@@ -8,8 +8,11 @@ import android.hardware.camera2.CameraCharacteristics
 import android.hardware.camera2.CameraManager
 import android.provider.Settings
 import android.util.Log
+import android.text.Editable
+import android.text.TextWatcher
 import android.view.LayoutInflater
-import android.widget.Button
+import android.view.View
+import android.widget.EditText
 import android.widget.Toast
 import androidx.recyclerview.widget.GridLayoutManager
 import androidx.recyclerview.widget.RecyclerView
@@ -249,25 +252,43 @@ class AppLauncherModule(
         }
     }
 
+    private var drawerDialog: Dialog? = null
+
+    /** Cajón de aplicaciones: A-Z, con buscador. Se abre con el botón Apps o deslizando hacia arriba. */
     fun showAllApps() {
+        if (drawerDialog?.isShowing == true) return
         try {
             val intent = Intent(Intent.ACTION_MAIN, null)
             intent.addCategory(Intent.CATEGORY_LAUNCHER)
             val apps = pm.queryIntentActivities(intent, 0)
+                .filter { it.activityInfo.packageName != context.packageName }
 
-            val dialogView = LayoutInflater.from(context).inflate(R.layout.dialog_all_apps, null)
-            val recyclerView = dialogView.findViewById<RecyclerView>(R.id.rv_apps)
-            recyclerView.layoutManager = GridLayoutManager(context, 3)
-            recyclerView.adapter = AppListAdapter(context, apps, pm)
+            val view = LayoutInflater.from(context).inflate(R.layout.dialog_all_apps, null)
+            val dialog = Dialog(context, R.style.Theme_OASIS_AppDrawer)
+            val appsAdapter = AppListAdapter(context, apps, pm) { dialog.dismiss() }
 
-            val dialog = AlertDialog.Builder(context)
-                .setView(dialogView)
-                .setCancelable(true)
-                .create()
-
-            dialogView.findViewById<Button>(R.id.btn_close_apps).setOnClickListener {
-                dialog.dismiss()
+            view.findViewById<RecyclerView>(R.id.rv_apps).apply {
+                layoutManager = GridLayoutManager(context, 4)
+                adapter = appsAdapter
             }
+            view.findViewById<EditText>(R.id.et_search_apps).apply {
+                addTextChangedListener(object : TextWatcher {
+                    override fun afterTextChanged(s: Editable?) { appsAdapter.filter(s?.toString().orEmpty()) }
+                    override fun beforeTextChanged(s: CharSequence?, a: Int, b: Int, c: Int) {}
+                    override fun onTextChanged(s: CharSequence?, a: Int, b: Int, c: Int) {}
+                })
+                setOnEditorActionListener { _, _, _ -> appsAdapter.launchSingleMatch() }
+            }
+            view.findViewById<View>(R.id.btn_close_apps).setOnClickListener { dialog.dismiss() }
+            view.findViewById<View>(R.id.drawer_dismiss_area).setOnClickListener { dialog.dismiss() }
+
+            dialog.setContentView(view)
+            dialog.window?.setLayout(
+                android.view.ViewGroup.LayoutParams.MATCH_PARENT,
+                android.view.ViewGroup.LayoutParams.MATCH_PARENT
+            )
+            dialog.setOnDismissListener { if (drawerDialog === dialog) drawerDialog = null }
+            drawerDialog = dialog
 
             sound.play(R.raw.apps_launch)
             dialog.show()
@@ -275,5 +296,11 @@ class AppLauncherModule(
             Log.e("AppLauncher", "showAllApps falló: ${e.message}")
             Toast.makeText(context, "No pude abrir la lista de apps", Toast.LENGTH_SHORT).show()
         }
+    }
+
+    /** Cierra el cajón si está abierto (p. ej. al pulsar Inicio). */
+    fun dismissAllApps() {
+        try { drawerDialog?.dismiss() } catch (_: Exception) {}
+        drawerDialog = null
     }
 }
