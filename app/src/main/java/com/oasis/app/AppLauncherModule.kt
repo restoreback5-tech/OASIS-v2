@@ -25,73 +25,15 @@ class AppLauncherModule(
     private val pm: PackageManager = context.packageManager
     private var flashlightOn = false
 
-    // Mapeo de aliases a package names
-    private val appAliases = mapOf(
-        // Mensajería
-        "whatsapp" to "com.whatsapp",
-        "wasap" to "com.whatsapp",
-        "wsp" to "com.whatsapp",
-        "telegram" to "org.telegram.messenger",
-        "signal" to "org.thoughtcrime.securesms",
-
-        // Redes Sociales
-        "facebook" to "com.facebook.katana",
-        "fb" to "com.facebook.katana",
-        "instagram" to "com.instagram.android",
-        "insta" to "com.instagram.android",
-        "twitter" to "com.twitter.android",
-        "x" to "com.twitter.android",
-        "tiktok" to "com.zhiliaoapp.musically",
-
-        // Google
-        "youtube" to "com.google.android.youtube",
-        "tubo" to "com.google.android.youtube",
-        "chrome" to "com.android.chrome",
-        "navegador" to "com.android.chrome",
-        "google" to "com.android.chrome",
-        "maps" to "com.google.android.apps.maps",
-        "mapas" to "com.google.android.apps.maps",
-        "gmail" to "com.google.android.gm",
-        "drive" to "com.google.android.apps.docs",
-        "fotos" to "com.google.android.apps.photos",
-        "galeria" to "com.google.android.apps.photos",
-        "galería" to "com.google.android.apps.photos",
-
-        // Entretenimiento
-        "spotify" to "com.spotify.music",
-        "netflix" to "com.netflix.mediaclient",
-        "disney" to "com.disney.disneyplus",
-        "hbo" to "com.hbo.hbonow",
-        "prime" to "com.amazon.avod.thirdpartyclient",
-        "amazon" to "com.amazon.avod.thirdpartyclient",
-
-        // Utilidades
-        "reloj" to "com.google.android.deskclock",
-        "alarma" to "com.google.android.deskclock",
-        "contactos" to "com.google.android.contacts",
-        "configuración" to "com.android.settings",
-        "settings" to "com.android.settings",
-
-        // Transporte
-        "uber" to "com.ubercab",
-        "didi" to "com.sdu.didi.psnger",
-        "waze" to "com.waze",
-
-        // Financieras
-        "paypal" to "com.paypal.android.p2pmobile",
-        "bbva" to "com.bbva.netcash",
-        "santander" to "com.santander.app"
-    )
-
     fun launchApp(appName: String): Boolean {
-        val normalized = appName.lowercase().trim()
+        val normalized = TextMatch.normalize(appName)
 
-        // 1. Casos especiales con lógica dedicada
+        // 1. Casos especiales con lógica dedicada (texto sin acentos)
         when {
             normalized.contains("linterna") || normalized.contains("flashlight") ->
                 return toggleFlashlight()
 
-            normalized.contains("cámara") || normalized.contains("camara") ->
+            normalized.contains("camara") ->
                 return launchCameraApp()
 
             normalized.contains("calculadora") ->
@@ -101,20 +43,18 @@ class AppLauncherModule(
                 return launchFilesApp()
 
             normalized.contains("ajustes") || normalized.contains("settings") ||
-                    normalized.contains("configuración") || normalized.contains("configuracion") ->
+                    normalized.contains("configuracion") ->
                 return launchSettingsApp()
 
             normalized.contains("calendario") || normalized.contains("calendar") ->
                 return launchCalendarApp()
         }
 
-        // 2. Buscar en aliases (apps conocidas)
-        val knownPackage = appAliases.entries.find {
-            normalized.contains(it.key)
-        }?.value
+        // 2. Apps conocidas (registro central, alias por palabra completa)
+        val knownPackage = AppRegistry.packageFor(normalized)
         if (knownPackage != null && launchPackage(knownPackage)) return true
 
-        // 3. Búsqueda por nombre visible
+        // 3. Búsqueda por nombre visible (tolera errores del reconocimiento de voz)
         return searchAndLaunchByLabel(normalized)
     }
 
@@ -239,16 +179,38 @@ class AppLauncherModule(
         }
     }
 
+    /**
+     * Busca entre las apps instaladas: nombre exacto, luego que contenga el texto,
+     * y al final el más parecido (p. ej. "netflis" -> "Netflix").
+     */
     private fun searchAndLaunchByLabel(name: String): Boolean {
         return try {
-            val intent = Intent(Intent.ACTION_MAIN, null)
-            intent.addCategory(Intent.CATEGORY_LAUNCHER)
-            val apps = pm.queryIntentActivities(intent, 0)
-            val match = apps.firstOrNull {
-                it.loadLabel(pm).toString().lowercase().contains(name)
-            }
-            if (match != null) launchPackage(match.activityInfo.packageName) else false
+            val target = TextMatch.normalize(name)
+            if (target.length < 2) return false
+
+            val intent = Intent(Intent.ACTION_MAIN, null).addCategory(Intent.CATEGORY_LAUNCHER)
+            val labeled = pm.queryIntentActivities(intent, 0)
+                .filter { it.activityInfo.packageName != context.packageName }
+                .map { it to TextMatch.normalize(it.loadLabel(pm).toString()) }
+
+            val limit = TextMatch.fuzzyLimit(target.length)
+            val match = labeled.firstOrNull { it.second == target }
+                ?: labeled.firstOrNull { (_, label) ->
+                    target.length >= 3 && label.length >= 3 &&
+                        (label.contains(target) || target.contains(label))
+                }
+                ?: labeled
+                    .map { it to TextMatch.levenshtein(it.second, target) }
+                    .filter { it.second <= limit }
+                    .minByOrNull { it.second }
+                    ?.first
+
+            if (match != null) {
+                val ai = match.first.activityInfo
+                launchComponent(ComponentName(ai.packageName, ai.name))
+            } else false
         } catch (e: Exception) {
+            Log.w("AppLauncher", "searchAndLaunchByLabel falló: ${e.message}")
             false
         }
     }

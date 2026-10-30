@@ -40,6 +40,10 @@ jobs:
         # Muestra el contenido para debug (opcional, oculta la clave real por seguridad en logs)
         cat local.properties | grep -v "key="
 
+    - name: Unit tests (informativo, no bloquea el APK)
+      run: ./gradlew testDebugUnitTest --stacktrace
+      continue-on-error: true
+
     - name: Build Debug APK
       run: ./gradlew assembleDebug --stacktrace
 

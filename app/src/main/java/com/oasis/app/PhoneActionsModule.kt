@@ -68,33 +68,32 @@ class PhoneActionsModule(
         }
     }
 
-    fun dialNumber(number: String) {
+    fun dialNumber(number: String, spokenName: String? = null) {
         try {
             val cleanNumber = number.replace(Regex("[^0-9+#*]"), "")
             val intent = Intent(Intent.ACTION_DIAL).apply {
                 data = Uri.parse("tel:$cleanNumber")
             }
             startActivitySafe(intent, "No se pudo iniciar la llamada")
-            tts.speak("Marcando $number")
+            tts.speak(if (spokenName.isNullOrBlank()) "Marcando $number" else "Llamando a $spokenName")
         } catch (e: Exception) {
             tts.speak("No se pudo marcar el número")
         }
     }
 
+    /** Busca el contacto por nombre y abre el marcador con su número (el usuario confirma con un toque). */
     fun searchContactAndDial(contactName: String) {
         if (!hasPermission(Manifest.permission.READ_CONTACTS)) {
             tts.speak("Necesito permiso para acceder a tus contactos")
             return
         }
-        try {
-            val intent = Intent(Intent.ACTION_VIEW).apply {
-                data = ContactsContract.Contacts.CONTENT_URI
-                putExtra(ContactsContract.Intents.Insert.NAME, contactName)
-            }
-            startActivitySafe(intent, "No se encontró la aplicación de contactos")
-        } catch (e: Exception) {
-            openDialer()
+        val number = lookupContactNumber(contactName)
+        if (!number.isNullOrEmpty()) {
+            dialNumber(number, contactName)
+            return
         }
+        tts.speak("No encontré a $contactName")
+        openContacts()
     }
 
     // === MENSAJES Y SMS ===
@@ -188,14 +187,33 @@ class PhoneActionsModule(
         if (!hasPermission(Manifest.permission.READ_CONTACTS)) return null
         return try {
             val uri = ContactsContract.CommonDataKinds.Phone.CONTENT_URI
-            val projection = arrayOf(ContactsContract.CommonDataKinds.Phone.NUMBER)
-            val selection = "${ContactsContract.CommonDataKinds.Phone.DISPLAY_NAME} LIKE ?"
-            val args = arrayOf("%$name%")
-            context.contentResolver.query(uri, projection, selection, args, null)?.use { cursor ->
-                if (cursor.moveToFirst()) {
-                    cursor.getString(0)?.replace(Regex("[^0-9+#*]"), "")
-                } else null
+            val nameCol = ContactsContract.CommonDataKinds.Phone.DISPLAY_NAME
+            val numCol = ContactsContract.CommonDataKinds.Phone.NUMBER
+
+            // 1) Rápido: LIKE de SQLite (no distingue acentos: "Maria" no encuentra "María")
+            val quick = context.contentResolver.query(
+                uri, arrayOf(numCol), "$nameCol LIKE ?", arrayOf("%$name%"), null
+            )?.use { c -> if (c.moveToFirst()) c.getString(0) else null }
+            if (quick != null) return quick.replace(Regex("[^0-9+#*]"), "")
+
+            // 2) Sin acentos y con tolerancia a errores de voz, comparando en memoria
+            val target = TextMatch.normalize(name)
+            val limit = TextMatch.fuzzyLimit(target.length)
+            var best: Pair<Int, String>? = null
+            context.contentResolver.query(uri, arrayOf(nameCol, numCol), null, null, null)?.use { c ->
+                var seen = 0
+                while (c.moveToNext() && seen++ < 5000) {
+                    val display = TextMatch.normalize(c.getString(0).orEmpty())
+                    val number = c.getString(1) ?: continue
+                    val dist = when {
+                        display.contains(target) -> 0
+                        else -> display.split(" ")
+                            .minOfOrNull { TextMatch.levenshtein(it, target) } ?: Int.MAX_VALUE
+                    }
+                    if (dist <= limit && (best == null || dist < best!!.first)) best = dist to number
+                }
             }
+            best?.second?.replace(Regex("[^0-9+#*]"), "")
         } catch (e: Exception) {
             Log.w("PhoneActions", "lookupContactNumber falló: ${e.message}")
             null

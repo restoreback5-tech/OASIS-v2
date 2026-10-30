@@ -28,6 +28,7 @@ object AppRegistry {
         "instagram" to "com.instagram.android",
         "insta" to "com.instagram.android",
         "twitter" to "com.twitter.android",
+        "x" to "com.twitter.android",
         "tiktok" to "com.zhiliaoapp.musically",
 
         // === Google ===
@@ -51,6 +52,18 @@ object AppRegistry {
         "hbo" to "com.hbo.hbonow",
         "prime" to "com.amazon.avod.thirdpartyclient",
         "amazon" to "com.amazon.avod.thirdpartyclient",
+
+        // === Asistentes de IA ===
+        "claude" to "com.anthropic.claude",
+        "claud" to "com.anthropic.claude",
+        "clod" to "com.anthropic.claude",
+        "cloud" to "com.anthropic.claude",
+        "chatgpt" to "com.openai.chatgpt",
+        "gemini" to "com.google.android.apps.bard",
+
+        // === Compras ===
+        "mercadolibre" to "com.mercadolibre",
+        "mercado libre" to "com.mercadolibre",
 
         // === Utilidades ===
         "reloj" to "com.google.android.deskclock",
@@ -76,21 +89,24 @@ object AppRegistry {
      * Ej: "abre wasap por favor" → "com.whatsapp"
      * Devuelve null si no encuentra ningún alias.
      */
-    fun packageFor(input: String): String? {
-        val normalized = input.lowercase().trim()
-        return aliasesToPackage.entries
-            .firstOrNull { normalized.contains(it.key) }
-            ?.value
-    }
+    fun packageFor(input: String): String? = bestMatch(input)?.value
 
     /**
      * Devuelve el alias canónico (la clave del mapa) que aparece en el texto.
-     * Ej: "wasap" → "whatsapp". Útil para hablar: "Abriendo whatsapp".
+     * Ej: "wasap" → "wasap". Útil para hablar: "Abriendo whatsapp".
      * Si no encuentra alias, devuelve el texto original limpio.
      */
-    fun canonicalAliasFor(input: String): String {
-        val normalized = input.lowercase().trim()
-        val found = aliasesToPackage.keys.firstOrNull { normalized.contains(it) }
-        return found ?: normalized
+    fun canonicalAliasFor(input: String): String =
+        bestMatch(input)?.key ?: input.lowercase().trim()
+
+    /** Alias más largo que aparece en el texto (sin acentos). Los alias cortos (≤3) deben ser palabra completa. */
+    private fun bestMatch(input: String): Map.Entry<String, String>? {
+        val text = TextMatch.normalize(input)
+        return aliasesToPackage.entries
+            .filter { (alias, _) ->
+                val a = TextMatch.normalize(alias)
+                if (a.length <= 3) TextMatch.containsWord(text, a) else text.contains(a)
+            }
+            .maxByOrNull { it.key.length }
     }
 }

@@ -11,6 +11,7 @@ import android.view.MotionEvent
 import android.view.View
 import android.view.WindowManager
 import android.widget.ImageView
+import android.widget.Toast
 
 class OverlayService : Service() {
 
@@ -19,6 +20,7 @@ class OverlayService : Service() {
     private lateinit var tts: TTSModule
     private lateinit var voiceModule: VoiceCommandModule
     private lateinit var appLauncher: AppLauncherModule
+    private lateinit var phoneActions: PhoneActionsModule
 
     private var floatingView: View? = null
     private var listeningView: View? = null
@@ -35,6 +37,7 @@ class OverlayService : Service() {
         sound = SoundModule(this)
         tts = TTSModule(this)
         appLauncher = AppLauncherModule(this, sound)
+        phoneActions = PhoneActionsModule(this, tts, sound)
 
         voiceModule = VoiceCommandModule(
             context = this,
@@ -43,6 +46,7 @@ class OverlayService : Service() {
             onListening = { isListening -> toggleListeningUI(isListening) },
             onError = { msg ->
                 tts.speak(msg)
+                Toast.makeText(this, msg, Toast.LENGTH_SHORT).show()
                 toggleListeningUI(false)
             }
         )
@@ -166,22 +170,20 @@ class OverlayService : Service() {
                 }
             }
             "call" -> {
-                val contact = params["contact"] ?: ""
-                tts.speak("Llamando a $contact")
-                val intent = Intent(Intent.ACTION_DIAL).apply {
-                    data = android.net.Uri.parse("tel:$contact")
+                val contact = params["contact"].orEmpty()
+                when {
+                    contact.isEmpty() -> tts.speak("¿A quién quieres llamar?")
+                    contact.any { it.isDigit() } -> phoneActions.dialNumber(contact)
+                    else -> {
+                        tts.speak("Buscando a $contact")
+                        phoneActions.searchContactAndDial(contact)
+                    }
                 }
-                intent.flags = Intent.FLAG_ACTIVITY_NEW_TASK
-                startActivity(intent)
             }
             "message" -> {
-                val contact = params["contact"] ?: ""
-                tts.speak("Mensaje para $contact")
-                val intent = Intent(Intent.ACTION_VIEW).apply {
-                    data = android.net.Uri.parse("sms:$contact")
-                }
-                intent.flags = Intent.FLAG_ACTIVITY_NEW_TASK
-                startActivity(intent)
+                val contact = params["contact"].orEmpty()
+                if (contact.isNotEmpty()) phoneActions.openSmsToContact(contact)
+                else phoneActions.openSms()
             }
             "cancel" -> {
                 tts.speak("Cancelado")
