@@ -22,6 +22,8 @@ class PinnedAdapter(
     private class Item(val component: ComponentName, val label: String, val icon: Drawable)
 
     private var items: List<Item> = emptyList()
+    private var iconPx = 0
+    private var showLabels = true
 
     var textColor: Int = Color.WHITE
     var useShadow: Boolean = false
@@ -45,6 +47,9 @@ class PinnedAdapter(
         }
         if (valid.size != stored.size) PinnedApps.save(context, valid.map { it.component })
         items = valid
+        // Se releen aquí para que los cambios de Ajustes se vean al volver al inicio
+        iconPx = (UiPrefs.homeIconDp(context) * context.resources.displayMetrics.density).toInt()
+        showLabels = UiPrefs.showLabels(context)
         notifyDataSetChanged()
         return items.size
     }
@@ -64,7 +69,10 @@ class PinnedAdapter(
         holder.name.setTextColor(textColor)
         if (useShadow) holder.name.setShadowLayer(6f, 0f, 1.5f, 0x99000000.toInt())
         else holder.name.setShadowLayer(0f, 0f, 0f, 0)
-        holder.icon.setImageDrawable(item.icon)
+        holder.name.visibility = if (showLabels) View.VISIBLE else View.GONE
+        holder.icon.layoutParams = holder.icon.layoutParams.apply { width = iconPx; height = iconPx }
+        holder.name.typeface = FontManager.typeface(context, false)
+        holder.icon.setImageDrawable(IconProvider.load(context, item.component, item.icon, iconPx))
 
         holder.itemView.setOnClickListener { onLaunch(item.component) }
         holder.itemView.setOnLongClickListener { v ->

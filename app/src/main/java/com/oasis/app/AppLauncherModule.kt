@@ -255,6 +255,7 @@ class AppLauncherModule(
                 .filter { it.activityInfo.packageName != context.packageName }
 
             val view = LayoutInflater.from(context).inflate(R.layout.dialog_all_apps, null)
+            FontManager.apply(context, view)
             val dialog = Dialog(context, R.style.Theme_OASIS_AppDrawer)
             val appsAdapter = AppListAdapter(
                 context = context,
@@ -266,7 +267,7 @@ class AppLauncherModule(
             )
 
             view.findViewById<RecyclerView>(R.id.rv_apps).apply {
-                layoutManager = GridLayoutManager(context, 4)
+                layoutManager = GridLayoutManager(context, UiPrefs.drawerColumns(context))
                 adapter = appsAdapter
             }
             view.findViewById<EditText>(R.id.et_search_apps).apply {

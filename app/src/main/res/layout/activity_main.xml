@@ -32,6 +32,7 @@
 
             <TextView
                 android:id="@+id/tv_time"
+                android:tag="strong"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
                 android:fontFamily="@font/sf_pro_display_medium"
@@ -39,6 +40,7 @@
 
             <TextView
                 android:id="@+id/tv_ampm"
+                android:tag="strong"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
                 android:layout_marginStart="6dp"
@@ -83,6 +85,7 @@
 
             <TextView
                 android:id="@+id/greeting_text"
+                android:tag="strong"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
                 android:layout_marginTop="12dp"
@@ -180,6 +183,7 @@
 
             <TextView
                 android:id="@+id/lbl_call"
+                android:tag="strong"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
                 android:layout_marginTop="8dp"
@@ -210,6 +214,7 @@
 
             <TextView
                 android:id="@+id/lbl_message"
+                android:tag="strong"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
                 android:layout_marginTop="8dp"
@@ -240,6 +245,7 @@
 
             <TextView
                 android:id="@+id/lbl_contacts"
+                android:tag="strong"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
                 android:layout_marginTop="8dp"
@@ -270,6 +276,7 @@
 
             <TextView
                 android:id="@+id/lbl_apps"
+                android:tag="strong"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
                 android:layout_marginTop="8dp"

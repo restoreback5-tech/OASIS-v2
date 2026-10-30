@@ -65,8 +65,9 @@ class MainActivity : AppCompatActivity() {
     private val clockRunnable = object : Runnable {
         override fun run() {
             val cal = Calendar.getInstance()
-            tv(R.id.tv_time)?.text = SimpleDateFormat("hh:mm", Locale.getDefault()).format(cal.time)
-            tv(R.id.tv_ampm)?.text = SimpleDateFormat("a", Locale.getDefault()).format(cal.time)
+            val h24 = UiPrefs.clock24(this@MainActivity)
+            tv(R.id.tv_time)?.text = SimpleDateFormat(if (h24) "HH:mm" else "hh:mm", Locale.getDefault()).format(cal.time)
+            tv(R.id.tv_ampm)?.text = if (h24) "" else SimpleDateFormat("a", Locale.getDefault()).format(cal.time)
             clockHandler.postDelayed(this, 1000)
         }
     }
@@ -265,7 +266,7 @@ class MainActivity : AppCompatActivity() {
         // Deslizar hacia arriba abre el cajón de apps
         swipeDetector = GestureDetector(this, object : GestureDetector.SimpleOnGestureListener() {
             override fun onFling(e1: MotionEvent?, e2: MotionEvent, velocityX: Float, velocityY: Float): Boolean {
-                if (e1 == null) return false
+                if (e1 == null || !UiPrefs.swipeUp(this@MainActivity)) return false
                 val dy = e1.y - e2.y
                 val dx = e2.x - e1.x
                 if (dy > 150 && velocityY < -800 && dy > abs(dx)) {
@@ -365,7 +366,9 @@ class MainActivity : AppCompatActivity() {
             val fg2 = if (darkText) p.textSecondary else 0xCCFFFFFF.toInt()
 
             // Velo y dock casi transparentes: dejan ver el fondo de pantalla
-            val scrim = if (darkText || p.key == "noche") p.scrim else 0x33000000
+            val baseScrim = if (darkText || p.key == "noche") p.scrim else 0x33000000
+            val custom = UiPrefs.scrimPercent(this)
+            val scrim = if (custom >= 0) ((custom * 255 / 100) shl 24) or (baseScrim and 0x00FFFFFF) else baseScrim
             val dock = if (darkText) p.dock else 0x73000000
             findViewById<View>(R.id.scrim).setBackgroundColor(scrim)
             findViewById<View>(R.id.dock).backgroundTintList = ColorStateList.valueOf(dock)
@@ -393,9 +396,27 @@ class MainActivity : AppCompatActivity() {
             }
             findViewById<ImageView?>(R.id.btn_settings)?.imageTintList = ColorStateList.valueOf(fg)
             if (::pinnedAdapter.isInitialized) pinnedAdapter.restyle(fg, !darkText)
+            FontManager.apply(this, findViewById(R.id.root))
         } catch (e: Exception) {
             Log.e("MainActivity", "Error aplicando tema '${p.key}': ${e.message}")
         }
+    }
+
+    /** Aplica los ajustes de inicio: tamaño del orbe, nombres de los botones y gesto. */
+    private fun applyHomePrefs() {
+        val px = (UiPrefs.orbDp(this) * resources.displayMetrics.density).toInt()
+        orbView.layoutParams?.let { lp ->
+            if (lp.width != px || lp.height != px) {
+                lp.width = px
+                lp.height = px
+                orbView.layoutParams = lp
+            }
+        }
+        val labels = if (UiPrefs.showLabels(this)) View.VISIBLE else View.GONE
+        listOf(R.id.lbl_call, R.id.lbl_message, R.id.lbl_contacts, R.id.lbl_apps)
+            .forEach { tv(it)?.visibility = labels }
+        findViewById<View>(R.id.swipe_handle).visibility =
+            if (UiPrefs.swipeUp(this)) View.VISIBLE else View.INVISIBLE
     }
 
     private fun applyClockVisibility() {
@@ -430,6 +451,7 @@ class MainActivity : AppCompatActivity() {
     // ====================== CICLO DE VIDA ======================
     override fun onResume() {
         super.onResume()
+        applyHomePrefs()
         applyTheme()
         applyClockVisibility()
         refreshPinned()

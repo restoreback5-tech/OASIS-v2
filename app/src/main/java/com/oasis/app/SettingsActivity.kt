@@ -13,11 +13,13 @@ import android.view.ViewGroup
 import android.widget.ImageView
 import android.widget.TextView
 import android.widget.Toast
+import androidx.appcompat.app.AlertDialog
 import androidx.activity.result.contract.ActivityResultContracts
 import androidx.appcompat.app.AppCompatActivity
 import androidx.core.view.WindowCompat
 import androidx.core.widget.ImageViewCompat
 import com.google.android.material.button.MaterialButton
+import com.google.android.material.button.MaterialButtonToggleGroup
 import com.google.android.material.card.MaterialCardView
 import com.google.android.material.slider.Slider
 import com.google.android.material.switchmaterial.SwitchMaterial
@@ -54,6 +56,22 @@ class SettingsActivity : AppCompatActivity() {
     private lateinit var indicatorSol: ImageView
     private lateinit var indicatorLuna: ImageView
     private lateinit var indicatorNubes: ImageView
+
+    // Selector de archivos para importar una fuente
+    private val fontPicker = registerForActivityResult(
+        ActivityResultContracts.OpenDocument()
+    ) { uri ->
+        if (uri != null) {
+            val error = FontManager.importFrom(this, uri)
+            if (error == null) {
+                Toast.makeText(this, "Fuente aplicada", Toast.LENGTH_SHORT).show()
+                refreshHomeTexts()
+                FontManager.apply(this, findViewById(R.id.settings_root))
+            } else {
+                Toast.makeText(this, error, Toast.LENGTH_LONG).show()
+            }
+        }
+    }
 
     // Launcher predeterminado
     private lateinit var textLauncher: TextView
@@ -132,8 +150,161 @@ class SettingsActivity : AppCompatActivity() {
         setupTtsSpeed()
         setupTtsPitch()
         setupHideClock()
+        setupHomeOptions()
         applyPalette()
         updateLauncherUI()
+    }
+
+    // ====================== PANTALLA DE INICIO / ICONOS / FUENTE ======================
+    private fun setupHomeOptions() {
+        // Tamaño y forma de iconos, columnas del cajón, tamaño del orbe
+        bindGroup(intArrayOf(R.id.size_0, R.id.size_1, R.id.size_2), UiPrefs.iconSize(this)) { UiPrefs.setIconSize(this, it) }
+        bindGroup(intArrayOf(R.id.shape_0, R.id.shape_1, R.id.shape_2), UiPrefs.iconShape(this)) { UiPrefs.setIconShape(this, it) }
+        bindGroup(intArrayOf(R.id.cols_0, R.id.cols_1, R.id.cols_2), UiPrefs.drawerColumns(this) - 3) { UiPrefs.setDrawerColumns(this, it + 3) }
+        bindGroup(intArrayOf(R.id.orb_0, R.id.orb_1, R.id.orb_2), UiPrefs.orbSize(this)) { UiPrefs.setOrbSize(this, it) }
+
+        // Interruptores
+        bindSwitch(R.id.switch_labels, UiPrefs.showLabels(this)) { UiPrefs.setShowLabels(this, it) }
+        bindSwitch(R.id.switch_swipe, UiPrefs.swipeUp(this)) { UiPrefs.setSwipeUp(this, it) }
+        bindSwitch(R.id.switch_clock24, UiPrefs.clock24(this)) { UiPrefs.setClock24(this, it) }
+
+        // Velo sobre el fondo de pantalla
+        val scrimSlider = findViewById<Slider>(R.id.seekbar_scrim)
+        val scrimText = findViewById<TextView>(R.id.text_scrim_value)
+        fun showScrim(pct: Int, auto: Boolean) {
+            scrimText.text = if (auto) "$pct % (automático)" else "$pct %"
+        }
+        fun themeDefaultPercent(): Int {
+            val p = ThemePalette.from(this, prefs.getString("selected_theme", "amanecer"))
+            return ((p.scrim ushr 24) * 100 / 255)
+        }
+        val saved = UiPrefs.scrimPercent(this)
+        scrimSlider.value = (if (saved >= 0) saved else themeDefaultPercent()).coerceIn(0, 70).toFloat()
+        showScrim(scrimSlider.value.toInt(), saved < 0)
+        scrimSlider.addOnChangeListener { _, value, fromUser ->
+            if (fromUser) {
+                UiPrefs.setScrimPercent(this, value.toInt())
+                showScrim(value.toInt(), false)
+            }
+        }
+        findViewById<View>(R.id.btn_scrim_reset).setOnClickListener {
+            UiPrefs.setScrimPercent(this, -1)
+            val d = themeDefaultPercent().coerceIn(0, 70)
+            scrimSlider.value = d.toFloat()
+            showScrim(d, true)
+            sound.play(R.raw.check_on)
+        }
+
+        // Fondo de pantalla: el sistema dibuja el fondo, aquí solo se abre su selector
+        findViewById<View>(R.id.btn_wallpaper).setOnClickListener {
+            try {
+                startActivity(Intent.createChooser(Intent(Intent.ACTION_SET_WALLPAPER), "Fondo de pantalla"))
+            } catch (e: Exception) {
+                Toast.makeText(this, "No pude abrir el selector de fondos", Toast.LENGTH_LONG).show()
+            }
+        }
+
+        // Estilo de iconos y fuente (listas de opciones)
+        findViewById<View>(R.id.btn_icon_style).setOnClickListener { showIconStyleDialog() }
+        findViewById<View>(R.id.btn_font).setOnClickListener { showFontDialog() }
+
+        // Restablecer
+        findViewById<View>(R.id.btn_reset_home).setOnClickListener {
+            AlertDialog.Builder(this)
+                .setTitle("Restablecer ajustes de inicio")
+                .setMessage("Se restauran iconos, fuente, velo, orbe y reloj. No se borran el tema, la voz ni las apps fijadas.")
+                .setPositiveButton("Restablecer") { _, _ ->
+                    UiPrefs.resetHome(this)
+                    IconProvider.invalidate()
+                    recreate()
+                }
+                .setNegativeButton("Cancelar", null)
+                .show()
+        }
+
+        findViewById<TextView>(R.id.text_version).text = "OASIS v" + try {
+            packageManager.getPackageInfo(packageName, 0).versionName
+        } catch (e: Exception) { "2" }
+
+        refreshHomeTexts()
+    }
+
+    private fun bindGroup(ids: IntArray, current: Int, onPick: (Int) -> Unit) {
+        val group = findViewById<View>(ids[0]).parent as MaterialButtonToggleGroup
+        group.check(ids[current.coerceIn(0, ids.size - 1)])
+        group.addOnButtonCheckedListener { _, checkedId, isChecked ->
+            if (isChecked) {
+                val i = ids.indexOf(checkedId)
+                if (i >= 0) { onPick(i); sound.play(R.raw.touch) }
+            }
+        }
+    }
+
+    private fun bindSwitch(id: Int, current: Boolean, onChange: (Boolean) -> Unit) {
+        findViewById<SwitchMaterial>(id).apply {
+            isChecked = current
+            setOnCheckedChangeListener { _, checked -> onChange(checked); sound.play(R.raw.check_on) }
+        }
+    }
+
+    private fun refreshHomeTexts() {
+        findViewById<TextView>(R.id.text_font).text = FontManager.currentLabel(this)
+        val pack = UiPrefs.iconPack(this)
+        findViewById<TextView>(R.id.text_icon_style).text = when {
+            pack.isNotEmpty() -> "Paquete: " + (IconPacks.installed(this).firstOrNull { it.pkg == pack }?.label ?: pack)
+            UiPrefs.iconStyle(this) == 1 -> "Monocromo (Android 13+)"
+            else -> "Originales de cada app"
+        }
+    }
+
+    private fun showFontDialog() {
+        val options = FontManager.options(this)
+        val labels = options.map { it.label } + "Importar fuente (.ttf / .otf)…"
+        val checked = options.indexOfFirst { it.key == UiPrefs.fontKey(this) }
+        AlertDialog.Builder(this)
+            .setTitle("Letra de la interfaz")
+            .setSingleChoiceItems(labels.toTypedArray(), checked) { dialog, which ->
+                dialog.dismiss()
+                if (which < options.size) {
+                    UiPrefs.setFontKey(this, options[which].key)
+                    FontManager.invalidate()
+                    refreshHomeTexts()
+                    FontManager.apply(this, findViewById(R.id.settings_root))
+                } else {
+                    fontPicker.launch(arrayOf("*/*"))
+                }
+            }
+            .setNegativeButton("Cancelar", null)
+            .show()
+    }
+
+    private fun showIconStyleDialog() {
+        val packs = IconPacks.installed(this)
+        val labels = mutableListOf("Originales de cada app", "Monocromo (Android 13+)")
+        labels += packs.map { "Paquete: " + it.label }
+        val currentPack = UiPrefs.iconPack(this)
+        val checked = when {
+            currentPack.isNotEmpty() -> 2 + packs.indexOfFirst { it.pkg == currentPack }.coerceAtLeast(0)
+            UiPrefs.iconStyle(this) == 1 -> 1
+            else -> 0
+        }
+        AlertDialog.Builder(this)
+            .setTitle("Estilo de iconos")
+            .setSingleChoiceItems(labels.toTypedArray(), checked) { dialog, which ->
+                when (which) {
+                    0 -> { UiPrefs.setIconStyle(this, 0); UiPrefs.setIconPack(this, "") }
+                    1 -> { UiPrefs.setIconStyle(this, 1); UiPrefs.setIconPack(this, "") }
+                    else -> { UiPrefs.setIconStyle(this, 0); UiPrefs.setIconPack(this, packs[which - 2].pkg) }
+                }
+                IconProvider.invalidate()
+                refreshHomeTexts()
+                dialog.dismiss()
+            }
+            .setNegativeButton("Cancelar", null)
+            .show()
+        if (packs.isEmpty()) {
+            Toast.makeText(this, "Para más estilos instala un paquete de iconos (Nova/ADW) desde Play Store", Toast.LENGTH_LONG).show()
+        }
     }
 
     // ====================== LAUNCHER PREDETERMINADO ======================
@@ -159,6 +330,7 @@ class SettingsActivity : AppCompatActivity() {
         }
 
         paintTree(findViewById(R.id.settings_root), p)
+        FontManager.apply(this, findViewById(R.id.settings_root))
 
         listOf(R.id.btn_back, R.id.icon_sol, R.id.icon_nubes, R.id.icon_luna).forEach {
             ImageViewCompat.setImageTintList(findViewById<ImageView>(it), ColorStateList.valueOf(p.text))
@@ -167,7 +339,8 @@ class SettingsActivity : AppCompatActivity() {
 
         val accent = ColorStateList.valueOf(p.accent)
         val trackOff = ColorStateList.valueOf(0x338E8E93)
-        listOf(sliderSpeed, sliderPitch).forEach {
+        findViewById<MaterialButton>(R.id.btn_scrim_reset).setTextColor(p.accent)
+        listOf(sliderSpeed, sliderPitch, findViewById<Slider>(R.id.seekbar_scrim)).forEach {
             it.thumbTintList = accent
             it.trackActiveTintList = accent
             it.trackInactiveTintList = trackOff
@@ -176,7 +349,10 @@ class SettingsActivity : AppCompatActivity() {
         val states = arrayOf(intArrayOf(android.R.attr.state_checked), intArrayOf())
         val thumb = ColorStateList(states, intArrayOf(0xFFFFFFFF.toInt(), 0xFFF4F4F5.toInt()))
         val track = ColorStateList(states, intArrayOf(p.accent, 0xFFB0B0B5.toInt()))
-        listOf(switchSounds, switchTtsEnabled, switchOverlay, switchHideClock).forEach {
+        listOf<SwitchMaterial>(
+            switchSounds, switchTtsEnabled, switchOverlay, switchHideClock,
+            findViewById(R.id.switch_labels), findViewById(R.id.switch_swipe), findViewById(R.id.switch_clock24)
+        ).forEach {
             it.thumbTintList = thumb
             it.trackTintList = track
         }
@@ -185,7 +361,7 @@ class SettingsActivity : AppCompatActivity() {
     private fun paintTree(v: View, p: ThemePalette) {
         when {
             v is MaterialCardView -> v.setCardBackgroundColor(p.card)
-            v is MaterialButton -> {}
+            v is MaterialButton -> if (v.id != R.id.btn_set_launcher) v.setTextColor(p.text)
             v is TextView -> v.setTextColor(if (v.tag == "secondary") p.textSecondary else p.text)
         }
         if (v.tag == "divider") v.setBackgroundColor(if (p.key == "noche") 0x33FFFFFF else 0x1F000000)

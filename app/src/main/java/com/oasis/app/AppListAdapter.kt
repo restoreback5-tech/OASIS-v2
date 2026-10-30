@@ -24,6 +24,9 @@ class AppListAdapter(
 
     private class Entry(val info: ResolveInfo, val label: String)
 
+    private val iconPx = (UiPrefs.drawerIconDp(context) * context.resources.displayMetrics.density).toInt()
+    private val showLabels = UiPrefs.showLabels(context)
+
     // Las etiquetas se cargan una sola vez (loadLabel es costoso) y quedan ordenadas A-Z
     private val all: List<Entry> = apps
         .map { Entry(it, it.loadLabel(packageManager).toString()) }
@@ -56,7 +59,16 @@ class AppListAdapter(
     override fun onBindViewHolder(holder: AppViewHolder, position: Int) {
         val entry = shown[position]
         holder.name.text = entry.label
-        holder.icon.setImageDrawable(entry.info.loadIcon(packageManager))
+        holder.name.visibility = if (showLabels) View.VISIBLE else View.GONE
+        holder.icon.layoutParams = holder.icon.layoutParams.apply { width = iconPx; height = iconPx }
+        holder.name.typeface = FontManager.typeface(context, false)
+        val ai = entry.info.activityInfo
+        holder.icon.setImageDrawable(
+            IconProvider.load(
+                context, ComponentName(ai.packageName, ai.name),
+                entry.info.loadIcon(packageManager), iconPx
+            )
+        )
         holder.itemView.setOnClickListener { launch(entry) }
         holder.itemView.setOnLongClickListener { v ->
             val toggle = onTogglePin ?: return@setOnLongClickListener false
