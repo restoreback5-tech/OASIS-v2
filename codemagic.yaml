@@ -1,0 +1,14 @@
+workflows:
+  android-workflow:
+    name: OASIS-v2 Build
+    instance_type: linux_x2
+    max_build_duration: 60
+    environment:
+      java: 17
+    scripts:
+      - name: Build Debug APK
+        script: |
+          chmod +x gradlew
+          ./gradlew assembleDebug
+    artifacts:
+      - app/build/outputs/apk/debug/*.apk
