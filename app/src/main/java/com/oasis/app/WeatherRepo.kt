@@ -25,8 +25,9 @@ object WeatherRepo {
     fun city(ctx: Context): String = prefs(ctx).getString("weather_city", "") ?: ""
 
     fun cached(ctx: Context): Weather? = try {
-        val o = JSONObject(prefs(ctx).getString("weather_json", "") ?: return null)
-        if (o.optString("city") != city(ctx)) null
+        val raw = prefs(ctx).getString("weather_json", "") ?: throw IllegalStateException("sin caché")
+        val o = JSONObject(raw) 
+     if (o.optString("city") != city(ctx)) null
         else Weather(o.getString("city"), o.getInt("temp"), o.getInt("code"), o.getInt("max"), o.getInt("min"), o.getLong("ts"))
     } catch (e: Exception) { null }
 
