@@ -272,6 +272,8 @@ class AppLauncherModule(
 
             view.findViewById<RecyclerView>(R.id.rv_apps).apply {
                 layoutManager = GridLayoutManager(context, UiPrefs.drawerColumns(context))
+                if (Fx.enabled(context)) layoutAnimation =
+                    android.view.animation.AnimationUtils.loadLayoutAnimation(context, R.anim.layout_cascade)
                 adapter = appsAdapter
             }
             view.findViewById<EditText>(R.id.et_search_apps).apply {
@@ -293,12 +295,25 @@ class AppLauncherModule(
             dialog.setOnDismissListener { if (drawerDialog === dialog) drawerDialog = null }
             drawerDialog = dialog
 
+            if (blurAvailable()) {
+                dialog.window?.let { w ->
+                    w.addFlags(android.view.WindowManager.LayoutParams.FLAG_BLUR_BEHIND)
+                    w.attributes = w.attributes.apply { blurBehindRadius = 48 }
+                }
+            }
             sound.play(R.raw.apps_launch)
             dialog.show()
         } catch (e: Exception) {
             Log.e("AppLauncher", "showAllApps falló: ${e.message}")
             Toast.makeText(context, "No pude abrir la lista de apps", Toast.LENGTH_SHORT).show()
         }
+    }
+
+    private fun blurAvailable(): Boolean {
+        if (!Fx.enabled(context) || android.os.Build.VERSION.SDK_INT < android.os.Build.VERSION_CODES.S) return false
+        return try {
+            (context.getSystemService(Context.WINDOW_SERVICE) as android.view.WindowManager).isCrossWindowBlurEnabled
+        } catch (e: Exception) { false }
     }
 
     private class DrawerColors(val bg: Int, val text: Int, val hint: Int, val field: Int)
@@ -313,8 +328,10 @@ class AppLauncherModule(
             2 -> true
             else -> theme == "noche" || systemNight
         }
-        return if (dark) DrawerColors(0xF2161A21.toInt(), 0xFFE8EBF0.toInt(), 0xFF9AA3B2.toInt(), 0x26FFFFFF)
-        else DrawerColors(0xF2EAEEF4.toInt(), 0xFF1F2430.toInt(), 0xFF5F6877.toInt(), 0x14000000)
+        // Con desenfoque real (Android 12+) el panel es más translúcido para que se note el vidrio
+        val a = if (blurAvailable()) 0xB8000000.toInt() else 0xF2000000.toInt()
+        return if (dark) DrawerColors(a or 0x161A21, 0xFFE8EBF0.toInt(), 0xFF9AA3B2.toInt(), 0x26FFFFFF)
+        else DrawerColors(a or 0xEAEEF4, 0xFF1F2430.toInt(), 0xFF5F6877.toInt(), 0x14000000)
     }
 
     private fun styleDrawer(view: View, c: DrawerColors) {

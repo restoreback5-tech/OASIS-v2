@@ -19,6 +19,7 @@ class PageScroller @JvmOverloads constructor(
 ) : HorizontalScrollView(context, attrs) {
 
     var onPageChanged: ((Int) -> Unit)? = null
+    var onScrollX: ((Int) -> Unit)? = null
     var page = 0
         private set
 
@@ -69,6 +70,7 @@ class PageScroller @JvmOverloads constructor(
 
     override fun onScrollChanged(l: Int, t: Int, oldl: Int, oldt: Int) {
         super.onScrollChanged(l, t, oldl, oldt)
+        onScrollX?.invoke(l)
         val n = nearest()
         if (n != page) { page = n; onPageChanged?.invoke(n) }
     }

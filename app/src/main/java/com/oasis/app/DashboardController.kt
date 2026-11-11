@@ -25,6 +25,7 @@ import java.util.Calendar
 import java.util.Date
 import java.util.Locale
 import java.util.concurrent.Executors
+import kotlin.math.abs
 
 /**
  * Páginas "Hoy" y "Mi teléfono" del dashboard, más los puntos de página.
@@ -81,7 +82,11 @@ class DashboardController(
         dots = v(R.id.page_dots)
         pageToday = v(R.id.page_today)
         pageSystem = v(R.id.page_system)
-        pager.onPageChanged = { updateDots(); refreshForPage() }
+        pager.onPageChanged = { updateDots(); refreshForPage(); playEntrance() }
+        pager.onScrollX = { x -> parallax(x) }
+        listOf(R.id.card_battery, R.id.card_net, R.id.card_ram, R.id.card_rom, R.id.card_weather)
+            .forEach { Fx.pressable(v(it), 0.97f) }
+        Fx.pressable(v(R.id.btn_talk), 0.97f)
 
         tv(R.id.tv_today_date).text =
             SimpleDateFormat("EEEE d 'de' MMMM", Locale.getDefault()).format(Date()).replaceFirstChar { it.uppercase() }
@@ -123,6 +128,7 @@ class DashboardController(
     // ====================== CICLO ======================
     fun onResume() {
         alive = true
+        parallax(pager.scrollX)
         running = true
         tick = 0
         updateQuickStats()
@@ -149,6 +155,7 @@ class DashboardController(
         pager.relayoutPages()
         if (pager.page >= pager.pageCount()) pager.goTo(0, false)
         updateDots()
+        parallax(pager.scrollX)
     }
 
     fun goHome() = pager.goTo(0, true)
@@ -176,18 +183,70 @@ class DashboardController(
     // ====================== PUNTOS ======================
     private fun updateDots() {
         val n = pager.pageCount()
-        dots.removeAllViews()
-        dots.visibility = if (n <= 1) View.GONE else View.VISIBLE
         val d = act.resources.displayMetrics.density
-        for (i in 0 until n) {
-            val dot = View(act)
-            val size = (8 * d).toInt()
-            dot.layoutParams = LinearLayout.LayoutParams(size, size).apply { marginStart = (4 * d).toInt(); marginEnd = (4 * d).toInt() }
-            dot.setBackgroundResource(R.drawable.bg_dot)
-            dot.backgroundTintList = ColorStateList.valueOf(fg)
-            dot.alpha = if (i == pager.page) 0.95f else 0.35f
-            dots.addView(dot)
+        dots.visibility = if (n <= 1) View.GONE else View.VISIBLE
+        if (dots.childCount != n) {
+            dots.removeAllViews()
+            for (i in 0 until n) {
+                val dot = View(act)
+                dot.layoutParams = LinearLayout.LayoutParams((8 * d).toInt(), (8 * d).toInt())
+                    .apply { marginStart = (4 * d).toInt(); marginEnd = (4 * d).toInt() }
+                dot.setBackgroundResource(R.drawable.bg_dot)
+                dots.addView(dot)
+            }
         }
+        for (i in 0 until n) {
+            val dot = dots.getChildAt(i)
+            dot.backgroundTintList = ColorStateList.valueOf(fg)
+            val active = i == pager.page
+            dot.animate().alpha(if (active) 0.95f else 0.35f).setDuration(200).start()
+            Fx.animateWidth(dot, ((if (active) 22 else 8) * d).toInt())
+        }
+    }
+
+    // ====================== ANIMACIONES ======================
+    /** Páginas con profundidad: las vecinas se alejan, se achican y se desvanecen mientras deslizas. */
+    private fun parallax(x: Int) {
+        val w = pager.width
+        if (w == 0) return
+        val on = Fx.enabled(act)
+        val strip = v<ViewGroup>(R.id.pages)
+        var i = 0
+        for (k in 0 until strip.childCount) {
+            val c = strip.getChildAt(k)
+            if (c.visibility == View.GONE) continue
+            if (on) {
+                val dd = (i * w - x).toFloat() / w
+                val a = abs(dd).coerceAtMost(1f)
+                c.alpha = 1f - a * 0.55f
+                c.scaleX = 1f - a * 0.07f
+                c.scaleY = 1f - a * 0.07f
+                c.translationX = dd * w * 0.18f
+            } else {
+                c.alpha = 1f; c.scaleX = 1f; c.scaleY = 1f; c.translationX = 0f
+            }
+            i++
+        }
+    }
+
+    /** Al llegar a una página, sus elementos entran en cascada. */
+    private fun playEntrance() {
+        val page = currentPageView() ?: return
+        if (page.id == R.id.page_home) { Fx.popIn(v(R.id.orb_holder)); return }
+        val cards = ArrayList<View>()
+        collectCards(page, cards)
+        Fx.cascade(cards)
+    }
+
+    private fun collectCards(view: View, out: MutableList<View>) {
+        if (view.tag == "card") { out.add(view); return }
+        if (view is ViewGroup) for (i in 0 until view.childCount) collectCards(view.getChildAt(i), out)
+    }
+
+    private val shownPct = HashMap<Int, Int>()
+    private fun setPct(id: Int, value: Int) {
+        Fx.countUp(tv(id), shownPct[id] ?: 0, value, "%")
+        shownPct[id] = value
     }
 
     // ====================== TEMA ======================
@@ -202,7 +261,15 @@ class DashboardController(
     }
 
     private fun style(view: View) {
-        if (view.tag == "card") view.backgroundTintList = ColorStateList.valueOf(card)
+        if (view.tag == "card") {
+            if (Fx.enabled(act)) {
+                view.backgroundTintList = null
+                view.background = Fx.glass(act, card, 22f, shadow)
+            } else {
+                view.setBackgroundResource(R.drawable.bg_card)
+                view.backgroundTintList = ColorStateList.valueOf(card)
+            }
+        }
         when (view) {
             is MaterialButton -> {
                 if (view.id == R.id.btn_talk || view.id == R.id.btn_usage_perm) {
@@ -237,9 +304,9 @@ class DashboardController(
         if (!alive) return
         try {
             val b = SystemStats.battery(act)
-            tv(R.id.tv_batt_pct).text = "${b.pct}%"
+            if (shownPct[R.id.tv_batt_pct] != b.pct) setPct(R.id.tv_batt_pct, b.pct)
             v<ProgressBar>(R.id.pb_batt).apply {
-                progress = b.pct
+                setProgress(b.pct, Fx.enabled(act))
                 progressTintList = ColorStateList.valueOf(if (b.pct <= 15 && !b.charging) 0xFFEF4444.toInt() else accent)
             }
             tv(R.id.tv_batt_info).text =
@@ -255,13 +322,13 @@ class DashboardController(
             }
 
             val r = SystemStats.ram(act)
-            tv(R.id.tv_ram_pct).text = "${r.pct}%"
-            v<ProgressBar>(R.id.pb_ram).apply { progress = r.pct; progressTintList = ColorStateList.valueOf(barColor(r.pct)) }
+            if (shownPct[R.id.tv_ram_pct] != r.pct) setPct(R.id.tv_ram_pct, r.pct)
+            v<ProgressBar>(R.id.pb_ram).apply { setProgress(r.pct, Fx.enabled(act)); progressTintList = ColorStateList.valueOf(barColor(r.pct)) }
             tv(R.id.tv_ram_info).text = "${SystemStats.fmtGb(r.used)} usados de ${SystemStats.fmtGb(r.total)} · libre ${SystemStats.fmtGb(r.total - r.used)}"
 
             val s = SystemStats.storage()
-            tv(R.id.tv_rom_pct).text = "${s.pct}%"
-            v<ProgressBar>(R.id.pb_rom).apply { progress = s.pct; progressTintList = ColorStateList.valueOf(barColor(s.pct)) }
+            if (shownPct[R.id.tv_rom_pct] != s.pct) setPct(R.id.tv_rom_pct, s.pct)
+            v<ProgressBar>(R.id.pb_rom).apply { setProgress(s.pct, Fx.enabled(act)); progressTintList = ColorStateList.valueOf(barColor(s.pct)) }
             tv(R.id.tv_rom_info).text = "${SystemStats.fmtGb(s.used)} usados de ${SystemStats.fmtGb(s.total)} · libre ${SystemStats.fmtGb(s.total - s.used)}"
         } catch (e: Exception) {
             android.util.Log.w("Dashboard", "updateQuickStats: ${e.message}")
@@ -387,6 +454,7 @@ class DashboardController(
             t.contentDescription = "Llamar a ${f.name}"
             t.setOnClickListener { phone.dialNumber(f.number, f.name) }
             t.setOnLongClickListener { phone.openSmsToContact(f.name); true }
+            Fx.pressable(t, 0.9f)
             style(t)
             FontManager.apply(act, t)
             row.addView(t)
@@ -435,6 +503,7 @@ class DashboardController(
         row.findViewById<TextView>(R.id.ro_sub).apply { text = sub.orEmpty(); visibility = if (sub.isNullOrEmpty()) View.GONE else View.VISIBLE }
         row.findViewById<TextView>(R.id.ro_value).apply { text = value.orEmpty(); visibility = if (value.isNullOrEmpty()) View.GONE else View.VISIBLE }
         row.setOnClickListener { onClick() }
+        Fx.pressable(row, 0.97f)
         style(row)
         FontManager.apply(act, row)
         parent.addView(row)

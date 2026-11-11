@@ -49,12 +49,38 @@
         app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintTop_toBottomOf="@id/clock_container">
 
-        <ImageView
-            android:id="@+id/orb_view"
-            android:layout_width="180dp"
-            android:layout_height="180dp"
-            android:contentDescription="Toca para hablar"
-            android:src="@drawable/orb_center" />
+        <FrameLayout
+            android:id="@+id/orb_holder"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:clipChildren="false"
+            android:clipToPadding="false">
+
+            <ImageView
+                android:id="@+id/orb_ring_1"
+                android:layout_width="match_parent"
+                android:layout_height="match_parent"
+                android:alpha="0"
+                android:importantForAccessibility="no"
+                android:scaleType="fitXY"
+                android:src="@drawable/orb_ring" />
+
+            <ImageView
+                android:id="@+id/orb_ring_2"
+                android:layout_width="match_parent"
+                android:layout_height="match_parent"
+                android:alpha="0"
+                android:importantForAccessibility="no"
+                android:scaleType="fitXY"
+                android:src="@drawable/orb_ring" />
+
+            <ImageView
+                android:id="@+id/orb_view"
+                android:layout_width="180dp"
+                android:layout_height="180dp"
+                android:contentDescription="Toca para hablar"
+                android:src="@drawable/orb_center" />
+        </FrameLayout>
 
         <TextView
             android:id="@+id/greeting_text"

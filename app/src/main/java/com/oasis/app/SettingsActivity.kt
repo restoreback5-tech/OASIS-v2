@@ -169,6 +169,7 @@ class SettingsActivity : AppCompatActivity() {
         bindSwitch(R.id.switch_clock24, UiPrefs.clock24(this)) { UiPrefs.setClock24(this, it) }
 
         // Dashboard, sonido de bienvenida y cajón
+        bindSwitch(R.id.switch_glass_fx, UiPrefs.glassFx(this)) { UiPrefs.setGlassFx(this, it) }
         bindSwitch(R.id.switch_page_today, UiPrefs.pageToday(this)) { UiPrefs.setPageToday(this, it) }
         bindSwitch(R.id.switch_page_system, UiPrefs.pageSystem(this)) { UiPrefs.setPageSystem(this, it) }
         bindSwitch(R.id.switch_startup_sound, UiPrefs.startupSound(this)) { UiPrefs.setStartupSound(this, it) }
@@ -385,7 +386,7 @@ class SettingsActivity : AppCompatActivity() {
         listOf<SwitchMaterial>(
             switchSounds, switchTtsEnabled, switchOverlay, switchHideClock,
             findViewById(R.id.switch_labels), findViewById(R.id.switch_swipe), findViewById(R.id.switch_clock24),
-            findViewById(R.id.switch_page_today), findViewById(R.id.switch_page_system), findViewById(R.id.switch_startup_sound)
+            findViewById(R.id.switch_glass_fx), findViewById(R.id.switch_page_today), findViewById(R.id.switch_page_system), findViewById(R.id.switch_startup_sound)
         ).forEach {
             it.thumbTintList = thumb
             it.trackTintList = track

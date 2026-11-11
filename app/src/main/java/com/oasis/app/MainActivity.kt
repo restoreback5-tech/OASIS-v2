@@ -51,6 +51,7 @@ class MainActivity : AppCompatActivity() {
     private lateinit var phoneActions: PhoneActionsModule
     private lateinit var pinnedAdapter: PinnedAdapter
     private lateinit var dashboard: DashboardController
+    private lateinit var orbFx: OrbFx
     private var packageReceiver: BroadcastReceiver? = null
 
     // === LAUNCHER ===
@@ -92,6 +93,7 @@ class MainActivity : AppCompatActivity() {
 
         // 1. Orbe
         orbView = findViewById(R.id.orb_view)
+        orbFx = OrbFx(orbView, findViewById(R.id.orb_ring_1), findViewById(R.id.orb_ring_2))
         orbBreatheAnim = android.view.animation.AnimationUtils.loadAnimation(this, R.anim.orb_breathe)
         orbFastAnim = android.view.animation.AnimationUtils.loadAnimation(this, R.anim.orb_fast_pulse)
         setOrbToListening()
@@ -153,6 +155,7 @@ class MainActivity : AppCompatActivity() {
         findViewById<ImageView?>(R.id.btn_settings)?.setOnClickListener {
             sound.play(R.raw.touch)
             tts.speak("Ajustes")
+            if (Fx.enabled(this)) it.animate().rotationBy(120f).setDuration(350).start()
             startActivity(Intent(this, SettingsActivity::class.java))
         }
 
@@ -174,6 +177,14 @@ class MainActivity : AppCompatActivity() {
         setupBtn(R.id.btn_contacts, "Contactos") { phoneActions.openContacts() }
         setupBtn(R.id.btn_apps, "Apps") { appLauncher.showAllApps() }
 
+        // 8b. Rebote al tocar
+        listOf(R.id.btn_call, R.id.btn_message, R.id.btn_contacts, R.id.btn_apps)
+            .forEach { Fx.pressable(findViewById(it), 0.9f) }
+        Fx.pressable(orbView, 0.92f)
+        Fx.pressable(findViewById(R.id.btn_settings), 0.85f)
+        findViewById<RecyclerView>(R.id.rv_pinned).layoutAnimation =
+            android.view.animation.AnimationUtils.loadLayoutAnimation(this, R.anim.layout_cascade)
+
         // 9. Instalar/desinstalar apps: refresca inicio y dashboard
         registerPackageReceiver()
     }
@@ -192,6 +203,7 @@ class MainActivity : AppCompatActivity() {
     }
 
     private fun pulseAnimation(view: View) {
+        if (Fx.enabled(this)) return // con efectos, el rebote lo hace Fx.pressable
         val sx = android.animation.ObjectAnimator.ofFloat(view, "scaleX", 1f, 0.94f, 1f)
         val sy = android.animation.ObjectAnimator.ofFloat(view, "scaleY", 1f, 0.94f, 1f)
         android.animation.AnimatorSet().apply {
@@ -205,6 +217,7 @@ class MainActivity : AppCompatActivity() {
     // ====================== ORBE ======================
     private fun setOrbToListening() {
         orbState = "idle"
+        orbFx.stop()
         try {
             orbView.clearAnimation()
             orbView.setImageResource(R.drawable.orb_listening)
@@ -217,6 +230,7 @@ class MainActivity : AppCompatActivity() {
 
     private fun setOrbToActive() {
         orbState = "active"
+        orbFx.start()
         try {
             orbView.clearAnimation()
             orbView.setImageResource(R.drawable.orb_active)
@@ -410,7 +424,17 @@ class MainActivity : AppCompatActivity() {
             val scrim = if (custom >= 0) ((custom * 255 / 100) shl 24) or (baseScrim and 0x00FFFFFF) else baseScrim
             val dock = if (darkText) p.dock else 0x73000000
             findViewById<View>(R.id.scrim).setBackgroundColor(scrim)
-            findViewById<View>(R.id.dock).backgroundTintList = ColorStateList.valueOf(dock)
+            val dockView = findViewById<View>(R.id.dock)
+            if (Fx.enabled(this)) {
+                dockView.backgroundTintList = null
+                dockView.background = Fx.glass(this, dock, 30f, !darkText)
+            } else {
+                dockView.setBackgroundResource(R.drawable.dock_bg)
+                dockView.backgroundTintList = ColorStateList.valueOf(dock)
+            }
+            val ringTint = ColorStateList.valueOf(p.accent)
+            findViewById<ImageView>(R.id.orb_ring_1).imageTintList = ringTint
+            findViewById<ImageView>(R.id.orb_ring_2).imageTintList = ringTint
 
             WindowCompat.getInsetsController(window, window.decorView).apply {
                 isAppearanceLightStatusBars = darkText
