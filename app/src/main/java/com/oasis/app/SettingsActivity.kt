@@ -168,6 +168,21 @@ class SettingsActivity : AppCompatActivity() {
         bindSwitch(R.id.switch_swipe, UiPrefs.swipeUp(this)) { UiPrefs.setSwipeUp(this, it) }
         bindSwitch(R.id.switch_clock24, UiPrefs.clock24(this)) { UiPrefs.setClock24(this, it) }
 
+        // Dashboard, sonido de bienvenida y cajón
+        bindSwitch(R.id.switch_page_today, UiPrefs.pageToday(this)) { UiPrefs.setPageToday(this, it) }
+        bindSwitch(R.id.switch_page_system, UiPrefs.pageSystem(this)) { UiPrefs.setPageSystem(this, it) }
+        bindSwitch(R.id.switch_startup_sound, UiPrefs.startupSound(this)) { UiPrefs.setStartupSound(this, it) }
+        bindGroup(intArrayOf(R.id.drawer_0, R.id.drawer_1, R.id.drawer_2), UiPrefs.drawerStyle(this)) { UiPrefs.setDrawerStyle(this, it) }
+        findViewById<MaterialButton>(R.id.btn_city).apply {
+            text = "Ciudad del clima: " + WeatherRepo.city(this@SettingsActivity).ifBlank { "sin elegir" }
+            setOnClickListener {
+                WeatherRepo.promptCity(this@SettingsActivity) {
+                    text = "Ciudad del clima: " + WeatherRepo.city(this@SettingsActivity).ifBlank { "sin elegir" }
+                }
+            }
+        }
+        findViewById<View>(R.id.btn_hidden_apps).setOnClickListener { showHiddenAppsDialog() }
+
         // Velo sobre el fondo de pantalla
         val scrimSlider = findViewById<Slider>(R.id.seekbar_scrim)
         val scrimText = findViewById<TextView>(R.id.text_scrim_value)
@@ -245,6 +260,24 @@ class SettingsActivity : AppCompatActivity() {
             isChecked = current
             setOnCheckedChangeListener { _, checked -> onChange(checked); sound.play(R.raw.check_on) }
         }
+    }
+
+    private fun showHiddenAppsDialog() {
+        val hidden = HiddenApps.all(this).toList()
+        if (hidden.isEmpty()) {
+            android.widget.Toast.makeText(this, "No hay apps ocultas", android.widget.Toast.LENGTH_SHORT).show()
+            return
+        }
+        val labels = hidden.map { pkg ->
+            try { packageManager.getApplicationLabel(packageManager.getApplicationInfo(pkg, 0)).toString() } catch (e: Exception) { pkg }
+        }.toTypedArray()
+        val keep = BooleanArray(hidden.size) { true }
+        androidx.appcompat.app.AlertDialog.Builder(this)
+            .setTitle("Apps ocultas (desmarca para mostrar)")
+            .setMultiChoiceItems(labels, keep) { _, i, checked -> keep[i] = checked }
+            .setPositiveButton("Guardar") { _, _ -> hidden.forEachIndexed { i, pkg -> if (!keep[i]) HiddenApps.show(this, pkg) } }
+            .setNegativeButton("Cancelar", null)
+            .show()
     }
 
     private fun refreshHomeTexts() {
@@ -351,7 +384,8 @@ class SettingsActivity : AppCompatActivity() {
         val track = ColorStateList(states, intArrayOf(p.accent, 0xFFB0B0B5.toInt()))
         listOf<SwitchMaterial>(
             switchSounds, switchTtsEnabled, switchOverlay, switchHideClock,
-            findViewById(R.id.switch_labels), findViewById(R.id.switch_swipe), findViewById(R.id.switch_clock24)
+            findViewById(R.id.switch_labels), findViewById(R.id.switch_swipe), findViewById(R.id.switch_clock24),
+            findViewById(R.id.switch_page_today), findViewById(R.id.switch_page_system), findViewById(R.id.switch_startup_sound)
         ).forEach {
             it.thumbTintList = thumb
             it.trackTintList = track

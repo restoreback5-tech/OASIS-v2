@@ -4,7 +4,10 @@ import android.Manifest
 import android.app.WallpaperColors
 import android.app.WallpaperManager
 import android.content.ComponentName
+import android.content.BroadcastReceiver
+import android.content.Context
 import android.content.Intent
+import android.content.IntentFilter
 import android.content.SharedPreferences
 import android.content.pm.PackageManager
 import android.content.res.ColorStateList
@@ -47,6 +50,8 @@ class MainActivity : AppCompatActivity() {
     private lateinit var prefs: SharedPreferences
     private lateinit var phoneActions: PhoneActionsModule
     private lateinit var pinnedAdapter: PinnedAdapter
+    private lateinit var dashboard: DashboardController
+    private var packageReceiver: BroadcastReceiver? = null
 
     // === LAUNCHER ===
     private lateinit var swipeDetector: GestureDetector
@@ -98,6 +103,13 @@ class MainActivity : AppCompatActivity() {
         tts = TTSModule(this)
         phoneActions = PhoneActionsModule(this, tts, sound)
         appLauncher = AppLauncherModule(this, sound)
+        dashboard = DashboardController(
+            act = this,
+            phone = phoneActions,
+            onTalk = { sound.play(R.raw.touch); voice.startListening() },
+            onReplay = { command, params -> handleVoiceCommand(command, params) }
+        )
+        dashboard.bind()
 
         voice = VoiceCommandModule(
             context = this,
@@ -161,6 +173,9 @@ class MainActivity : AppCompatActivity() {
         setupBtn(R.id.btn_message, "Enviar mensaje") { phoneActions.openSms() }
         setupBtn(R.id.btn_contacts, "Contactos") { phoneActions.openContacts() }
         setupBtn(R.id.btn_apps, "Apps") { appLauncher.showAllApps() }
+
+        // 9. Instalar/desinstalar apps: refresca inicio y dashboard
+        registerPackageReceiver()
     }
 
     // ====================== HELPERS ======================
@@ -219,6 +234,8 @@ class MainActivity : AppCompatActivity() {
     // ====================== COMANDOS DE VOZ ======================
     private fun handleVoiceCommand(command: String, params: Map<String, String>) {
         toast.show("Comando: $command")
+        VoiceHistory.add(this, command, params)
+        if (::dashboard.isInitialized) dashboard.refreshVoice()
 
         when (command) {
             "open_app" -> {
@@ -267,6 +284,8 @@ class MainActivity : AppCompatActivity() {
         swipeDetector = GestureDetector(this, object : GestureDetector.SimpleOnGestureListener() {
             override fun onFling(e1: MotionEvent?, e2: MotionEvent, velocityX: Float, velocityY: Float): Boolean {
                 if (e1 == null || !UiPrefs.swipeUp(this@MainActivity)) return false
+                // En las páginas con lista (Hoy / Mi teléfono) deslizar es para desplazarse
+                if (::dashboard.isInitialized && !dashboard.atHome) return false
                 val dy = e1.y - e2.y
                 val dx = e2.x - e1.x
                 if (dy > 150 && velocityY < -800 && dy > abs(dx)) {
@@ -280,7 +299,8 @@ class MainActivity : AppCompatActivity() {
         // Como launcher, "Atrás" no debe cerrar la pantalla de inicio
         onBackPressedDispatcher.addCallback(this, object : OnBackPressedCallback(true) {
             override fun handleOnBackPressed() {
-                if (!LauncherHelper.isDefaultLauncher(this@MainActivity)) finish()
+                if (::dashboard.isInitialized && !dashboard.atHome) dashboard.goHome()
+                else if (!LauncherHelper.isDefaultLauncher(this@MainActivity)) finish()
             }
         })
 
@@ -304,7 +324,26 @@ class MainActivity : AppCompatActivity() {
         if (intent.hasCategory(Intent.CATEGORY_HOME)) {
             appLauncher.dismissAllApps()
             resetOrbToIdle()
+            dashboard.goHome()
         }
+    }
+
+    // ====================== PAQUETES ======================
+    private fun registerPackageReceiver() {
+        val receiver = object : BroadcastReceiver() {
+            override fun onReceive(context: Context, intent: Intent) {
+                refreshPinned()
+                dashboard.refreshNetApps()
+            }
+        }
+        val filter = IntentFilter().apply {
+            addAction(Intent.ACTION_PACKAGE_ADDED)
+            addAction(Intent.ACTION_PACKAGE_REMOVED)
+            addAction(Intent.ACTION_PACKAGE_CHANGED)
+            addDataScheme("package")
+        }
+        ContextCompat.registerReceiver(this, receiver, filter, ContextCompat.RECEIVER_EXPORTED)
+        packageReceiver = receiver
     }
 
     // ====================== APPS FIJADAS ======================
@@ -396,6 +435,8 @@ class MainActivity : AppCompatActivity() {
             }
             findViewById<ImageView?>(R.id.btn_settings)?.imageTintList = ColorStateList.valueOf(fg)
             if (::pinnedAdapter.isInitialized) pinnedAdapter.restyle(fg, !darkText)
+            val cardColor = if (darkText) 0x8CFFFFFF.toInt() else 0x59000000
+            if (::dashboard.isInitialized) dashboard.restyle(fg, fg2, cardColor, p.accent, !darkText)
             FontManager.apply(this, findViewById(R.id.root))
         } catch (e: Exception) {
             Log.e("MainActivity", "Error aplicando tema '${p.key}': ${e.message}")
@@ -440,6 +481,7 @@ class MainActivity : AppCompatActivity() {
         requestCode: Int, permissions: Array<out String>, grantResults: IntArray
     ) {
         super.onRequestPermissionsResult(requestCode, permissions, grantResults)
+        dashboard.onPermissionResult(requestCode)
         if (requestCode == 100) {
             val granted = grantResults.isNotEmpty() &&
                     grantResults[0] == PackageManager.PERMISSION_GRANTED
@@ -456,11 +498,20 @@ class MainActivity : AppCompatActivity() {
         applyClockVisibility()
         refreshPinned()
         tts.updateSpeechSettings()
+        dashboard.applyPagePrefs()
+        dashboard.onResume()
+    }
+
+    override fun onPause() {
+        super.onPause()
+        if (::dashboard.isInitialized) dashboard.onPause()
     }
 
     override fun onDestroy() {
         super.onDestroy()
         clockHandler.removeCallbacks(clockRunnable)
+        packageReceiver?.let { try { unregisterReceiver(it) } catch (_: Exception) {} }
+        dashboard.destroy()
         sound.release()
         tts.shutdown()
         voice.destroy()

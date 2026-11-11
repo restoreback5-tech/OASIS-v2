@@ -14,8 +14,7 @@ class SoundModule(private val context: Context) {
         preload(R.raw.confirmar)
         preload(R.raw.cancelar)
         preload(R.raw.error)
-        preload(R.raw.inicio)
-        preload(R.raw.burbuja)
+        // inicio (60 s) y burbuja (agua) ya no se precargan: solo suenan si el usuario los activa
         preload(R.raw.alerta)
         preload(R.raw.escuchando)
         preload(R.raw.deslizar)
@@ -33,7 +32,19 @@ class SoundModule(private val context: Context) {
         }
     }
 
+    private val handler = android.os.Handler(android.os.Looper.getMainLooper())
+
+    /** Respeta Ajustes: "Sonidos UI" apaga todo; el sonido de bienvenida/agua solo suena si se activa. */
+    private fun allowed(resId: Int): Boolean {
+        if (!Config.ENABLE_SOUNDS || Config.SAFE_MODE) return false
+        val p = context.getSharedPreferences("oasis_settings", Context.MODE_PRIVATE)
+        if (!p.getBoolean("sounds_enabled", true)) return false
+        if (resId == R.raw.inicio || resId == R.raw.burbuja) return UiPrefs.startupSound(context)
+        return true
+    }
+
     fun play(resId: Int) {
+        if (!allowed(resId)) return
         val player = players.get(resId)
         if (player != null) {
             try {
@@ -56,6 +67,10 @@ class SoundModule(private val context: Context) {
                 MediaPlayer.create(context, resId)?.apply {
                     start()
                     setOnCompletionListener { release() }
+                    // El sonido de bienvenida dura 60 s: se corta a los 4 s
+                    if (resId == R.raw.inicio || resId == R.raw.burbuja) {
+                        handler.postDelayed({ try { stop(); release() } catch (_: Exception) {} }, 4000)
+                    }
                 }
             } catch (e: Exception) {
                 Log.w("SoundModule", "Fallback play falló: ${e.message}")

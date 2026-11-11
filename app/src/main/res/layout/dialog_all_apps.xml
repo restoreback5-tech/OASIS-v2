@@ -11,6 +11,7 @@
         android:layout_height="64dp" />
 
     <LinearLayout
+        android:id="@+id/drawer_panel"
         android:layout_width="match_parent"
         android:layout_height="0dp"
         android:layout_weight="1"
@@ -65,11 +66,12 @@
         </LinearLayout>
 
         <TextView
+            android:id="@+id/tv_drawer_tip"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:layout_marginBottom="6dp"
             android:gravity="center"
-            android:text="Mantén presionada una app para fijarla en inicio"
+            android:text="Mantén presionada una app para ver sus opciones"
             android:textColor="#8E8E93"
             android:textSize="12sp" />
 

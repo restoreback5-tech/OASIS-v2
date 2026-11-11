@@ -5,6 +5,9 @@ import android.content.Context
 import android.content.Intent
 import android.content.pm.PackageManager
 import android.content.pm.ResolveInfo
+import android.net.Uri
+import android.provider.Settings
+import android.widget.Toast
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
@@ -19,7 +22,8 @@ class AppListAdapter(
     private val packageManager: PackageManager,
     private val isPinned: (ComponentName) -> Boolean = { false },
     private val onTogglePin: ((ComponentName) -> Unit)? = null,
-    private val onLaunched: () -> Unit = {}
+    private val onLaunched: () -> Unit = {},
+    private val labelColor: Int = 0xFF1C1C1E.toInt()
 ) : RecyclerView.Adapter<AppListAdapter.AppViewHolder>() {
 
     private class Entry(val info: ResolveInfo, val label: String)
@@ -28,7 +32,7 @@ class AppListAdapter(
     private val showLabels = UiPrefs.showLabels(context)
 
     // Las etiquetas se cargan una sola vez (loadLabel es costoso) y quedan ordenadas A-Z
-    private val all: List<Entry> = apps
+    private var all: List<Entry> = apps
         .map { Entry(it, it.loadLabel(packageManager).toString()) }
         .sortedBy { it.label.lowercase() }
     private var shown: List<Entry> = all
@@ -62,6 +66,7 @@ class AppListAdapter(
         holder.name.visibility = if (showLabels) View.VISIBLE else View.GONE
         holder.icon.layoutParams = holder.icon.layoutParams.apply { width = iconPx; height = iconPx }
         holder.name.typeface = FontManager.typeface(context, false)
+        holder.name.setTextColor(labelColor)
         val ai = entry.info.activityInfo
         holder.icon.setImageDrawable(
             IconProvider.load(
@@ -71,14 +76,39 @@ class AppListAdapter(
         )
         holder.itemView.setOnClickListener { launch(entry) }
         holder.itemView.setOnLongClickListener { v ->
-            val toggle = onTogglePin ?: return@setOnLongClickListener false
-            val cn = ComponentName(entry.info.activityInfo.packageName, entry.info.activityInfo.name)
+            val ai2 = entry.info.activityInfo
+            val cn = ComponentName(ai2.packageName, ai2.name)
             PopupMenu(context, v).apply {
-                menu.add(if (isPinned(cn)) "Quitar de inicio" else "Fijar en inicio")
-                setOnMenuItemClickListener { toggle(cn); true }
+                onTogglePin?.let { menu.add(0, 1, 0, if (isPinned(cn)) "Quitar de inicio" else "Fijar en inicio") }
+                menu.add(0, 2, 1, "Información de la app")
+                menu.add(0, 3, 2, "Desinstalar")
+                menu.add(0, 4, 3, "Ocultar del cajón")
+                setOnMenuItemClickListener { item ->
+                    when (item.itemId) {
+                        1 -> onTogglePin?.invoke(cn)
+                        2 -> startSafe(Intent(Settings.ACTION_APPLICATION_DETAILS_SETTINGS, Uri.parse("package:${cn.packageName}")))
+                        3 -> startSafe(Intent(Intent.ACTION_DELETE, Uri.parse("package:${cn.packageName}")))
+                        4 -> hide(cn.packageName)
+                    }
+                    true
+                }
             }.show()
             true
         }
+    }
+
+    private fun startSafe(i: Intent) {
+        try { context.startActivity(i.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK)); onLaunched() } catch (_: Exception) {
+            Toast.makeText(context, "No disponible en este teléfono", Toast.LENGTH_SHORT).show()
+        }
+    }
+
+    private fun hide(pkg: String) {
+        HiddenApps.hide(context, pkg)
+        all = all.filter { it.info.activityInfo.packageName != pkg }
+        shown = shown.filter { it.info.activityInfo.packageName != pkg }
+        notifyDataSetChanged()
+        Toast.makeText(context, "Oculta. Restáurala en Ajustes > Apps ocultas", Toast.LENGTH_LONG).show()
     }
 
     private fun launch(entry: Entry) {

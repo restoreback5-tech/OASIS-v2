@@ -51,12 +51,26 @@ object UiPrefs {
     fun iconPack(ctx: Context): String = p(ctx).getString("icon_pack", "") ?: ""
     fun setIconPack(ctx: Context, v: String) = p(ctx).edit().putString("icon_pack", v).apply()
 
+    // Sonido de bienvenida (inicio.ogg dura 60 s): apagado por defecto
+    fun startupSound(ctx: Context): Boolean = p(ctx).getBoolean("sound_startup", false)
+    fun setStartupSound(ctx: Context, v: Boolean) = p(ctx).edit().putBoolean("sound_startup", v).apply()
+
+    // Fondo del cajón de apps: 0 automático (según tema y modo noche), 1 claro suave, 2 oscuro
+    fun drawerStyle(ctx: Context): Int = p(ctx).getInt("drawer_style", 0).coerceIn(0, 2)
+    fun setDrawerStyle(ctx: Context, v: Int) = p(ctx).edit().putInt("drawer_style", v).apply()
+
+    fun pageToday(ctx: Context): Boolean = p(ctx).getBoolean("page_today", true)
+    fun setPageToday(ctx: Context, v: Boolean) = p(ctx).edit().putBoolean("page_today", v).apply()
+    fun pageSystem(ctx: Context): Boolean = p(ctx).getBoolean("page_system", true)
+    fun setPageSystem(ctx: Context, v: Boolean) = p(ctx).edit().putBoolean("page_system", v).apply()
+
     /** Vuelve a los valores de fábrica de la pantalla de inicio (no toca tema, voz ni apps fijadas). */
     fun resetHome(ctx: Context) {
         val e = p(ctx).edit()
         listOf(
             "icon_size", "icon_shape", "show_labels", "drawer_columns", "scrim_percent",
-            "swipe_up", "clock_24h", "orb_size", "font_key", "icon_style", "icon_pack"
+            "swipe_up", "clock_24h", "orb_size", "font_key", "icon_style", "icon_pack",
+            "drawer_style", "page_today", "page_system", "sound_startup"
         ).forEach { e.remove(it) }
         e.apply()
         FontManager.invalidate()

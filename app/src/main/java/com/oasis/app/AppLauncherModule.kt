@@ -253,17 +253,21 @@ class AppLauncherModule(
             intent.addCategory(Intent.CATEGORY_LAUNCHER)
             val apps = pm.queryIntentActivities(intent, 0)
                 .filter { it.activityInfo.packageName != context.packageName }
+                .filter { !HiddenApps.isHidden(context, it.activityInfo.packageName) }
 
             val view = LayoutInflater.from(context).inflate(R.layout.dialog_all_apps, null)
             FontManager.apply(context, view)
             val dialog = Dialog(context, R.style.Theme_OASIS_AppDrawer)
+            val colors = drawerColors()
+            styleDrawer(view, colors)
             val appsAdapter = AppListAdapter(
                 context = context,
                 apps = apps,
                 packageManager = pm,
                 isPinned = { PinnedApps.isPinned(context, it) },
                 onTogglePin = { togglePin(it) },
-                onLaunched = { dialog.dismiss() }
+                onLaunched = { dialog.dismiss() },
+                labelColor = colors.text
             )
 
             view.findViewById<RecyclerView>(R.id.rv_apps).apply {
@@ -295,6 +299,35 @@ class AppLauncherModule(
             Log.e("AppLauncher", "showAllApps falló: ${e.message}")
             Toast.makeText(context, "No pude abrir la lista de apps", Toast.LENGTH_SHORT).show()
         }
+    }
+
+    private class DrawerColors(val bg: Int, val text: Int, val hint: Int, val field: Int)
+
+    /** Fondo del cajón: nunca blanco puro. Automático = oscuro si el tema es "noche" o el teléfono está en modo noche. */
+    private fun drawerColors(): DrawerColors {
+        val theme = context.getSharedPreferences("oasis_settings", Context.MODE_PRIVATE).getString("selected_theme", "amanecer")
+        val systemNight = (context.resources.configuration.uiMode and
+            android.content.res.Configuration.UI_MODE_NIGHT_MASK) == android.content.res.Configuration.UI_MODE_NIGHT_YES
+        val dark = when (UiPrefs.drawerStyle(context)) {
+            1 -> false
+            2 -> true
+            else -> theme == "noche" || systemNight
+        }
+        return if (dark) DrawerColors(0xF2161A21.toInt(), 0xFFE8EBF0.toInt(), 0xFF9AA3B2.toInt(), 0x26FFFFFF)
+        else DrawerColors(0xF2EAEEF4.toInt(), 0xFF1F2430.toInt(), 0xFF5F6877.toInt(), 0x14000000)
+    }
+
+    private fun styleDrawer(view: View, c: DrawerColors) {
+        (view.findViewById<View>(R.id.drawer_panel).background.mutate() as? android.graphics.drawable.GradientDrawable)?.setColor(c.bg)
+        view.findViewById<EditText>(R.id.et_search_apps).apply {
+            setTextColor(c.text)
+            setHintTextColor(c.hint)
+            backgroundTintList = android.content.res.ColorStateList.valueOf(c.field)
+            compoundDrawableTintList = android.content.res.ColorStateList.valueOf(c.hint)
+        }
+        view.findViewById<android.widget.TextView>(R.id.tv_drawer_tip).setTextColor(c.hint)
+        (view.findViewById<View>(R.id.btn_close_apps) as android.widget.ImageView)
+            .imageTintList = android.content.res.ColorStateList.valueOf(c.text)
     }
 
     /** Cierra el cajón si está abierto (p. ej. al pulsar Inicio). */

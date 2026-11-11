@@ -18,38 +18,43 @@
         android:layout_height="match_parent"
         android:clipChildren="false">
 
-        <!-- Reloj -->
-        <LinearLayout
-            android:id="@+id/clock_container"
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:layout_marginTop="28dp"
-            android:gravity="center_vertical"
-            android:orientation="horizontal"
+        <!-- Páginas deslizables: Inicio · Hoy · Mi teléfono -->
+        <com.oasis.app.PageScroller
+            android:id="@+id/pager"
+            android:layout_width="0dp"
+            android:layout_height="0dp"
+            app:layout_constraintBottom_toTopOf="@id/page_dots"
             app:layout_constraintEnd_toEndOf="parent"
             app:layout_constraintStart_toStartOf="parent"
             app:layout_constraintTop_toTopOf="parent">
 
-            <TextView
-                android:id="@+id/tv_time"
-                android:tag="strong"
+            <LinearLayout
+                android:id="@+id/pages"
                 android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:fontFamily="@font/sf_pro_display_medium"
-                android:textSize="64sp" />
+                android:layout_height="match_parent"
+                android:orientation="horizontal">
 
-            <TextView
-                android:id="@+id/tv_ampm"
-                android:tag="strong"
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:layout_marginStart="6dp"
-                android:layout_marginBottom="12dp"
-                android:fontFamily="@font/sf_pro_display_medium"
-                android:textSize="18sp" />
-        </LinearLayout>
+                <include
+                    android:id="@+id/page_home"
+                    layout="@layout/page_home"
+                    android:layout_width="360dp"
+                    android:layout_height="match_parent" />
 
-        <!-- Ajustes -->
+                <include
+                    android:id="@+id/page_today"
+                    layout="@layout/page_today"
+                    android:layout_width="360dp"
+                    android:layout_height="match_parent" />
+
+                <include
+                    android:id="@+id/page_system"
+                    layout="@layout/page_system"
+                    android:layout_width="360dp"
+                    android:layout_height="match_parent" />
+            </LinearLayout>
+        </com.oasis.app.PageScroller>
+
+        <!-- Ajustes (siempre visible) -->
         <ImageView
             android:id="@+id/btn_settings"
             android:layout_width="48dp"
@@ -63,74 +68,17 @@
             app:layout_constraintEnd_toEndOf="parent"
             app:layout_constraintTop_toTopOf="parent" />
 
-        <!-- Orbe + nombre + estado -->
+        <!-- Puntos de página -->
         <LinearLayout
-            android:id="@+id/center_block"
-            android:layout_width="0dp"
+            android:id="@+id/page_dots"
+            android:layout_width="wrap_content"
             android:layout_height="wrap_content"
+            android:layout_marginBottom="8dp"
             android:gravity="center"
-            android:orientation="vertical"
-            android:clipChildren="false"
-            app:layout_constraintBottom_toTopOf="@id/pinned_area"
-            app:layout_constraintEnd_toEndOf="parent"
-            app:layout_constraintStart_toStartOf="parent"
-            app:layout_constraintTop_toBottomOf="@id/clock_container">
-
-            <ImageView
-                android:id="@+id/orb_view"
-                android:layout_width="180dp"
-                android:layout_height="180dp"
-                android:contentDescription="Toca para hablar"
-                android:src="@drawable/orb_center" />
-
-            <TextView
-                android:id="@+id/greeting_text"
-                android:tag="strong"
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:layout_marginTop="12dp"
-                android:fontFamily="sans-serif-medium"
-                android:letterSpacing="0.2"
-                android:text="OASIS"
-                android:textSize="24sp" />
-
-            <TextView
-                android:id="@+id/status_text"
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:layout_marginTop="4dp"
-                android:minHeight="20dp"
-                android:textSize="14sp" />
-        </LinearLayout>
-
-        <!-- Apps fijadas en inicio (mantén presionada una app en el cajón para fijarla) -->
-        <FrameLayout
-            android:id="@+id/pinned_area"
-            android:layout_width="0dp"
-            android:layout_height="wrap_content"
-            android:layout_marginStart="20dp"
-            android:layout_marginEnd="20dp"
-            android:layout_marginBottom="12dp"
+            android:orientation="horizontal"
             app:layout_constraintBottom_toTopOf="@id/swipe_handle"
             app:layout_constraintEnd_toEndOf="parent"
-            app:layout_constraintStart_toStartOf="parent">
-
-            <androidx.recyclerview.widget.RecyclerView
-                android:id="@+id/rv_pinned"
-                android:layout_width="match_parent"
-                android:layout_height="wrap_content"
-                android:nestedScrollingEnabled="false"
-                android:overScrollMode="never" />
-
-            <TextView
-                android:id="@+id/tv_pinned_hint"
-                android:layout_width="match_parent"
-                android:layout_height="wrap_content"
-                android:gravity="center"
-                android:text="Desliza hacia arriba, mantén presionada una app y fíjala aquí"
-                android:textSize="12sp"
-                android:visibility="gone" />
-        </FrameLayout>
+            app:layout_constraintStart_toStartOf="parent" />
 
         <!-- Indicador "desliza hacia arriba" -->
         <View
@@ -143,7 +91,7 @@
             app:layout_constraintEnd_toEndOf="parent"
             app:layout_constraintStart_toStartOf="parent" />
 
-        <!-- Dock -->
+        <!-- Dock (visible en todas las páginas) -->
         <LinearLayout
             android:id="@+id/dock"
             android:layout_width="0dp"
@@ -160,130 +108,133 @@
             app:layout_constraintEnd_toEndOf="parent"
             app:layout_constraintStart_toStartOf="parent">
 
-        <LinearLayout
-            android:id="@+id/btn_call"
-            android:layout_width="0dp"
-            android:layout_height="wrap_content"
-            android:layout_weight="1"
-            android:orientation="vertical"
-            android:gravity="center_horizontal"
-            android:paddingVertical="4dp"
-            android:clickable="true"
-            android:focusable="true"
-            android:contentDescription="Llamar">
-
-            <ImageView
-                android:layout_width="60dp"
-                android:layout_height="60dp"
-                android:background="@drawable/btn_call_gradient"
-                android:elevation="4dp"
-                android:importantForAccessibility="no"
-                android:padding="16dp"
-                android:src="@drawable/ic_phone" />
-
-            <TextView
-                android:id="@+id/lbl_call"
-                android:tag="strong"
-                android:layout_width="wrap_content"
+            <LinearLayout
+                android:id="@+id/btn_call"
+                android:layout_width="0dp"
                 android:layout_height="wrap_content"
-                android:layout_marginTop="8dp"
-                android:fontFamily="sans-serif-medium"
-                android:text="Llamar"
-                android:textSize="12sp" />
-        </LinearLayout>
-        <LinearLayout
-            android:id="@+id/btn_message"
-            android:layout_width="0dp"
-            android:layout_height="wrap_content"
-            android:layout_weight="1"
-            android:orientation="vertical"
-            android:gravity="center_horizontal"
-            android:paddingVertical="4dp"
-            android:clickable="true"
-            android:focusable="true"
-            android:contentDescription="Mensaje">
+                android:layout_weight="1"
+                android:clickable="true"
+                android:contentDescription="Llamar"
+                android:focusable="true"
+                android:gravity="center_horizontal"
+                android:orientation="vertical"
+                android:paddingVertical="4dp">
 
-            <ImageView
-                android:layout_width="60dp"
-                android:layout_height="60dp"
-                android:background="@drawable/btn_message_gradient"
-                android:elevation="4dp"
-                android:importantForAccessibility="no"
-                android:padding="16dp"
-                android:src="@drawable/ic_message" />
+                <ImageView
+                    android:layout_width="60dp"
+                    android:layout_height="60dp"
+                    android:background="@drawable/btn_call_gradient"
+                    android:elevation="4dp"
+                    android:importantForAccessibility="no"
+                    android:padding="16dp"
+                    android:src="@drawable/ic_phone" />
 
-            <TextView
-                android:id="@+id/lbl_message"
-                android:tag="strong"
-                android:layout_width="wrap_content"
+                <TextView
+                    android:id="@+id/lbl_call"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:layout_marginTop="8dp"
+                    android:fontFamily="sans-serif-medium"
+                    android:tag="strong"
+                    android:text="Llamar"
+                    android:textSize="12sp" />
+            </LinearLayout>
+
+            <LinearLayout
+                android:id="@+id/btn_message"
+                android:layout_width="0dp"
                 android:layout_height="wrap_content"
-                android:layout_marginTop="8dp"
-                android:fontFamily="sans-serif-medium"
-                android:text="Mensaje"
-                android:textSize="12sp" />
-        </LinearLayout>
-        <LinearLayout
-            android:id="@+id/btn_contacts"
-            android:layout_width="0dp"
-            android:layout_height="wrap_content"
-            android:layout_weight="1"
-            android:orientation="vertical"
-            android:gravity="center_horizontal"
-            android:paddingVertical="4dp"
-            android:clickable="true"
-            android:focusable="true"
-            android:contentDescription="Contactos">
+                android:layout_weight="1"
+                android:clickable="true"
+                android:contentDescription="Mensaje"
+                android:focusable="true"
+                android:gravity="center_horizontal"
+                android:orientation="vertical"
+                android:paddingVertical="4dp">
 
-            <ImageView
-                android:layout_width="60dp"
-                android:layout_height="60dp"
-                android:background="@drawable/btn_contacts_gradient"
-                android:elevation="4dp"
-                android:importantForAccessibility="no"
-                android:padding="16dp"
-                android:src="@drawable/ic_contacts" />
+                <ImageView
+                    android:layout_width="60dp"
+                    android:layout_height="60dp"
+                    android:background="@drawable/btn_message_gradient"
+                    android:elevation="4dp"
+                    android:importantForAccessibility="no"
+                    android:padding="16dp"
+                    android:src="@drawable/ic_message" />
 
-            <TextView
-                android:id="@+id/lbl_contacts"
-                android:tag="strong"
-                android:layout_width="wrap_content"
+                <TextView
+                    android:id="@+id/lbl_message"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:layout_marginTop="8dp"
+                    android:fontFamily="sans-serif-medium"
+                    android:tag="strong"
+                    android:text="Mensaje"
+                    android:textSize="12sp" />
+            </LinearLayout>
+
+            <LinearLayout
+                android:id="@+id/btn_contacts"
+                android:layout_width="0dp"
                 android:layout_height="wrap_content"
-                android:layout_marginTop="8dp"
-                android:fontFamily="sans-serif-medium"
-                android:text="Contactos"
-                android:textSize="12sp" />
-        </LinearLayout>
-        <LinearLayout
-            android:id="@+id/btn_apps"
-            android:layout_width="0dp"
-            android:layout_height="wrap_content"
-            android:layout_weight="1"
-            android:orientation="vertical"
-            android:gravity="center_horizontal"
-            android:paddingVertical="4dp"
-            android:clickable="true"
-            android:focusable="true"
-            android:contentDescription="Apps">
+                android:layout_weight="1"
+                android:clickable="true"
+                android:contentDescription="Contactos"
+                android:focusable="true"
+                android:gravity="center_horizontal"
+                android:orientation="vertical"
+                android:paddingVertical="4dp">
 
-            <ImageView
-                android:layout_width="60dp"
-                android:layout_height="60dp"
-                android:background="@drawable/btn_apps_gradient"
-                android:elevation="4dp"
-                android:importantForAccessibility="no"
-                android:padding="16dp"
-                android:src="@drawable/ic_apps" />
+                <ImageView
+                    android:layout_width="60dp"
+                    android:layout_height="60dp"
+                    android:background="@drawable/btn_contacts_gradient"
+                    android:elevation="4dp"
+                    android:importantForAccessibility="no"
+                    android:padding="16dp"
+                    android:src="@drawable/ic_contacts" />
 
-            <TextView
-                android:id="@+id/lbl_apps"
-                android:tag="strong"
-                android:layout_width="wrap_content"
+                <TextView
+                    android:id="@+id/lbl_contacts"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:layout_marginTop="8dp"
+                    android:fontFamily="sans-serif-medium"
+                    android:tag="strong"
+                    android:text="Contactos"
+                    android:textSize="12sp" />
+            </LinearLayout>
+
+            <LinearLayout
+                android:id="@+id/btn_apps"
+                android:layout_width="0dp"
                 android:layout_height="wrap_content"
-                android:layout_marginTop="8dp"
-                android:fontFamily="sans-serif-medium"
-                android:text="Apps"
-                android:textSize="12sp" />
-        </LinearLayout>
+                android:layout_weight="1"
+                android:clickable="true"
+                android:contentDescription="Apps"
+                android:focusable="true"
+                android:gravity="center_horizontal"
+                android:orientation="vertical"
+                android:paddingVertical="4dp">
+
+                <ImageView
+                    android:layout_width="60dp"
+                    android:layout_height="60dp"
+                    android:background="@drawable/btn_apps_gradient"
+                    android:elevation="4dp"
+                    android:importantForAccessibility="no"
+                    android:padding="16dp"
+                    android:src="@drawable/ic_apps" />
+
+                <TextView
+                    android:id="@+id/lbl_apps"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:layout_marginTop="8dp"
+                    android:fontFamily="sans-serif-medium"
+                    android:tag="strong"
+                    android:text="Apps"
+                    android:textSize="12sp" />
+            </LinearLayout>
         </LinearLayout>
     </androidx.constraintlayout.widget.ConstraintLayout>
 </FrameLayout>

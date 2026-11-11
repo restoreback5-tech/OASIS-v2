@@ -11,6 +11,8 @@ class SplashModule(private val ctx: Context) {
     
     fun playBubbleSound() {
         if (!Config.ENABLE_SOUNDS || Config.SAFE_MODE) return
+        val p = ctx.getSharedPreferences("oasis_settings", Context.MODE_PRIVATE)
+        if (!p.getBoolean("sounds_enabled", true) || !UiPrefs.startupSound(ctx)) return
         try {
             player = MediaPlayer.create(ctx, R.raw.burbuja)
             player?.start()
