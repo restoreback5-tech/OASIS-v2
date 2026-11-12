@@ -40,7 +40,14 @@ class AssistantEngine(private val ctx: Context) {
 
     private fun prefs() = ctx.getSharedPreferences("oasis_settings", Context.MODE_PRIVATE)
 
-    fun cloudEnabled(): Boolean = prefs().getBoolean("ai_enabled", false) && !prefs().getString("ai_key", "").isNullOrBlank()
+    private fun provider() = prefs().getString("ai_provider", "claude") ?: "claude"
+    private fun ollamaUrl() = (prefs().getString("ollama_url", DEFAULT_OLLAMA_URL)?.trim()?.ifBlank { DEFAULT_OLLAMA_URL } ?: DEFAULT_OLLAMA_URL).trimEnd('/')
+    private fun ollamaModel() = prefs().getString("ollama_model", DEFAULT_OLLAMA_MODEL)?.trim()?.ifBlank { DEFAULT_OLLAMA_MODEL } ?: DEFAULT_OLLAMA_MODEL
+
+    fun cloudEnabled(): Boolean {
+        if (!prefs().getBoolean("ai_enabled", false)) return false
+        return if (provider() == "ollama") true else !prefs().getString("ai_key", "").isNullOrBlank()
+    }
 
     /** Responde en el hilo principal. */
     fun handle(raw: String, done: (Reply) -> Unit) {
@@ -212,7 +219,46 @@ class AssistantEngine(private val ctx: Context) {
     }
 
     // ====================== IA EN LA NUBE (opcional) ======================
-    private fun cloud(raw: String): Reply {
+    private fun cloud(raw: String): Reply = if (provider() == "ollama") ollama(raw) else claude(raw)
+
+    /** IA local con `ollama serve` (en tu PC, en Termux o en otro equipo de la red). */
+    private fun ollama(raw: String): Reply {
+        val base = ollamaUrl()
+        val model = ollamaModel()
+        val now = java.text.SimpleDateFormat("EEEE d 'de' MMMM, HH:mm", Locale.getDefault()).format(Date())
+
+        history.add("user" to raw)
+        while (history.size > 8) history.removeAt(0)
+        val msgs = JSONArray().put(JSONObject().put("role", "system").put("content", SYSTEM + "\nAhora: $now."))
+        history.forEach { (role, text) -> msgs.put(JSONObject().put("role", role).put("content", text)) }
+        val body = JSONObject().put("model", model).put("stream", false).put("messages", msgs)
+            .put("options", JSONObject().put("num_predict", 200))
+
+        val conn = try { URL("$base/api/chat").openConnection() as HttpURLConnection } catch (e: Exception) {
+            history.removeLastOrNull(); return Reply("La dirección de Ollama no es válida. Revísala en Ajustes.")
+        }
+        try {
+            conn.requestMethod = "POST"
+            conn.connectTimeout = 6000
+            conn.readTimeout = 90000          // los modelos locales pueden tardar
+            conn.doOutput = true
+            conn.setRequestProperty("content-type", "application/json")
+            conn.outputStream.use { it.write(body.toString().toByteArray()) }
+            val code = conn.responseCode
+            if (code == 404) { history.removeLastOrNull(); return Reply("Ollama no tiene el modelo $model. En la computadora ejecuta: ollama pull $model") }
+            if (code !in 200..299) { history.removeLastOrNull(); return Reply("Ollama respondió con error $code.") }
+            val text = JSONObject(conn.inputStream.bufferedReader().use { it.readText() })
+                .getJSONObject("message").getString("content").trim()
+            val reply = parseCloud(text)
+            history.add("assistant" to reply.text)
+            return reply
+        } catch (e: java.io.IOException) {
+            history.removeLastOrNull()
+            return Reply("No encontré Ollama en $base. Revisa que esté corriendo con ollama serve y que el teléfono esté en la misma red.")
+        } finally { conn.disconnect() }
+    }
+
+    private fun claude(raw: String): Reply {
         val key = prefs().getString("ai_key", "") ?: ""
         val model = prefs().getString("ai_model", DEFAULT_MODEL)?.ifBlank { DEFAULT_MODEL } ?: DEFAULT_MODEL
         val now = java.text.SimpleDateFormat("EEEE d 'de' MMMM, HH:mm", Locale.getDefault()).format(Date())
@@ -274,6 +320,8 @@ class AssistantEngine(private val ctx: Context) {
 
     companion object {
         const val DEFAULT_MODEL = "claude-haiku-5-5"
+        const val DEFAULT_OLLAMA_URL = "http://127.0.0.1:11434"
+        const val DEFAULT_OLLAMA_MODEL = "llama3.2"
         const val FALLBACK = "No estoy segura de cómo ayudarte con eso. Prueba: abre WhatsApp, llama a mamá, ¿qué hora es?, ¿cuánta batería tengo?"
 
         private val NOTE = Regex("^(anota|apunta|anótame|apúntame|recuérdame|recuerdame|nueva nota|crea una nota|agrega una nota|añade una nota)(?: que| de| para)?\\s+(.+)$")
