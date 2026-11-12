@@ -112,7 +112,8 @@ class MainActivity : AppCompatActivity() {
             act = this,
             phone = phoneActions,
             onTalk = { sound.play(R.raw.touch); voice.startListening() },
-            onReplay = { command, params -> handleVoiceCommand(command, params) }
+            onReplay = { command, params -> handleVoiceCommand(command, params) },
+            onFlash = { appLauncher.launchApp("linterna") }
         )
         dashboard.bind()
 
@@ -357,6 +358,10 @@ class MainActivity : AppCompatActivity() {
             3 -> appLauncher.launchApp("linterna")
             4 -> startActivity(Intent(this, SettingsActivity::class.java))
             5 -> { sound.play(R.raw.touch); voice.startListening() }
+            6 -> if (!OasisAccessibilityService.lockScreen()) {
+                toast.show("Activa «OASIS» en Accesibilidad para poder bloquear la pantalla")
+                try { startActivity(Intent(android.provider.Settings.ACTION_ACCESSIBILITY_SETTINGS)) } catch (_: Exception) {}
+            }
         }
     }
 

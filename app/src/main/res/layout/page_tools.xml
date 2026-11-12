@@ -1,0 +1,246 @@
+<?xml version="1.0" encoding="utf-8"?>
+<ScrollView xmlns:android="http://schemas.android.com/apk/res/android"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:clipToPadding="false"
+    android:overScrollMode="never"
+    android:paddingStart="16dp"
+    android:paddingTop="20dp"
+    android:paddingEnd="16dp"
+    android:paddingBottom="12dp"
+    android:scrollbars="none">
+
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:orientation="vertical">
+
+        <TextView
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:fontFamily="sans-serif-medium"
+            android:tag="strong"
+            android:text="Herramientas"
+            android:textSize="32sp" />
+
+        <TextView
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_marginBottom="14dp"
+            android:text="Lo que más usas, a un toque"
+            android:textSize="14sp" />
+
+        <!-- Accesos rápidos -->
+        <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginBottom="12dp"
+            android:orientation="horizontal">
+
+            <LinearLayout
+                android:id="@+id/btn_flash"
+                android:layout_width="0dp"
+                android:layout_height="wrap_content"
+                android:layout_marginEnd="4dp"
+                android:layout_weight="1"
+                android:background="@drawable/bg_card"
+                android:foreground="?attr/selectableItemBackground"
+                android:gravity="center"
+                android:orientation="vertical"
+                android:paddingTop="14dp"
+                android:paddingBottom="12dp"
+                android:tag="card">
+
+                <TextView android:layout_width="wrap_content" android:layout_height="wrap_content"
+                    android:text="🔦" android:textSize="28sp" />
+                <TextView android:layout_width="wrap_content" android:layout_height="wrap_content"
+                    android:layout_marginTop="4dp" android:tag="strong" android:text="Linterna" android:textSize="12sp" />
+            </LinearLayout>
+
+            <LinearLayout
+                android:id="@+id/btn_timer"
+                android:layout_width="0dp"
+                android:layout_height="wrap_content"
+                android:layout_marginStart="4dp"
+                android:layout_marginEnd="4dp"
+                android:layout_weight="1"
+                android:background="@drawable/bg_card"
+                android:foreground="?attr/selectableItemBackground"
+                android:gravity="center"
+                android:orientation="vertical"
+                android:paddingTop="14dp"
+                android:paddingBottom="12dp"
+                android:tag="card">
+
+                <TextView android:layout_width="wrap_content" android:layout_height="wrap_content"
+                    android:text="⏱️" android:textSize="28sp" />
+                <TextView android:layout_width="wrap_content" android:layout_height="wrap_content"
+                    android:layout_marginTop="4dp" android:tag="strong" android:text="Temporizador" android:textSize="12sp" />
+            </LinearLayout>
+
+            <LinearLayout
+                android:id="@+id/btn_alarm"
+                android:layout_width="0dp"
+                android:layout_height="wrap_content"
+                android:layout_marginStart="4dp"
+                android:layout_marginEnd="4dp"
+                android:layout_weight="1"
+                android:background="@drawable/bg_card"
+                android:foreground="?attr/selectableItemBackground"
+                android:gravity="center"
+                android:orientation="vertical"
+                android:paddingTop="14dp"
+                android:paddingBottom="12dp"
+                android:tag="card">
+
+                <TextView android:layout_width="wrap_content" android:layout_height="wrap_content"
+                    android:text="⏰" android:textSize="28sp" />
+                <TextView android:layout_width="wrap_content" android:layout_height="wrap_content"
+                    android:layout_marginTop="4dp" android:tag="strong" android:text="Alarmas" android:textSize="12sp" />
+            </LinearLayout>
+
+            <LinearLayout
+                android:id="@+id/btn_sos"
+                android:layout_width="0dp"
+                android:layout_height="wrap_content"
+                android:layout_marginStart="4dp"
+                android:layout_weight="1"
+                android:background="@drawable/bg_card"
+                android:foreground="?attr/selectableItemBackground"
+                android:gravity="center"
+                android:orientation="vertical"
+                android:paddingTop="14dp"
+                android:paddingBottom="12dp"
+                android:tag="card">
+
+                <TextView android:layout_width="wrap_content" android:layout_height="wrap_content"
+                    android:text="🆘" android:textSize="28sp" />
+                <TextView android:layout_width="wrap_content" android:layout_height="wrap_content"
+                    android:layout_marginTop="4dp" android:tag="strong" android:text="Emergencia" android:textSize="12sp" />
+            </LinearLayout>
+        </LinearLayout>
+
+        <!-- Volumen -->
+        <LinearLayout
+            android:id="@+id/card_volume"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginBottom="12dp"
+            android:background="@drawable/bg_card"
+            android:orientation="vertical"
+            android:padding="16dp"
+            android:tag="card">
+
+            <TextView android:layout_width="wrap_content" android:layout_height="wrap_content"
+                android:letterSpacing="0.08" android:tag="strong" android:text="VOLUMEN" android:textSize="12sp" />
+
+            <TextView android:layout_width="wrap_content" android:layout_height="wrap_content"
+                android:layout_marginTop="8dp" android:text="🔊 Multimedia" android:textSize="13sp" />
+            <SeekBar
+                android:id="@+id/sb_media"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content" />
+
+            <TextView android:layout_width="wrap_content" android:layout_height="wrap_content"
+                android:layout_marginTop="6dp" android:text="🔔 Timbre" android:textSize="13sp" />
+            <SeekBar
+                android:id="@+id/sb_ring"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content" />
+        </LinearLayout>
+
+        <!-- Notas y pendientes -->
+        <LinearLayout
+            android:id="@+id/card_notes"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginBottom="12dp"
+            android:background="@drawable/bg_card"
+            android:orientation="vertical"
+            android:padding="16dp"
+            android:tag="card">
+
+            <TextView android:layout_width="wrap_content" android:layout_height="wrap_content"
+                android:letterSpacing="0.08" android:tag="strong" android:text="NOTAS Y PENDIENTES" android:textSize="12sp" />
+
+            <LinearLayout
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="8dp"
+                android:gravity="center_vertical"
+                android:orientation="horizontal">
+
+                <EditText
+                    android:id="@+id/et_note"
+                    android:layout_width="0dp"
+                    android:layout_height="wrap_content"
+                    android:layout_weight="1"
+                    android:hint="Escribe algo…"
+                    android:imeOptions="actionDone"
+                    android:importantForAutofill="no"
+                    android:inputType="textCapSentences"
+                    android:maxLines="1"
+                    android:textSize="15sp" />
+
+                <com.google.android.material.button.MaterialButton
+                    android:id="@+id/btn_add_note"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:layout_marginStart="8dp"
+                    android:text="Añadir" />
+            </LinearLayout>
+
+            <LinearLayout
+                android:id="@+id/ll_notes"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="4dp"
+                android:orientation="vertical" />
+
+            <TextView
+                android:id="@+id/tv_notes_empty"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="6dp"
+                android:text="Toca una nota para tacharla · toca ✕ para borrarla"
+                android:textSize="12sp" />
+        </LinearLayout>
+
+        <!-- Tiempo de pantalla -->
+        <LinearLayout
+            android:id="@+id/card_screen"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginBottom="12dp"
+            android:background="@drawable/bg_card"
+            android:orientation="vertical"
+            android:padding="16dp"
+            android:tag="card">
+
+            <TextView android:layout_width="wrap_content" android:layout_height="wrap_content"
+                android:letterSpacing="0.08" android:tag="strong" android:text="TIEMPO DE PANTALLA HOY" android:textSize="12sp" />
+
+            <LinearLayout
+                android:id="@+id/ll_screen"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="6dp"
+                android:orientation="vertical" />
+
+            <TextView
+                android:id="@+id/tv_screen_hint"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="6dp"
+                android:textSize="13sp" />
+
+            <com.google.android.material.button.MaterialButton
+                android:id="@+id/btn_usage_perm2"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="8dp"
+                android:text="Dar permiso de uso"
+                android:visibility="gone" />
+        </LinearLayout>
+    </LinearLayout>
+</ScrollView>

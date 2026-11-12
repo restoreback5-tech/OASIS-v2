@@ -1,0 +1,4 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="accessibility_desc">Permite a OASIS bloquear la pantalla con un gesto (doble toque). No lee ni guarda nada de lo que haces.</string>
+</resources>

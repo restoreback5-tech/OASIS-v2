@@ -66,12 +66,22 @@
         </LinearLayout>
 
         <TextView
+            android:id="@+id/tv_calc"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginBottom="6dp"
+            android:gravity="center"
+            android:textSize="22sp"
+            android:textStyle="bold"
+            android:visibility="gone" />
+
+        <TextView
             android:id="@+id/tv_drawer_tip"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:layout_marginBottom="6dp"
             android:gravity="center"
-            android:text="Mantén presionada una app para ver sus opciones"
+            android:text="Mantén presionada una app para ver sus opciones · escribe una cuenta o Enter para buscar en la web"
             android:textColor="#8E8E93"
             android:textSize="12sp" />
 

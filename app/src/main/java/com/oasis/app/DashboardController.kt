@@ -35,7 +35,8 @@ class DashboardController(
     private val act: AppCompatActivity,
     private val phone: PhoneActionsModule,
     private val onTalk: () -> Unit,
-    private val onReplay: (String, Map<String, String>) -> Unit
+    private val onReplay: (String, Map<String, String>) -> Unit,
+    private val onFlash: () -> Unit = {}
 ) {
     companion object {
         const val REQ_CALENDAR = 201
@@ -51,6 +52,7 @@ class DashboardController(
     private lateinit var dots: LinearLayout
     private lateinit var pageToday: View
     private lateinit var pageSystem: View
+    private lateinit var pageTools: View
 
     private var alive = true
     private var running = false
@@ -82,6 +84,8 @@ class DashboardController(
         dots = v(R.id.page_dots)
         pageToday = v(R.id.page_today)
         pageSystem = v(R.id.page_system)
+        pageTools = v(R.id.page_tools)
+        bindTools()
         pager.onPageChanged = { updateDots(); refreshForPage(); playEntrance() }
         pager.onScrollX = { x -> parallax(x) }
         listOf(R.id.card_battery, R.id.card_net, R.id.card_ram, R.id.card_rom, R.id.card_weather)
@@ -152,6 +156,7 @@ class DashboardController(
     fun applyPagePrefs() {
         pageToday.visibility = if (prefs.getBoolean("page_today", true)) View.VISIBLE else View.GONE
         pageSystem.visibility = if (prefs.getBoolean("page_system", true)) View.VISIBLE else View.GONE
+        pageTools.visibility = if (prefs.getBoolean("page_tools", true)) View.VISIBLE else View.GONE
         pager.relayoutPages()
         if (pager.page >= pager.pageCount()) pager.goTo(0, false)
         updateDots()
@@ -177,6 +182,7 @@ class DashboardController(
         when (currentPageView()?.id) {
             R.id.page_today -> { refreshWeather(false); refreshToday(); refreshVoice() }
             R.id.page_system -> { updateQuickStats(); refreshNetApps() }
+            R.id.page_tools -> refreshTools()
         }
     }
 
@@ -278,9 +284,10 @@ class DashboardController(
         this.fg = fg; this.fg2 = fg2; this.card = card; this.accent = accent; this.shadow = shadow
         style(v(R.id.page_today))
         style(v(R.id.page_system))
+        style(v(R.id.page_tools))
         updateDots()
         // las filas dinámicas ya creadas se repintan
-        listOf(R.id.ll_agenda, R.id.ll_favs, R.id.ll_voice, R.id.ll_netapps).forEach { style(v(it)) }
+        listOf(R.id.ll_agenda, R.id.ll_favs, R.id.ll_voice, R.id.ll_netapps, R.id.ll_notes, R.id.ll_screen).forEach { style(v(it)) }
         updateQuickStats()
     }
 
@@ -295,8 +302,12 @@ class DashboardController(
             }
         }
         when (view) {
+            is android.widget.SeekBar -> {
+                view.thumbTintList = ColorStateList.valueOf(accent)
+                view.progressTintList = ColorStateList.valueOf(accent)
+            }
             is MaterialButton -> {
-                if (view.id == R.id.btn_talk || view.id == R.id.btn_usage_perm) {
+                if (view.id == R.id.btn_talk || view.id == R.id.btn_usage_perm || view.id == R.id.btn_usage_perm2 || view.id == R.id.btn_add_note) {
                     view.backgroundTintList = ColorStateList.valueOf(accent)
                     view.setTextColor(0xFFFFFFFF.toInt())
                 } else {
@@ -519,7 +530,7 @@ class DashboardController(
         return if (e.allDay) "$day · Todo el día" else "$day · " + DateFormat.getTimeFormat(act).format(Date(e.begin))
     }
 
-    private fun addRow(parent: LinearLayout, icon: Drawable?, title: String, sub: String?, value: String?, onClick: () -> Unit) {
+    private fun addRow(parent: LinearLayout, icon: Drawable?, title: String, sub: String?, value: String?, onValue: (() -> Unit)? = null, onClick: () -> Unit) {
         val row = act.layoutInflater.inflate(R.layout.row_item, parent, false)
         val iv = row.findViewById<ImageView>(R.id.ro_icon)
         if (icon != null) iv.setImageDrawable(icon) else iv.visibility = View.GONE
@@ -527,6 +538,10 @@ class DashboardController(
         row.findViewById<TextView>(R.id.ro_sub).apply { text = sub.orEmpty(); visibility = if (sub.isNullOrEmpty()) View.GONE else View.VISIBLE }
         row.findViewById<TextView>(R.id.ro_value).apply { text = value.orEmpty(); visibility = if (value.isNullOrEmpty()) View.GONE else View.VISIBLE }
         row.setOnClickListener { onClick() }
+        if (onValue != null) row.findViewById<TextView>(R.id.ro_value).apply {
+            setOnClickListener { onValue() }
+            setPadding(24, 16, 8, 16)
+        }
         Fx.pressable(row, 0.97f)
         style(row)
         FontManager.apply(act, row)
@@ -544,6 +559,124 @@ class DashboardController(
         } catch (e: Exception) {
             Toast.makeText(act, "Esta opción no está disponible en tu teléfono", Toast.LENGTH_SHORT).show()
         }
+    }
+
+    // ====================== HERRAMIENTAS ======================
+    private fun bindTools() {
+        listOf(R.id.btn_flash, R.id.btn_timer, R.id.btn_alarm, R.id.btn_sos).forEach { Fx.pressable(v(it), 0.93f) }
+        v<View>(R.id.btn_flash).setOnClickListener { onFlash() }
+        v<View>(R.id.btn_alarm).setOnClickListener { open(Intent(android.provider.AlarmClock.ACTION_SHOW_ALARMS)) }
+        v<View>(R.id.btn_timer).setOnClickListener { askTimer() }
+        v<View>(R.id.btn_sos).setOnClickListener {
+            val n = prefs.getString("sos_number", "") ?: ""
+            if (n.isBlank()) askSos() else phone.dialNumber(n, "emergencia")
+        }
+        v<View>(R.id.btn_sos).setOnLongClickListener { askSos(); true }
+        v<View>(R.id.btn_usage_perm2).setOnClickListener { open(Intent(Settings.ACTION_USAGE_ACCESS_SETTINGS)) }
+
+        val am = act.getSystemService(android.content.Context.AUDIO_SERVICE) as android.media.AudioManager
+        fun seek(id: Int, stream: Int) {
+            val sb = v<android.widget.SeekBar>(id)
+            sb.max = am.getStreamMaxVolume(stream)
+            sb.progress = am.getStreamVolume(stream)
+            sb.setOnSeekBarChangeListener(object : android.widget.SeekBar.OnSeekBarChangeListener {
+                override fun onProgressChanged(s: android.widget.SeekBar, p: Int, fromUser: Boolean) {
+                    if (fromUser) try { am.setStreamVolume(stream, p, 0) } catch (e: Exception) {
+                        Toast.makeText(act, "No se puede cambiar ahora (¿No molestar activo?)", Toast.LENGTH_SHORT).show()
+                    }
+                }
+                override fun onStartTrackingTouch(s: android.widget.SeekBar) {}
+                override fun onStopTrackingTouch(s: android.widget.SeekBar) {}
+            })
+        }
+        seek(R.id.sb_media, android.media.AudioManager.STREAM_MUSIC)
+        seek(R.id.sb_ring, android.media.AudioManager.STREAM_RING)
+
+        val add = {
+            val et = v<android.widget.EditText>(R.id.et_note)
+            NotesStore.add(act, et.text.toString()); et.setText(""); refreshNotes()
+        }
+        v<View>(R.id.btn_add_note).setOnClickListener { add() }
+        v<android.widget.EditText>(R.id.et_note).setOnEditorActionListener { _, _, _ -> add(); true }
+    }
+
+    private fun refreshTools() {
+        val am = act.getSystemService(android.content.Context.AUDIO_SERVICE) as android.media.AudioManager
+        v<android.widget.SeekBar>(R.id.sb_media).progress = am.getStreamVolume(android.media.AudioManager.STREAM_MUSIC)
+        v<android.widget.SeekBar>(R.id.sb_ring).progress = am.getStreamVolume(android.media.AudioManager.STREAM_RING)
+        refreshNotes()
+        refreshScreenTime()
+    }
+
+    private fun refreshNotes() {
+        val list = v<LinearLayout>(R.id.ll_notes)
+        list.removeAllViews()
+        val notes = NotesStore.list(act)
+        notes.forEachIndexed { i, n ->
+            val title = if (n.done) android.text.SpannableString(n.text).apply {
+                setSpan(android.text.style.StrikethroughSpan(), 0, length, 0)
+            } else n.text
+            addRow(list, null, title.toString(), null, "✕", onValue = { NotesStore.remove(act, i); refreshNotes() }) {
+                NotesStore.toggle(act, i); refreshNotes()
+            }
+            if (n.done) (list.getChildAt(list.childCount - 1).findViewById<TextView>(R.id.ro_title)).apply {
+                paintFlags = paintFlags or android.graphics.Paint.STRIKE_THRU_TEXT_FLAG; alpha = 0.55f
+            }
+        }
+    }
+
+    private fun refreshScreenTime() {
+        val list = v<LinearLayout>(R.id.ll_screen)
+        val hint = tv(R.id.tv_screen_hint)
+        val perm = v<View>(R.id.btn_usage_perm2)
+        if (!SystemStats.hasUsageAccess(act)) {
+            list.removeAllViews()
+            hint.visibility = View.VISIBLE
+            hint.text = "Permite el acceso a uso de apps para ver cuánto usaste cada una hoy."
+            perm.visibility = View.VISIBLE
+            return
+        }
+        perm.visibility = View.GONE
+        io.execute {
+            val top = SystemStats.topScreenTime(act, 5)
+            handler.post {
+                if (!alive) return@post
+                list.removeAllViews()
+                hint.visibility = if (top.isEmpty()) View.VISIBLE else View.GONE
+                hint.text = "Aún no hay uso registrado hoy."
+                top.forEach { (a, ms) ->
+                    val icon = try { act.packageManager.getApplicationIcon(a.pkg) } catch (e: Exception) { null }
+                    addRow(list, icon, a.label, null, SystemStats.fmtDuration(ms)) {
+                        open(Intent(Settings.ACTION_APPLICATION_DETAILS_SETTINGS, Uri.parse("package:${a.pkg}")))
+                    }
+                }
+            }
+        }
+    }
+
+    private fun askTimer() {
+        val input = android.widget.EditText(act).apply {
+            hint = "Minutos (ej. 10)"; inputType = android.text.InputType.TYPE_CLASS_NUMBER; setPadding(56, 32, 56, 16)
+        }
+        androidx.appcompat.app.AlertDialog.Builder(act).setTitle("Temporizador").setView(input)
+            .setPositiveButton("Iniciar") { _, _ ->
+                val m = input.text.toString().toIntOrNull() ?: 0
+                if (m > 0) open(Intent(android.provider.AlarmClock.ACTION_SET_TIMER)
+                    .putExtra(android.provider.AlarmClock.EXTRA_LENGTH, m * 60)
+                    .putExtra(android.provider.AlarmClock.EXTRA_MESSAGE, "OASIS"))
+            }.setNegativeButton("Cancelar", null).show()
+    }
+
+    private fun askSos() {
+        val input = android.widget.EditText(act).apply {
+            hint = "Número de emergencia"; inputType = android.text.InputType.TYPE_CLASS_PHONE
+            setText(prefs.getString("sos_number", "")); setPadding(56, 32, 56, 16)
+        }
+        androidx.appcompat.app.AlertDialog.Builder(act).setTitle("¿A quién llamar en una emergencia?").setView(input)
+            .setPositiveButton("Guardar") { _, _ ->
+                prefs.edit().putString("sos_number", input.text.toString().trim()).apply()
+                Toast.makeText(act, "Guardado. Toca 🆘 para llamar; mantén presionado para cambiarlo.", Toast.LENGTH_LONG).show()
+            }.setNegativeButton("Cancelar", null).show()
     }
 
     /** MainActivity lo llama cuando el usuario responde un permiso del dashboard. */

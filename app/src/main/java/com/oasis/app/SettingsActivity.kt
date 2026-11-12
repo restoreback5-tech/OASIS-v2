@@ -173,6 +173,7 @@ class SettingsActivity : AppCompatActivity() {
         setupAppearance()
         bindSwitch(R.id.switch_glass_fx, UiPrefs.glassFx(this)) { UiPrefs.setGlassFx(this, it) }
         bindSwitch(R.id.switch_page_today, UiPrefs.pageToday(this)) { UiPrefs.setPageToday(this, it) }
+        bindSwitch(R.id.switch_page_tools, UiPrefs.pageTools(this)) { UiPrefs.setPageTools(this, it) }
         bindSwitch(R.id.switch_page_system, UiPrefs.pageSystem(this)) { UiPrefs.setPageSystem(this, it) }
         bindSwitch(R.id.switch_startup_sound, UiPrefs.startupSound(this)) { UiPrefs.setStartupSound(this, it) }
         bindGroup(intArrayOf(R.id.drawer_0, R.id.drawer_1, R.id.drawer_2), UiPrefs.drawerStyle(this)) { UiPrefs.setDrawerStyle(this, it) }
@@ -567,7 +568,7 @@ class SettingsActivity : AppCompatActivity() {
         listOf<SwitchMaterial>(
             switchSounds, switchTtsEnabled, switchOverlay, switchHideClock,
             findViewById(R.id.switch_labels), findViewById(R.id.switch_swipe), findViewById(R.id.switch_clock24),
-            findViewById(R.id.switch_glass_fx), findViewById(R.id.switch_theme_auto), findViewById(R.id.switch_tilt), findViewById(R.id.switch_page_today), findViewById(R.id.switch_page_system), findViewById(R.id.switch_startup_sound)
+            findViewById(R.id.switch_glass_fx), findViewById(R.id.switch_theme_auto), findViewById(R.id.switch_tilt), findViewById(R.id.switch_page_today), findViewById(R.id.switch_page_tools), findViewById(R.id.switch_page_system), findViewById(R.id.switch_startup_sound)
         ).forEach {
             it.thumbTintList = thumb
             it.trackTintList = track

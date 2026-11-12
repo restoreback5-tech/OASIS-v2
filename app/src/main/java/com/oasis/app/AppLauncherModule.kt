@@ -278,11 +278,21 @@ class AppLauncherModule(
             }
             view.findViewById<EditText>(R.id.et_search_apps).apply {
                 addTextChangedListener(object : TextWatcher {
-                    override fun afterTextChanged(s: Editable?) { appsAdapter.filter(s?.toString().orEmpty()) }
+                    override fun afterTextChanged(s: Editable?) {
+                        val q = s?.toString().orEmpty()
+                        appsAdapter.filter(q)
+                        val calc = view.findViewById<android.widget.TextView>(R.id.tv_calc)
+                        val r = Calc.eval(q)
+                        calc.visibility = if (r != null) View.VISIBLE else View.GONE
+                        if (r != null) calc.text = "= " + Calc.format(r)
+                    }
                     override fun beforeTextChanged(s: CharSequence?, a: Int, b: Int, c: Int) {}
                     override fun onTextChanged(s: CharSequence?, a: Int, b: Int, c: Int) {}
                 })
-                setOnEditorActionListener { _, _, _ -> appsAdapter.launchSingleMatch() }
+                setOnEditorActionListener { _, _, _ ->
+                    val q = text.toString().trim()
+                    appsAdapter.launchSingleMatch() || (q.isNotEmpty() && Calc.eval(q) == null && webSearch(q, dialog))
+                }
             }
             view.findViewById<View>(R.id.btn_close_apps).setOnClickListener { dialog.dismiss() }
             view.findViewById<View>(R.id.drawer_dismiss_area).setOnClickListener { dialog.dismiss() }
@@ -316,6 +326,12 @@ class AppLauncherModule(
         } catch (e: Exception) { false }
     }
 
+    private fun webSearch(q: String, dialog: Dialog): Boolean = try {
+        context.startActivity(Intent(Intent.ACTION_WEB_SEARCH).putExtra(android.app.SearchManager.QUERY, q)
+            .addFlags(Intent.FLAG_ACTIVITY_NEW_TASK))
+        dialog.dismiss(); true
+    } catch (e: Exception) { false }
+
     private class DrawerColors(val bg: Int, val text: Int, val hint: Int, val field: Int)
 
     /** Fondo del cajón: nunca blanco puro. Automático = oscuro si el tema es "noche" o el teléfono está en modo noche. */
@@ -342,6 +358,7 @@ class AppLauncherModule(
             compoundDrawableTintList = android.content.res.ColorStateList.valueOf(c.hint)
         }
         view.findViewById<android.widget.TextView>(R.id.tv_drawer_tip).setTextColor(c.hint)
+        view.findViewById<android.widget.TextView>(R.id.tv_calc).setTextColor(c.text)
         (view.findViewById<View>(R.id.btn_close_apps) as android.widget.ImageView)
             .imageTintList = android.content.res.ColorStateList.valueOf(c.text)
     }

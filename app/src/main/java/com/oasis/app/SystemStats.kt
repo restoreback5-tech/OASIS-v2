@@ -147,6 +147,32 @@ object SystemStats {
             .take(limit)
     }
 
+    /** Apps más usadas hoy (tiempo en pantalla). Requiere acceso a uso. Llamar fuera del hilo principal. */
+    fun topScreenTime(ctx: Context, limit: Int): List<Pair<NetApp, Long>> {
+        val usm = ctx.getSystemService(Context.USAGE_STATS_SERVICE) as? android.app.usage.UsageStatsManager ?: return emptyList()
+        val end = System.currentTimeMillis()
+        val start = Calendar.getInstance().apply {
+            set(Calendar.HOUR_OF_DAY, 0); set(Calendar.MINUTE, 0); set(Calendar.SECOND, 0); set(Calendar.MILLISECOND, 0)
+        }.timeInMillis
+        val pm = ctx.packageManager
+        return try {
+            usm.queryUsageStats(android.app.usage.UsageStatsManager.INTERVAL_DAILY, start, end)
+                .filter { it.totalTimeInForeground > 60_000 && it.packageName != ctx.packageName && pm.getLaunchIntentForPackage(it.packageName) != null }
+                .groupBy { it.packageName }
+                .map { (pkg, l) ->
+                    val label = try { pm.getApplicationLabel(pm.getApplicationInfo(pkg, 0)).toString() } catch (e: Exception) { pkg }
+                    NetApp(pkg, label, 0) to l.sumOf { it.totalTimeInForeground }
+                }
+                .sortedByDescending { it.second }
+                .take(limit)
+        } catch (e: Exception) { emptyList() }
+    }
+
+    fun fmtDuration(ms: Long): String {
+        val m = ms / 60_000
+        return if (m >= 60) "${m / 60} h ${m % 60} min" else "$m min"
+    }
+
     fun fmtBytes(b: Long): String {
         val kb = 1024.0
         val v = b.toDouble()

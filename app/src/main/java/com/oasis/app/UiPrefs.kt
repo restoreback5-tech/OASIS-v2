@@ -78,10 +78,10 @@ object UiPrefs {
     fun setPageFx(ctx: Context, v: Int) = p(ctx).edit().putInt("page_fx", v).apply()
 
     // Gestos en Inicio: 0 nada, 1 notificaciones, 2 cajón de apps, 3 linterna, 4 ajustes, 5 hablar
-    val GESTURES = listOf("Nada", "Abrir notificaciones", "Abrir cajón de apps", "Linterna", "Ajustes de OASIS", "Hablar con OASIS")
-    fun gestureDouble(ctx: Context): Int = p(ctx).getInt("gesture_double", 0).coerceIn(0, 5)
+    val GESTURES = listOf("Nada", "Abrir notificaciones", "Abrir cajón de apps", "Linterna", "Ajustes de OASIS", "Hablar con OASIS", "Bloquear pantalla")
+    fun gestureDouble(ctx: Context): Int = p(ctx).getInt("gesture_double", 0).coerceIn(0, 6)
     fun setGestureDouble(ctx: Context, v: Int) = p(ctx).edit().putInt("gesture_double", v).apply()
-    fun gestureDown(ctx: Context): Int = p(ctx).getInt("gesture_down", 1).coerceIn(0, 5)
+    fun gestureDown(ctx: Context): Int = p(ctx).getInt("gesture_down", 1).coerceIn(0, 6)
     fun setGestureDown(ctx: Context, v: Int) = p(ctx).edit().putInt("gesture_down", v).apply()
 
     // Efectos de cristal y animaciones
@@ -90,6 +90,8 @@ object UiPrefs {
 
     fun pageToday(ctx: Context): Boolean = p(ctx).getBoolean("page_today", true)
     fun setPageToday(ctx: Context, v: Boolean) = p(ctx).edit().putBoolean("page_today", v).apply()
+    fun pageTools(ctx: Context): Boolean = p(ctx).getBoolean("page_tools", true)
+    fun setPageTools(ctx: Context, v: Boolean) = p(ctx).edit().putBoolean("page_tools", v).apply()
     fun pageSystem(ctx: Context): Boolean = p(ctx).getBoolean("page_system", true)
     fun setPageSystem(ctx: Context, v: Boolean) = p(ctx).edit().putBoolean("page_system", v).apply()
 
@@ -99,7 +101,7 @@ object UiPrefs {
         listOf(
             "icon_size", "icon_shape", "show_labels", "drawer_columns", "scrim_percent",
             "swipe_up", "clock_24h", "orb_size", "font_key", "icon_style", "icon_pack",
-            "glass_fx", "theme_auto", "accent_custom", "bg_effect", "tilt_fx", "page_fx", "gesture_double", "gesture_down", "drawer_style", "page_today", "page_system", "sound_startup"
+            "glass_fx", "theme_auto", "accent_custom", "bg_effect", "tilt_fx", "page_fx", "gesture_double", "gesture_down", "drawer_style", "page_today", "page_tools", "page_system", "sound_startup"
         ).forEach { e.remove(it) }
         e.apply()
         FontManager.invalidate()

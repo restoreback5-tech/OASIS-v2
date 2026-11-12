@@ -15,10 +15,34 @@
     <uses-permission android:name="android.permission.ACCESS_WIFI_STATE" />
     <uses-permission android:name="android.permission.READ_CALENDAR" />
     <uses-permission android:name="android.permission.EXPAND_STATUS_BAR" />
+    <uses-permission android:name="com.android.alarm.permission.SET_ALARM" />
     <uses-permission android:name="android.permission.REQUEST_DELETE_PACKAGES" />
     <!-- Acceso a uso de apps: lo concede el usuario en Ajustes (para "apps que más red usan") -->
     <uses-permission android:name="android.permission.PACKAGE_USAGE_STATS"
         tools:ignore="ProtectedPermissions" />
+    <!-- === Permisos para las próximas funciones (se declaran ya para compilar una sola vez) === -->
+    <!-- Widgets de Android (el sistema pide confirmación al usuario al agregar cada widget) -->
+    <uses-permission android:name="android.permission.BIND_APPWIDGET" tools:ignore="ProtectedPermissions" />
+    <!-- Clima por ubicación y mensaje de emergencia -->
+    <uses-permission android:name="android.permission.ACCESS_COARSE_LOCATION" />
+    <uses-permission android:name="android.permission.ACCESS_FINE_LOCATION" />
+    <uses-permission android:name="android.permission.SEND_SMS" />
+    <uses-permission android:name="android.permission.READ_CALL_LOG" />
+    <uses-permission android:name="android.permission.READ_PHONE_STATE" />
+    <!-- Recordatorios (medicinas, citas) y que sobrevivan al reinicio -->
+    <uses-permission android:name="android.permission.POST_NOTIFICATIONS" />
+    <uses-permission android:name="android.permission.SCHEDULE_EXACT_ALARM" />
+    <uses-permission android:name="android.permission.USE_EXACT_ALARM" />
+    <uses-permission android:name="android.permission.RECEIVE_BOOT_COMPLETED" />
+    <uses-permission android:name="android.permission.VIBRATE" />
+    <uses-permission android:name="android.permission.WAKE_LOCK" />
+    <uses-permission android:name="android.permission.USE_BIOMETRIC" />
+    <!-- Cambiar fondo de pantalla, brillo y No molestar -->
+    <uses-permission android:name="android.permission.SET_WALLPAPER" />
+    <uses-permission android:name="android.permission.WRITE_SETTINGS" tools:ignore="ProtectedPermissions" />
+    <uses-permission android:name="android.permission.ACCESS_NOTIFICATION_POLICY" />
+    <uses-permission android:name="android.permission.BLUETOOTH_CONNECT" />
+    <uses-permission android:name="android.permission.REQUEST_IGNORE_BATTERY_OPTIMIZATIONS" />
     <uses-permission android:name="android.permission.QUERY_ALL_PACKAGES" 
         tools:ignore="QueryAllPackagesPermission" />
 
@@ -70,6 +94,31 @@
         <activity
             android:name=".OverlayPermissionActivity"
             android:exported="false" />
+
+        <!-- Insignias: cuenta notificaciones por app (el usuario lo activa en Acceso a notificaciones) -->
+        <service
+            android:name=".OasisNotificationListener"
+            android:exported="true"
+            android:label="OASIS"
+            android:permission="android.permission.BIND_NOTIFICATION_LISTENER_SERVICE">
+            <intent-filter>
+                <action android:name="android.service.notification.NotificationListenerService" />
+            </intent-filter>
+        </service>
+
+        <!-- Gesto "bloquear pantalla" (el usuario lo activa en Accesibilidad) -->
+        <service
+            android:name=".OasisAccessibilityService"
+            android:exported="true"
+            android:label="OASIS"
+            android:permission="android.permission.BIND_ACCESSIBILITY_SERVICE">
+            <intent-filter>
+                <action android:name="android.accessibilityservice.AccessibilityService" />
+            </intent-filter>
+            <meta-data
+                android:name="android.accessibilityservice"
+                android:resource="@xml/accessibility_config" />
+        </service>
 
         <!-- Servicio Flotante -->
         <service

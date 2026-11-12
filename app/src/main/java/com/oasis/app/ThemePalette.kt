@@ -127,7 +127,7 @@ data class ThemePalette(
             return ThemePalette(
                 key = "dinamico", name = "Dinámico (tu fondo)", background = bg,
                 scrim = if (night) 0x66000000 else 0x29FFFFFF, card = card,
-                dock = if (night) 0x73000000 else 0x80FFFFFF,
+                dock = if (night) 0x73000000 else 0x80FFFFFF.toInt(),
                 text = if (night) 0xFFF1F3F7.toInt() else 0xFF171A21.toInt(),
                 textSecondary = if (night) 0xFFA3A9B8.toInt() else 0xFF616977.toInt(),
                 accent = accent, accent2 = accent2, dark = night
