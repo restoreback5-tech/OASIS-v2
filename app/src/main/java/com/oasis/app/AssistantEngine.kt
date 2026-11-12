@@ -19,7 +19,7 @@ import kotlin.math.ceil
  * Cerebro del orbe. Dos niveles:
  *  1) Local (sin internet, instantáneo): hora, fecha, batería, RAM, almacenamiento, red, clima, agenda,
  *     notas, temporizadores, volumen, temas, cuentas, saludos.
- *  2) Opcional: IA en la nube (Claude, de Anthropic) con la clave del usuario, para preguntas libres.
+ *  2) Opcional: IA local con Ollama (ollama serve) para preguntas libres.
  */
 class AssistantEngine(private val ctx: Context) {
 
@@ -40,14 +40,11 @@ class AssistantEngine(private val ctx: Context) {
 
     private fun prefs() = ctx.getSharedPreferences("oasis_settings", Context.MODE_PRIVATE)
 
-    private fun provider() = prefs().getString("ai_provider", "claude") ?: "claude"
-    private fun ollamaUrl() = (prefs().getString("ollama_url", DEFAULT_OLLAMA_URL)?.trim()?.ifBlank { DEFAULT_OLLAMA_URL } ?: DEFAULT_OLLAMA_URL).trimEnd('/')
-    private fun ollamaModel() = prefs().getString("ollama_model", DEFAULT_OLLAMA_MODEL)?.trim()?.ifBlank { DEFAULT_OLLAMA_MODEL } ?: DEFAULT_OLLAMA_MODEL
+    private fun serverUrl() = (prefs().getString("ollama_url", DEFAULT_URL)?.trim()?.ifBlank { DEFAULT_URL } ?: DEFAULT_URL).trimEnd('/')
+    private fun model() = prefs().getString("ollama_model", DEFAULT_MODEL)?.trim()?.ifBlank { DEFAULT_MODEL } ?: DEFAULT_MODEL
 
-    fun cloudEnabled(): Boolean {
-        if (!prefs().getBoolean("ai_enabled", false)) return false
-        return if (provider() == "ollama") true else !prefs().getString("ai_key", "").isNullOrBlank()
-    }
+    /** La IA conversacional es opcional y se activa en Ajustes. */
+    fun cloudEnabled(): Boolean = prefs().getBoolean("ai_enabled", false)
 
     /** Responde en el hilo principal. */
     fun handle(raw: String, done: (Reply) -> Unit) {
@@ -218,35 +215,39 @@ class AssistantEngine(private val ctx: Context) {
         }
     }
 
-    // ====================== IA EN LA NUBE (opcional) ======================
-    private fun cloud(raw: String): Reply = if (provider() == "ollama") ollama(raw) else claude(raw)
-
-    /** IA local con `ollama serve` (en tu PC, en Termux o en otro equipo de la red). */
-    private fun ollama(raw: String): Reply {
-        val base = ollamaUrl()
-        val model = ollamaModel()
+    // ====================== IA LOCAL (Ollama) ======================
+    /**
+     * POST {URL}/api/chat con {"model", "stream": false, "messages": [...]}.
+     * Se ejecuta siempre en el hilo secundario de [io]; nunca toca la interfaz.
+     */
+    private fun cloud(raw: String): Reply {
+        val base = serverUrl()
+        val model = model()
         val now = java.text.SimpleDateFormat("EEEE d 'de' MMMM, HH:mm", Locale.getDefault()).format(Date())
 
         history.add("user" to raw)
         while (history.size > 8) history.removeAt(0)
         val msgs = JSONArray().put(JSONObject().put("role", "system").put("content", SYSTEM + "\nAhora: $now."))
         history.forEach { (role, text) -> msgs.put(JSONObject().put("role", role).put("content", text)) }
-        val body = JSONObject().put("model", model).put("stream", false).put("messages", msgs)
+        val body = JSONObject()
+            .put("model", model)
+            .put("stream", false)
+            .put("messages", msgs)
             .put("options", JSONObject().put("num_predict", 200))
 
         val conn = try { URL("$base/api/chat").openConnection() as HttpURLConnection } catch (e: Exception) {
-            history.removeLastOrNull(); return Reply("La dirección de Ollama no es válida. Revísala en Ajustes.")
+            history.removeLastOrNull(); return Reply("La URL del servidor no es válida. Revísala en Ajustes.")
         }
         try {
             conn.requestMethod = "POST"
-            conn.connectTimeout = 6000
-            conn.readTimeout = 90000          // los modelos locales pueden tardar
+            conn.connectTimeout = 60_000
+            conn.readTimeout = 120_000        // la primera carga del modelo local tarda
             conn.doOutput = true
-            conn.setRequestProperty("content-type", "application/json")
+            conn.setRequestProperty("Content-Type", "application/json")
             conn.outputStream.use { it.write(body.toString().toByteArray()) }
             val code = conn.responseCode
-            if (code == 404) { history.removeLastOrNull(); return Reply("Ollama no tiene el modelo $model. En la computadora ejecuta: ollama pull $model") }
-            if (code !in 200..299) { history.removeLastOrNull(); return Reply("Ollama respondió con error $code.") }
+            if (code == 404) { history.removeLastOrNull(); return Reply("El servidor no tiene el modelo $model. En la computadora ejecuta: ollama pull $model") }
+            if (code !in 200..299) { history.removeLastOrNull(); return Reply("El servidor respondió con error $code.") }
             val text = JSONObject(conn.inputStream.bufferedReader().use { it.readText() })
                 .getJSONObject("message").getString("content").trim()
             val reply = parseCloud(text)
@@ -254,45 +255,7 @@ class AssistantEngine(private val ctx: Context) {
             return reply
         } catch (e: java.io.IOException) {
             history.removeLastOrNull()
-            return Reply("No encontré Ollama en $base. Revisa que esté corriendo con ollama serve y que el teléfono esté en la misma red.")
-        } finally { conn.disconnect() }
-    }
-
-    private fun claude(raw: String): Reply {
-        val key = prefs().getString("ai_key", "") ?: ""
-        val model = prefs().getString("ai_model", DEFAULT_MODEL)?.ifBlank { DEFAULT_MODEL } ?: DEFAULT_MODEL
-        val now = java.text.SimpleDateFormat("EEEE d 'de' MMMM, HH:mm", Locale.getDefault()).format(Date())
-
-        history.add("user" to raw)
-        while (history.size > 8) history.removeAt(0)
-        val msgs = JSONArray()
-        history.forEach { (role, text) -> msgs.put(JSONObject().put("role", role).put("content", text)) }
-
-        val body = JSONObject()
-            .put("model", model)
-            .put("max_tokens", 300)
-            .put("system", SYSTEM + "\nAhora: $now.")
-            .put("messages", msgs)
-
-        val conn = URL("https://api.anthropic.com/v1/messages").openConnection() as HttpURLConnection
-        try {
-            conn.requestMethod = "POST"
-            conn.connectTimeout = 10000
-            conn.readTimeout = 25000
-            conn.doOutput = true
-            conn.setRequestProperty("content-type", "application/json")
-            conn.setRequestProperty("x-api-key", key)
-            conn.setRequestProperty("anthropic-version", "2023-06-01")
-            conn.outputStream.use { it.write(body.toString().toByteArray()) }
-            val code = conn.responseCode
-            if (code == 401 || code == 403) { history.removeLastOrNull(); return Reply("La clave de la IA no es válida. Revísala en Ajustes.") }
-            if (code == 429) { history.removeLastOrNull(); return Reply("La IA está muy ocupada. Intenta en un momento.") }
-            if (code !in 200..299) { history.removeLastOrNull(); return Reply("La IA no pudo responder ahora (error $code).") }
-            val text = JSONObject(conn.inputStream.bufferedReader().use { it.readText() })
-                .getJSONArray("content").getJSONObject(0).getString("text").trim()
-            val reply = parseCloud(text)
-            history.add("assistant" to reply.text)
-            return reply
+            return Reply("No encontré el servidor en $base. Revisa que ollama serve esté corriendo.")
         } finally { conn.disconnect() }
     }
 
@@ -319,9 +282,8 @@ class AssistantEngine(private val ctx: Context) {
     }
 
     companion object {
-        const val DEFAULT_MODEL = "claude-haiku-5-5"
-        const val DEFAULT_OLLAMA_URL = "http://127.0.0.1:11434"
-        const val DEFAULT_OLLAMA_MODEL = "llama3.2"
+        const val DEFAULT_URL = "http://127.0.0.1:11434"
+        const val DEFAULT_MODEL = "qwen2.5:3b"
         const val FALLBACK = "No estoy segura de cómo ayudarte con eso. Prueba: abre WhatsApp, llama a mamá, ¿qué hora es?, ¿cuánta batería tengo?"
 
         private val NOTE = Regex("^(anota|apunta|anótame|apúntame|recuérdame|recuerdame|nueva nota|crea una nota|agrega una nota|añade una nota)(?: que| de| para)?\\s+(.+)$")

@@ -328,78 +328,42 @@ class SettingsActivity : AppCompatActivity() {
     }
 
     private fun setupAssistant() {
-        fun isOllama() = prefs.getString("ai_provider", "claude") == "ollama"
         fun refresh() {
-            val hasKey = !prefs.getString("ai_key", "").isNullOrBlank()
-            val ollama = isOllama()
-            findViewById<MaterialButton>(R.id.btn_ai_provider).text = "Proveedor: " + if (ollama) "Ollama (local)" else "Claude (nube)"
-            findViewById<MaterialButton>(R.id.btn_ollama_url).apply {
-                visibility = if (ollama) View.VISIBLE else View.GONE
-                text = "Ollama: " + (prefs.getString("ollama_url", AssistantEngine.DEFAULT_OLLAMA_URL)?.ifBlank { AssistantEngine.DEFAULT_OLLAMA_URL })
-            }
-            findViewById<MaterialButton>(R.id.btn_ai_key).apply {
-                visibility = if (ollama) View.GONE else View.VISIBLE
-                text = "Clave de API: " + if (hasKey) "guardada ✓" else "sin clave"
-            }
-            findViewById<MaterialButton>(R.id.btn_ai_model).text = "Modelo: " + if (ollama)
-                (prefs.getString("ollama_model", AssistantEngine.DEFAULT_OLLAMA_MODEL)?.ifBlank { AssistantEngine.DEFAULT_OLLAMA_MODEL } ?: AssistantEngine.DEFAULT_OLLAMA_MODEL)
-            else (prefs.getString("ai_model", AssistantEngine.DEFAULT_MODEL)?.ifBlank { AssistantEngine.DEFAULT_MODEL } ?: AssistantEngine.DEFAULT_MODEL)
+            findViewById<MaterialButton>(R.id.btn_ollama_url).text =
+                "URL del Servidor: " + (prefs.getString("ollama_url", AssistantEngine.DEFAULT_URL)?.ifBlank { AssistantEngine.DEFAULT_URL } ?: AssistantEngine.DEFAULT_URL)
+            findViewById<MaterialButton>(R.id.btn_ai_model).text =
+                "Modelo: " + (prefs.getString("ollama_model", AssistantEngine.DEFAULT_MODEL)?.ifBlank { AssistantEngine.DEFAULT_MODEL } ?: AssistantEngine.DEFAULT_MODEL)
         }
         refresh()
-        bindSwitch(R.id.switch_ai, prefs.getBoolean("ai_enabled", false)) {
-            prefs.edit().putBoolean("ai_enabled", it).apply()
-            if (it && !isOllama() && prefs.getString("ai_key", "").isNullOrBlank())
-                android.widget.Toast.makeText(this, "Falta la clave de API para usar Claude", android.widget.Toast.LENGTH_LONG).show()
-        }
-        findViewById<View>(R.id.btn_ai_provider).setOnClickListener {
-            choiceDialog("Proveedor de IA", listOf("Claude (nube, necesita clave)", "Ollama (local, ollama serve)"), if (isOllama()) 1 else 0) {
-                prefs.edit().putString("ai_provider", if (it == 1) "ollama" else "claude").apply(); refresh()
-            }
-        }
+        bindSwitch(R.id.switch_ai, prefs.getBoolean("ai_enabled", false)) { prefs.edit().putBoolean("ai_enabled", it).apply() }
+
         findViewById<View>(R.id.btn_ollama_url).setOnClickListener {
             val input = android.widget.EditText(this).apply {
-                setText(prefs.getString("ollama_url", AssistantEngine.DEFAULT_OLLAMA_URL))
-                hint = "http://192.168.1.50:11434"
+                setText(prefs.getString("ollama_url", AssistantEngine.DEFAULT_URL))
+                hint = AssistantEngine.DEFAULT_URL
                 inputType = android.text.InputType.TYPE_CLASS_TEXT or android.text.InputType.TYPE_TEXT_VARIATION_URI
                 setPadding(dp(20), dp(16), dp(20), dp(8))
             }
             androidx.appcompat.app.AlertDialog.Builder(this)
-                .setTitle("Dirección de Ollama")
-                .setMessage("En Termux o en este mismo teléfono: http://127.0.0.1:11434\nEn tu PC: arráncalo con OLLAMA_HOST=0.0.0.0 ollama serve y usa http://IP-DE-LA-PC:11434")
+                .setTitle("URL del Servidor")
+                .setMessage("En este teléfono (Termux): http://127.0.0.1:11434\nEn tu PC: arráncalo con OLLAMA_HOST=0.0.0.0 ollama serve y usa http://IP-DE-LA-PC:11434")
                 .setView(input)
                 .setPositiveButton("Guardar") { _, _ -> prefs.edit().putString("ollama_url", input.text.toString().trim()).apply(); refresh() }
                 .setNeutralButton("Por defecto") { _, _ -> prefs.edit().remove("ollama_url").apply(); refresh() }
                 .setNegativeButton("Cancelar", null)
                 .show()
         }
-        findViewById<View>(R.id.btn_ai_key).setOnClickListener {
-            val input = android.widget.EditText(this).apply {
-                hint = "sk-ant-…"
-                inputType = android.text.InputType.TYPE_CLASS_TEXT or android.text.InputType.TYPE_TEXT_VARIATION_PASSWORD
-                setPadding(dp(20), dp(16), dp(20), dp(8))
-            }
-            androidx.appcompat.app.AlertDialog.Builder(this)
-                .setTitle("Clave de API de Anthropic")
-                .setMessage("Se guarda solo en este teléfono y no se incluye en las copias de seguridad.")
-                .setView(input)
-                .setPositiveButton("Guardar") { _, _ -> prefs.edit().putString("ai_key", input.text.toString().trim()).apply(); refresh() }
-                .setNeutralButton("Borrar clave") { _, _ -> prefs.edit().remove("ai_key").apply(); refresh() }
-                .setNegativeButton("Cancelar", null)
-                .show()
-        }
         findViewById<View>(R.id.btn_ai_model).setOnClickListener {
-            val ollama = isOllama()
-            val key = if (ollama) "ollama_model" else "ai_model"
-            val def = if (ollama) AssistantEngine.DEFAULT_OLLAMA_MODEL else AssistantEngine.DEFAULT_MODEL
             val input = android.widget.EditText(this).apply {
-                setText(prefs.getString(key, def))
+                setText(prefs.getString("ollama_model", AssistantEngine.DEFAULT_MODEL))
+                hint = AssistantEngine.DEFAULT_MODEL
                 setPadding(dp(20), dp(16), dp(20), dp(8))
             }
             androidx.appcompat.app.AlertDialog.Builder(this)
-                .setTitle(if (ollama) "Modelo de Ollama (ej. llama3.2, qwen2.5:3b, gemma2:2b)" else "Modelo de Claude")
+                .setTitle("Modelo (ej. qwen2.5:3b, llama3.2, gemma2:2b)")
                 .setView(input)
-                .setPositiveButton("Guardar") { _, _ -> prefs.edit().putString(key, input.text.toString().trim()).apply(); refresh() }
-                .setNeutralButton("Por defecto") { _, _ -> prefs.edit().remove(key).apply(); refresh() }
+                .setPositiveButton("Guardar") { _, _ -> prefs.edit().putString("ollama_model", input.text.toString().trim()).apply(); refresh() }
+                .setNeutralButton("Por defecto") { _, _ -> prefs.edit().remove("ollama_model").apply(); refresh() }
                 .setNegativeButton("Cancelar", null)
                 .show()
         }

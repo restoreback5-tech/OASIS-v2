@@ -870,7 +870,7 @@
                     android:layout_height="wrap_content"
                     android:layout_marginTop="6dp"
                     android:tag="secondary"
-                    android:text="Sin internet, el orbe ya sabe la hora, batería, clima, agenda, notas, temporizadores, volumen y temas. Para conversar y responder cualquier pregunta elige: Claude (nube; lo que dices se envía a Anthropic) u Ollama (IA local con ollama serve; no sale de tu red)."
+                    android:text="Sin internet, el orbe ya sabe la hora, batería, clima, agenda, notas, temporizadores, volumen y temas. Para conversar y responder cualquier pregunta conéctalo a tu servidor de IA local (ollama serve). Lo que dices no sale de tu red."
                     android:textSize="13sp" />
 
                 <LinearLayout
@@ -885,7 +885,7 @@
                         android:layout_width="0dp"
                         android:layout_height="wrap_content"
                         android:layout_weight="1"
-                        android:text="Conversar con IA (nube o local)"
+                        android:text="Conversar con IA local (Ollama)"
                         android:textSize="15sp" />
 
                     <com.google.android.material.switchmaterial.SwitchMaterial
@@ -895,28 +895,12 @@
                 </LinearLayout>
 
                 <com.google.android.material.button.MaterialButton
-                    android:id="@+id/btn_ai_provider"
-                    style="?attr/materialButtonOutlinedStyle"
-                    android:layout_width="match_parent"
-                    android:layout_height="wrap_content"
-                    android:layout_marginTop="8dp"
-                    android:text="Proveedor" />
-
-                <com.google.android.material.button.MaterialButton
                     android:id="@+id/btn_ollama_url"
                     style="?attr/materialButtonOutlinedStyle"
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
                     android:layout_marginTop="8dp"
-                    android:text="Dirección de Ollama" />
-
-                <com.google.android.material.button.MaterialButton
-                    android:id="@+id/btn_ai_key"
-                    style="?attr/materialButtonOutlinedStyle"
-                    android:layout_width="match_parent"
-                    android:layout_height="wrap_content"
-                    android:layout_marginTop="8dp"
-                    android:text="Clave de API" />
+                    android:text="URL del Servidor" />
 
                 <com.google.android.material.button.MaterialButton
                     android:id="@+id/btn_ai_model"
