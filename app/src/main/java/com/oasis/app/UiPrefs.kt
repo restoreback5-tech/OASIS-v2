@@ -59,6 +59,31 @@ object UiPrefs {
     fun drawerStyle(ctx: Context): Int = p(ctx).getInt("drawer_style", 0).coerceIn(0, 2)
     fun setDrawerStyle(ctx: Context, v: Int) = p(ctx).edit().putInt("drawer_style", v).apply()
 
+    // Tema automático (de noche usa "Noche" si el elegido es claro) y acento propio (0 = el del tema)
+    fun themeAuto(ctx: Context): Boolean = p(ctx).getBoolean("theme_auto", false)
+    fun setThemeAuto(ctx: Context, v: Boolean) = p(ctx).edit().putBoolean("theme_auto", v).apply()
+    fun accentCustom(ctx: Context): Int = p(ctx).getInt("accent_custom", 0)
+    fun setAccentCustom(ctx: Context, v: Int) = p(ctx).edit().putInt("accent_custom", v).apply()
+
+    // Fondo animado: 0 ninguno, 1 aurora, 2 burbujas, 3 estrellas
+    fun bgEffect(ctx: Context): Int = p(ctx).getInt("bg_effect", 1).coerceIn(0, 3)
+    fun setBgEffect(ctx: Context, v: Int) = p(ctx).edit().putInt("bg_effect", v).apply()
+
+    fun tilt(ctx: Context): Boolean = p(ctx).getBoolean("tilt_fx", true)
+    fun setTilt(ctx: Context, v: Boolean) = p(ctx).edit().putBoolean("tilt_fx", v).apply()
+
+    // Transición entre páginas: 0 profundidad, 1 cubo, 2 pila, 3 carrusel, 4 fundido, 5 deslizar
+    val PAGE_FX = listOf("Profundidad", "Cubo", "Pila", "Carrusel", "Fundido", "Deslizar")
+    fun pageFx(ctx: Context): Int = p(ctx).getInt("page_fx", 0).coerceIn(0, 5)
+    fun setPageFx(ctx: Context, v: Int) = p(ctx).edit().putInt("page_fx", v).apply()
+
+    // Gestos en Inicio: 0 nada, 1 notificaciones, 2 cajón de apps, 3 linterna, 4 ajustes, 5 hablar
+    val GESTURES = listOf("Nada", "Abrir notificaciones", "Abrir cajón de apps", "Linterna", "Ajustes de OASIS", "Hablar con OASIS")
+    fun gestureDouble(ctx: Context): Int = p(ctx).getInt("gesture_double", 0).coerceIn(0, 5)
+    fun setGestureDouble(ctx: Context, v: Int) = p(ctx).edit().putInt("gesture_double", v).apply()
+    fun gestureDown(ctx: Context): Int = p(ctx).getInt("gesture_down", 1).coerceIn(0, 5)
+    fun setGestureDown(ctx: Context, v: Int) = p(ctx).edit().putInt("gesture_down", v).apply()
+
     // Efectos de cristal y animaciones
     fun glassFx(ctx: Context): Boolean = p(ctx).getBoolean("glass_fx", true)
     fun setGlassFx(ctx: Context, v: Boolean) = p(ctx).edit().putBoolean("glass_fx", v).apply()
@@ -74,7 +99,7 @@ object UiPrefs {
         listOf(
             "icon_size", "icon_shape", "show_labels", "drawer_columns", "scrim_percent",
             "swipe_up", "clock_24h", "orb_size", "font_key", "icon_style", "icon_pack",
-            "glass_fx", "drawer_style", "page_today", "page_system", "sound_startup"
+            "glass_fx", "theme_auto", "accent_custom", "bg_effect", "tilt_fx", "page_fx", "gesture_double", "gesture_down", "drawer_style", "page_today", "page_system", "sound_startup"
         ).forEach { e.remove(it) }
         e.apply()
         FontManager.invalidate()

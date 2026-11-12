@@ -11,6 +11,7 @@ import android.util.Log
 import android.view.View
 import android.view.ViewGroup
 import android.widget.ImageView
+import android.widget.LinearLayout
 import android.widget.TextView
 import android.widget.Toast
 import androidx.appcompat.app.AlertDialog
@@ -169,6 +170,7 @@ class SettingsActivity : AppCompatActivity() {
         bindSwitch(R.id.switch_clock24, UiPrefs.clock24(this)) { UiPrefs.setClock24(this, it) }
 
         // Dashboard, sonido de bienvenida y cajón
+        setupAppearance()
         bindSwitch(R.id.switch_glass_fx, UiPrefs.glassFx(this)) { UiPrefs.setGlassFx(this, it) }
         bindSwitch(R.id.switch_page_today, UiPrefs.pageToday(this)) { UiPrefs.setPageToday(this, it) }
         bindSwitch(R.id.switch_page_system, UiPrefs.pageSystem(this)) { UiPrefs.setPageSystem(this, it) }
@@ -191,7 +193,7 @@ class SettingsActivity : AppCompatActivity() {
             scrimText.text = if (auto) "$pct % (automático)" else "$pct %"
         }
         fun themeDefaultPercent(): Int {
-            val p = ThemePalette.from(this, prefs.getString("selected_theme", "amanecer"))
+            val p = ThemePalette.current(this)
             return ((p.scrim ushr 24) * 100 / 255)
         }
         val saved = UiPrefs.scrimPercent(this)
@@ -261,6 +263,185 @@ class SettingsActivity : AppCompatActivity() {
             isChecked = current
             setOnCheckedChangeListener { _, checked -> onChange(checked); sound.play(R.raw.check_on) }
         }
+    }
+
+    // ====================== TEMAS, EFECTOS, GESTOS, COPIA ======================
+    private val exportLauncher = registerForActivityResult(ActivityResultContracts.CreateDocument()) { uri ->
+        if (uri != null) try {
+            contentResolver.openOutputStream(uri)?.use { it.write(Backup.export(this).toByteArray()) }
+            android.widget.Toast.makeText(this, "Copia guardada", android.widget.Toast.LENGTH_SHORT).show()
+        } catch (e: Exception) {
+            android.widget.Toast.makeText(this, "No pude guardar la copia", android.widget.Toast.LENGTH_LONG).show()
+        }
+    }
+    private val importLauncher = registerForActivityResult(ActivityResultContracts.OpenDocument()) { uri ->
+        if (uri != null) try {
+            val text = contentResolver.openInputStream(uri)?.bufferedReader()?.use { it.readText() } ?: ""
+            val n = Backup.import(this, text)
+            if (n < 0) android.widget.Toast.makeText(this, "Ese archivo no es una copia de OASIS", android.widget.Toast.LENGTH_LONG).show()
+            else { android.widget.Toast.makeText(this, "Se restauraron $n ajustes", android.widget.Toast.LENGTH_SHORT).show(); recreate() }
+        } catch (e: Exception) {
+            android.widget.Toast.makeText(this, "No pude leer la copia", android.widget.Toast.LENGTH_LONG).show()
+        }
+    }
+
+    private fun choiceDialog(title: String, options: List<String>, current: Int, onPick: (Int) -> Unit) {
+        androidx.appcompat.app.AlertDialog.Builder(this)
+            .setTitle(title)
+            .setSingleChoiceItems(options.toTypedArray(), current) { d, i -> onPick(i); d.dismiss() }
+            .setNegativeButton("Cancelar", null)
+            .show()
+    }
+
+    private fun dp(v: Int) = (v * resources.displayMetrics.density).toInt()
+
+    private fun setupAppearance() {
+        fun refresh() {
+            findViewById<MaterialButton>(R.id.btn_theme_gallery).text =
+                "Galería de temas · " + ThemePalette.current(this).name
+            findViewById<MaterialButton>(R.id.btn_page_fx).text = "Transición de páginas: " + UiPrefs.PAGE_FX[UiPrefs.pageFx(this)]
+            findViewById<MaterialButton>(R.id.btn_gesture_double).text = "Doble toque: " + UiPrefs.GESTURES[UiPrefs.gestureDouble(this)]
+            findViewById<MaterialButton>(R.id.btn_gesture_down).text = "Deslizar abajo: " + UiPrefs.GESTURES[UiPrefs.gestureDown(this)]
+        }
+        refresh()
+        findViewById<View>(R.id.btn_theme_gallery).setOnClickListener { showThemeGallery { refresh() } }
+        findViewById<View>(R.id.btn_accent).setOnClickListener { showAccentDialog { refresh() } }
+        bindSwitch(R.id.switch_theme_auto, UiPrefs.themeAuto(this)) { UiPrefs.setThemeAuto(this, it); applyPalette(); refresh() }
+        bindSwitch(R.id.switch_tilt, UiPrefs.tilt(this)) { UiPrefs.setTilt(this, it) }
+        bindGroup(intArrayOf(R.id.bgfx_0, R.id.bgfx_1, R.id.bgfx_2, R.id.bgfx_3), UiPrefs.bgEffect(this)) { UiPrefs.setBgEffect(this, it) }
+        findViewById<View>(R.id.btn_page_fx).setOnClickListener {
+            choiceDialog("Transición de páginas", UiPrefs.PAGE_FX, UiPrefs.pageFx(this)) { UiPrefs.setPageFx(this, it); refresh() }
+        }
+        findViewById<View>(R.id.btn_gesture_double).setOnClickListener {
+            choiceDialog("Doble toque en Inicio", UiPrefs.GESTURES, UiPrefs.gestureDouble(this)) { UiPrefs.setGestureDouble(this, it); refresh() }
+        }
+        findViewById<View>(R.id.btn_gesture_down).setOnClickListener {
+            choiceDialog("Deslizar hacia abajo en Inicio", UiPrefs.GESTURES, UiPrefs.gestureDown(this)) { UiPrefs.setGestureDown(this, it); refresh() }
+        }
+        findViewById<View>(R.id.btn_preset_easy).setOnClickListener { applyPreset("easy") }
+        findViewById<View>(R.id.btn_preset_min).setOnClickListener { applyPreset("min") }
+        findViewById<View>(R.id.btn_preset_glass).setOnClickListener { applyPreset("glass") }
+        findViewById<View>(R.id.btn_backup).setOnClickListener { exportLauncher.launch("oasis-copia.json") }
+        findViewById<View>(R.id.btn_restore).setOnClickListener { importLauncher.launch(arrayOf("application/json", "*/*")) }
+    }
+
+    private fun applyPreset(kind: String) {
+        when (kind) {
+            "easy" -> {
+                UiPrefs.setIconSize(this, 2); UiPrefs.setDrawerColumns(this, 3); UiPrefs.setShowLabels(this, true)
+                UiPrefs.setOrbSize(this, 2); UiPrefs.setSwipeUp(this, true); UiPrefs.setGlassFx(this, false)
+                UiPrefs.setBgEffect(this, 0); UiPrefs.setTilt(this, false)
+                UiPrefs.setPageToday(this, true); UiPrefs.setPageSystem(this, false); UiPrefs.setPageFx(this, 5)
+                UiPrefs.setGestureDouble(this, 0); UiPrefs.setGestureDown(this, 0)
+            }
+            "min" -> {
+                UiPrefs.setIconSize(this, 0); UiPrefs.setDrawerColumns(this, 5); UiPrefs.setShowLabels(this, false)
+                UiPrefs.setOrbSize(this, 0); UiPrefs.setGlassFx(this, false); UiPrefs.setBgEffect(this, 0)
+                UiPrefs.setTilt(this, false); UiPrefs.setPageToday(this, false); UiPrefs.setPageSystem(this, false)
+            }
+            else -> {
+                UiPrefs.setGlassFx(this, true); UiPrefs.setBgEffect(this, 1); UiPrefs.setTilt(this, true)
+                UiPrefs.setPageToday(this, true); UiPrefs.setPageSystem(this, true); UiPrefs.setPageFx(this, 1)
+                prefs.edit().putString("selected_theme", "midnight").apply()
+            }
+        }
+        android.widget.Toast.makeText(this, "Perfil aplicado. Vuelve a Inicio para verlo", android.widget.Toast.LENGTH_SHORT).show()
+        recreate()
+    }
+
+    /** Galería: cada tema se ve con sus colores reales y se aplica al instante. */
+    private fun showThemeGallery(onChanged: () -> Unit) {
+        val current = prefs.getString("selected_theme", "amanecer") ?: "amanecer"
+        val body = LinearLayout(this).apply { orientation = LinearLayout.VERTICAL; setPadding(dp(12), dp(8), dp(12), dp(8)) }
+        val dialog = androidx.appcompat.app.AlertDialog.Builder(this)
+            .setTitle("Elige un tema")
+            .setView(android.widget.ScrollView(this).apply { addView(body) })
+            .setNegativeButton("Cerrar", null)
+            .create()
+        ThemePalette.KEYS.chunked(3).forEach { row ->
+            val line = LinearLayout(this).apply { orientation = LinearLayout.HORIZONTAL }
+            row.forEach { key ->
+                val p = ThemePalette.from(this, key)
+                val cell = LinearLayout(this).apply {
+                    orientation = LinearLayout.VERTICAL
+                    gravity = android.view.Gravity.CENTER_HORIZONTAL
+                    layoutParams = LinearLayout.LayoutParams(0, ViewGroup.LayoutParams.WRAP_CONTENT, 1f).apply { setMargins(dp(4), dp(4), dp(4), dp(4)) }
+                }
+                val sw = View(this).apply {
+                    layoutParams = LinearLayout.LayoutParams(ViewGroup.LayoutParams.MATCH_PARENT, dp(76))
+                    background = android.graphics.drawable.GradientDrawable(
+                        android.graphics.drawable.GradientDrawable.Orientation.TL_BR,
+                        intArrayOf(p.background, p.accent, p.accent2)
+                    ).apply {
+                        cornerRadius = dp(18).toFloat()
+                        if (key == current) setStroke(dp(3), p.accent) else setStroke(dp(1), 0x33808080)
+                    }
+                }
+                val name = TextView(this).apply {
+                    text = (if (key == current) "✓ " else "") + p.name
+                    textSize = 12f
+                    gravity = android.view.Gravity.CENTER
+                    maxLines = 1
+                    setPadding(0, dp(4), 0, 0)
+                }
+                cell.addView(sw); cell.addView(name)
+                cell.setOnClickListener {
+                    prefs.edit().putString("selected_theme", key).apply()
+                    sound.play(R.raw.check_on)
+                    themeText.text = labelForTheme(key)
+                    updateThemeUI(key, mapOf("amanecer" to indicatorSol, "caribe" to indicatorNubes, "noche" to indicatorLuna))
+                    applyPalette()
+                    onChanged()
+                    dialog.dismiss()
+                }
+                line.addView(cell)
+            }
+            repeat(3 - row.size) { line.addView(View(this), LinearLayout.LayoutParams(0, 1, 1f)) }
+            body.addView(line)
+        }
+        dialog.show()
+    }
+
+    private fun showAccentDialog(onChanged: () -> Unit) {
+        val presets = intArrayOf(
+            0xFFF44336.toInt(), 0xFFE91E63.toInt(), 0xFF9C27B0.toInt(), 0xFF673AB7.toInt(), 0xFF3F51B5.toInt(), 0xFF2196F3.toInt(),
+            0xFF00BCD4.toInt(), 0xFF009688.toInt(), 0xFF4CAF50.toInt(), 0xFFCDDC39.toInt(), 0xFFFFC107.toInt(), 0xFFFF5722.toInt()
+        )
+        val grid = LinearLayout(this).apply { orientation = LinearLayout.VERTICAL; setPadding(dp(16), dp(12), dp(16), dp(4)) }
+        lateinit var dialog: androidx.appcompat.app.AlertDialog
+        presets.toList().chunked(6).forEach { row ->
+            val line = LinearLayout(this).apply { orientation = LinearLayout.HORIZONTAL }
+            row.forEach { c ->
+                line.addView(View(this).apply {
+                    layoutParams = LinearLayout.LayoutParams(0, dp(44), 1f).apply { setMargins(dp(4), dp(4), dp(4), dp(4)) }
+                    background = android.graphics.drawable.GradientDrawable().apply { shape = android.graphics.drawable.GradientDrawable.OVAL; setColor(c) }
+                    setOnClickListener {
+                        UiPrefs.setAccentCustom(this@SettingsActivity, c); applyPalette(); onChanged(); dialog.dismiss()
+                    }
+                })
+            }
+            grid.addView(line)
+        }
+        dialog = androidx.appcompat.app.AlertDialog.Builder(this)
+            .setTitle("Color de acento")
+            .setView(grid)
+            .setNeutralButton("Usar el del tema") { _, _ -> UiPrefs.setAccentCustom(this, 0); applyPalette(); onChanged() }
+            .setPositiveButton("Código #RRGGBB") { _, _ ->
+                val input = android.widget.EditText(this).apply { hint = "#FF8800"; setPadding(dp(20), dp(16), dp(20), dp(8)) }
+                androidx.appcompat.app.AlertDialog.Builder(this).setTitle("Color en hexadecimal").setView(input)
+                    .setPositiveButton("Aplicar") { _, _ ->
+                        try {
+                            val t = input.text.toString().trim().let { if (it.startsWith("#")) it else "#$it" }
+                            UiPrefs.setAccentCustom(this, android.graphics.Color.parseColor(t) or 0xFF000000.toInt())
+                            applyPalette(); onChanged()
+                        } catch (e: Exception) {
+                            android.widget.Toast.makeText(this, "Código no válido", android.widget.Toast.LENGTH_SHORT).show()
+                        }
+                    }.setNegativeButton("Cancelar", null).show()
+            }
+            .setNegativeButton("Cancelar", null)
+            .create()
+        dialog.show()
     }
 
     private fun showHiddenAppsDialog() {
@@ -352,7 +533,7 @@ class SettingsActivity : AppCompatActivity() {
     // ====================== PALETA DEL TEMA ======================
     /** Pinta fondo, tarjetas, textos, iconos, sliders e interruptores con el tema elegido. */
     private fun applyPalette() {
-        val p = ThemePalette.from(this, prefs.getString("selected_theme", "amanecer"))
+        val p = ThemePalette.current(this)
         palette = p
 
         findViewById<View>(R.id.settings_root).setBackgroundColor(p.background)
@@ -386,7 +567,7 @@ class SettingsActivity : AppCompatActivity() {
         listOf<SwitchMaterial>(
             switchSounds, switchTtsEnabled, switchOverlay, switchHideClock,
             findViewById(R.id.switch_labels), findViewById(R.id.switch_swipe), findViewById(R.id.switch_clock24),
-            findViewById(R.id.switch_glass_fx), findViewById(R.id.switch_page_today), findViewById(R.id.switch_page_system), findViewById(R.id.switch_startup_sound)
+            findViewById(R.id.switch_glass_fx), findViewById(R.id.switch_theme_auto), findViewById(R.id.switch_tilt), findViewById(R.id.switch_page_today), findViewById(R.id.switch_page_system), findViewById(R.id.switch_startup_sound)
         ).forEach {
             it.thumbTintList = thumb
             it.trackTintList = track
@@ -399,7 +580,7 @@ class SettingsActivity : AppCompatActivity() {
             v is MaterialButton -> if (v.id != R.id.btn_set_launcher) v.setTextColor(p.text)
             v is TextView -> v.setTextColor(if (v.tag == "secondary") p.textSecondary else p.text)
         }
-        if (v.tag == "divider") v.setBackgroundColor(if (p.key == "noche") 0x33FFFFFF else 0x1F000000)
+        if (v.tag == "divider") v.setBackgroundColor(if (p.dark) 0x33FFFFFF else 0x1F000000)
         if (v is ViewGroup) for (i in 0 until v.childCount) paintTree(v.getChildAt(i), p)
     }
 
@@ -472,11 +653,7 @@ class SettingsActivity : AppCompatActivity() {
         }
     }
 
-    private fun labelForTheme(key: String): String = when (key) {
-        "amanecer" -> "Tema: Amanecer"
-        "caribe" -> "Tema: Caribe"
-        else -> "Tema: Noche"
-    }
+    private fun labelForTheme(key: String): String = "Tema: " + ThemePalette.nameOf(key)
 
     // ====================== OVERLAY ======================
     private fun setupOverlay() {

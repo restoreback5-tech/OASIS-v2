@@ -320,13 +320,12 @@ class AppLauncherModule(
 
     /** Fondo del cajón: nunca blanco puro. Automático = oscuro si el tema es "noche" o el teléfono está en modo noche. */
     private fun drawerColors(): DrawerColors {
-        val theme = context.getSharedPreferences("oasis_settings", Context.MODE_PRIVATE).getString("selected_theme", "amanecer")
         val systemNight = (context.resources.configuration.uiMode and
             android.content.res.Configuration.UI_MODE_NIGHT_MASK) == android.content.res.Configuration.UI_MODE_NIGHT_YES
         val dark = when (UiPrefs.drawerStyle(context)) {
             1 -> false
             2 -> true
-            else -> theme == "noche" || systemNight
+            else -> ThemePalette.current(context).dark || systemNight
         }
         // Con desenfoque real (Android 12+) el panel es más translúcido para que se note el vidrio
         val a = if (blurAvailable()) 0xB8000000.toInt() else 0xF2000000.toInt()

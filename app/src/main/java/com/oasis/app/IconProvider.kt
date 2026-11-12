@@ -16,9 +16,7 @@ object IconProvider {
         }
         // 2) Monocromo del sistema (Android 13+) teñido con el color del tema
         if (UiPrefs.iconStyle(ctx) == 1) {
-            val theme = ctx.getSharedPreferences("oasis_settings", Context.MODE_PRIVATE)
-                .getString("selected_theme", "amanecer")
-            val accent = ThemePalette.from(ctx, theme).accent
+            val accent = ThemePalette.current(ctx).accent
             IconShaper.monochrome(
                 ctx, original, sizePx, UiPrefs.iconShape(ctx),
                 tint = accent, background = ColorUtils.setAlphaComponent(accent, 0x2E)

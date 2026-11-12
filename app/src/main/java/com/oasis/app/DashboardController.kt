@@ -205,25 +205,49 @@ class DashboardController(
     }
 
     // ====================== ANIMACIONES ======================
-    /** Páginas con profundidad: las vecinas se alejan, se achican y se desvanecen mientras deslizas. */
+    /** Transición entre páginas según Ajustes: profundidad, cubo, pila, carrusel, fundido o deslizar. */
     private fun parallax(x: Int) {
         val w = pager.width
         if (w == 0) return
-        val on = Fx.enabled(act)
+        val mode = if (Fx.enabled(act)) UiPrefs.pageFx(act) else 5
         val strip = v<ViewGroup>(R.id.pages)
         var i = 0
         for (k in 0 until strip.childCount) {
             val c = strip.getChildAt(k)
             if (c.visibility == View.GONE) continue
-            if (on) {
-                val dd = (i * w - x).toFloat() / w
-                val a = abs(dd).coerceAtMost(1f)
-                c.alpha = 1f - a * 0.55f
-                c.scaleX = 1f - a * 0.07f
-                c.scaleY = 1f - a * 0.07f
-                c.translationX = dd * w * 0.18f
-            } else {
-                c.alpha = 1f; c.scaleX = 1f; c.scaleY = 1f; c.translationX = 0f
+            val dd = (i * w - x).toFloat() / w      // 0 = esta página está centrada
+            val a = abs(dd).coerceAtMost(1f)
+            c.alpha = 1f; c.scaleX = 1f; c.scaleY = 1f; c.translationX = 0f
+            c.rotationY = 0f; c.pivotX = w / 2f; c.pivotY = c.height / 2f
+            c.cameraDistance = 14000f * act.resources.displayMetrics.density
+            when (mode) {
+                0 -> { // profundidad
+                    c.alpha = 1f - a * 0.55f
+                    c.scaleX = 1f - a * 0.07f; c.scaleY = 1f - a * 0.07f
+                    c.translationX = dd * w * 0.18f
+                }
+                1 -> { // cubo
+                    c.pivotX = if (dd < 0) w.toFloat() else 0f
+                    c.rotationY = -60f * dd
+                    c.alpha = 1f - a * 0.3f
+                }
+                2 -> { // pila: la página que sale se queda quieta debajo
+                    if (dd < 0) {
+                        c.translationX = -dd * w
+                        c.scaleX = 1f - a * 0.1f; c.scaleY = 1f - a * 0.1f
+                        c.alpha = 1f - a
+                    }
+                }
+                3 -> { // carrusel
+                    c.rotationY = -35f * dd
+                    c.scaleX = 1f - a * 0.15f; c.scaleY = 1f - a * 0.15f
+                    c.alpha = 1f - a * 0.4f
+                }
+                4 -> { // fundido
+                    c.translationX = -dd * w
+                    c.alpha = 1f - a
+                }
+                // 5: deslizar normal
             }
             i++
         }
@@ -264,7 +288,7 @@ class DashboardController(
         if (view.tag == "card") {
             if (Fx.enabled(act)) {
                 view.backgroundTintList = null
-                view.background = Fx.glass(act, card, 22f, shadow)
+                view.background = Fx.glass(act, card, 22f, androidx.core.graphics.ColorUtils.calculateLuminance(fg) > 0.5)
             } else {
                 view.setBackgroundResource(R.drawable.bg_card)
                 view.backgroundTintList = ColorStateList.valueOf(card)

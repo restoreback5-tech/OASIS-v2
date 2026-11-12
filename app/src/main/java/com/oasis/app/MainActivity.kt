@@ -52,6 +52,8 @@ class MainActivity : AppCompatActivity() {
     private lateinit var pinnedAdapter: PinnedAdapter
     private lateinit var dashboard: DashboardController
     private lateinit var orbFx: OrbFx
+    private lateinit var liveBg: LiveBackground
+    private var tilt: TiltParallax? = null
     private var packageReceiver: BroadcastReceiver? = null
 
     // === LAUNCHER ===
@@ -92,6 +94,7 @@ class MainActivity : AppCompatActivity() {
         prefs = getSharedPreferences("oasis_settings", MODE_PRIVATE)
 
         // 1. Orbe
+        liveBg = findViewById(R.id.live_bg)
         orbView = findViewById(R.id.orb_view)
         orbFx = OrbFx(orbView, findViewById(R.id.orb_ring_1), findViewById(R.id.orb_ring_2))
         orbBreatheAnim = android.view.animation.AnimationUtils.loadAnimation(this, R.anim.orb_breathe)
@@ -296,7 +299,18 @@ class MainActivity : AppCompatActivity() {
     private fun setupLauncherBehavior() {
         // Deslizar hacia arriba abre el cajón de apps
         swipeDetector = GestureDetector(this, object : GestureDetector.SimpleOnGestureListener() {
+            override fun onDoubleTap(e: MotionEvent): Boolean {
+                if (!dashboard.atHome || isOverControl(e.rawX, e.rawY)) return false
+                runGesture(UiPrefs.gestureDouble(this@MainActivity))
+                return true
+            }
+
             override fun onFling(e1: MotionEvent?, e2: MotionEvent, velocityX: Float, velocityY: Float): Boolean {
+                if (e1 != null && dashboard.atHome && e2.y - e1.y > 150 && velocityY > 800 &&
+                    (e2.y - e1.y) > abs(e2.x - e1.x) && UiPrefs.gestureDown(this@MainActivity) != 0) {
+                    runGesture(UiPrefs.gestureDown(this@MainActivity))
+                    return true
+                }
                 if (e1 == null || !UiPrefs.swipeUp(this@MainActivity)) return false
                 // En las páginas con lista (Hoy / Mi teléfono) deslizar es para desplazarse
                 if (::dashboard.isInitialized && !dashboard.atHome) return false
@@ -326,6 +340,31 @@ class MainActivity : AppCompatActivity() {
             }, 2500)
         }
     }
+
+    /** ¿El toque cae sobre algo interactivo (dock, orbe, apps fijadas, ajustes)? */
+    private fun isOverControl(x: Float, y: Float): Boolean {
+        val r = android.graphics.Rect()
+        return listOf(R.id.dock, R.id.orb_holder, R.id.rv_pinned, R.id.btn_settings).any { id ->
+            val v = findViewById<View?>(id)
+            v != null && v.getGlobalVisibleRect(r) && r.contains(x.toInt(), y.toInt())
+        }
+    }
+
+    private fun runGesture(action: Int) {
+        when (action) {
+            1 -> if (!expandNotifications()) toast.show("No pude abrir las notificaciones en este teléfono")
+            2 -> appLauncher.showAllApps()
+            3 -> appLauncher.launchApp("linterna")
+            4 -> startActivity(Intent(this, SettingsActivity::class.java))
+            5 -> { sound.play(R.raw.touch); voice.startListening() }
+        }
+    }
+
+    private fun expandNotifications(): Boolean = try {
+        val sb = getSystemService("statusbar")
+        Class.forName("android.app.StatusBarManager").getMethod("expandNotificationsPanel").invoke(sb)
+        true
+    } catch (e: Exception) { false }
 
     override fun dispatchTouchEvent(ev: MotionEvent): Boolean {
         if (::swipeDetector.isInitialized) swipeDetector.onTouchEvent(ev)
@@ -410,19 +449,20 @@ class MainActivity : AppCompatActivity() {
     }
 
     private fun applyTheme() {
-        val p = ThemePalette.from(this, prefs.getString("selected_theme", "amanecer"))
+        val p = ThemePalette.current(this)
         Log.d("MainActivity", "Aplicando tema: ${p.key}")
         try {
             // Texto oscuro u claro según el fondo de pantalla real; "noche" siempre claro
-            val darkText = p.key != "noche" && wallpaperPrefersDarkText()
-            val fg = if (darkText) p.text else 0xFFFFFFFF.toInt()
-            val fg2 = if (darkText) p.textSecondary else 0xCCFFFFFF.toInt()
+            // Temas oscuros: texto claro del propio tema. Claros: depende del fondo de pantalla real.
+            val darkText = !p.dark && wallpaperPrefersDarkText()
+            val fg = if (darkText || p.dark) p.text else 0xFFFFFFFF.toInt()
+            val fg2 = if (darkText || p.dark) p.textSecondary else 0xCCFFFFFF.toInt()
 
             // Velo y dock casi transparentes: dejan ver el fondo de pantalla
-            val baseScrim = if (darkText || p.key == "noche") p.scrim else 0x33000000
+            val baseScrim = if (darkText || p.dark) p.scrim else 0x33000000
             val custom = UiPrefs.scrimPercent(this)
             val scrim = if (custom >= 0) ((custom * 255 / 100) shl 24) or (baseScrim and 0x00FFFFFF) else baseScrim
-            val dock = if (darkText) p.dock else 0x73000000
+            val dock = if (darkText || p.dark) p.dock else 0x73000000
             findViewById<View>(R.id.scrim).setBackgroundColor(scrim)
             val dockView = findViewById<View>(R.id.dock)
             if (Fx.enabled(this)) {
@@ -446,7 +486,7 @@ class MainActivity : AppCompatActivity() {
             ).forEach { id ->
                 tv(id)?.apply {
                     setTextColor(fg)
-                    if (darkText) setShadowLayer(0f, 0f, 0f, 0)
+                    if (darkText || p.dark) setShadowLayer(0f, 0f, 0f, 0)
                     else setShadowLayer(8f, 0f, 2f, 0x80000000.toInt())
                 }
             }
@@ -459,8 +499,14 @@ class MainActivity : AppCompatActivity() {
             }
             findViewById<ImageView?>(R.id.btn_settings)?.imageTintList = ColorStateList.valueOf(fg)
             if (::pinnedAdapter.isInitialized) pinnedAdapter.restyle(fg, !darkText)
-            val cardColor = if (darkText) 0x8CFFFFFF.toInt() else 0x59000000
-            if (::dashboard.isInitialized) dashboard.restyle(fg, fg2, cardColor, p.accent, !darkText)
+            val cardColor = when {
+                p.dark -> (p.card and 0x00FFFFFF) or 0xA6000000.toInt()
+                darkText -> 0x8CFFFFFF.toInt()
+                else -> 0x59000000
+            }
+            if (::dashboard.isInitialized) dashboard.restyle(fg, fg2, cardColor, p.accent, !darkText && !p.dark)
+            liveBg.setColors(p.accent, p.accent2, ColorUtils.blendARGB(p.accent, p.accent2, 0.5f))
+            liveBg.mode = UiPrefs.bgEffect(this)
             FontManager.apply(this, findViewById(R.id.root))
         } catch (e: Exception) {
             Log.e("MainActivity", "Error aplicando tema '${p.key}': ${e.message}")
@@ -524,11 +570,22 @@ class MainActivity : AppCompatActivity() {
         tts.updateSpeechSettings()
         dashboard.applyPagePrefs()
         dashboard.onResume()
+        liveBg.start()
+        if (UiPrefs.tilt(this) && Fx.enabled(this)) {
+            val d = resources.displayMetrics.density
+            tilt = TiltParallax(this) { x, y ->
+                liveBg.translationX = -x * 26f * d
+                liveBg.translationY = -y * 26f * d
+                findViewById<View>(R.id.orb_holder).apply { translationX = x * 10f * d; translationY = y * 8f * d }
+            }.also { it.start() }
+        }
     }
 
     override fun onPause() {
         super.onPause()
         if (::dashboard.isInitialized) dashboard.onPause()
+        liveBg.stop()
+        tilt?.stop(); tilt = null
     }
 
     override fun onDestroy() {
