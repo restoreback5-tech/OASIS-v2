@@ -52,6 +52,7 @@ class MainActivity : AppCompatActivity() {
     private lateinit var pinnedAdapter: PinnedAdapter
     private lateinit var dashboard: DashboardController
     private lateinit var orbFx: OrbFx
+    private lateinit var assistant: AssistantEngine
     private lateinit var liveBg: LiveBackground
     private var tilt: TiltParallax? = null
     private var packageReceiver: BroadcastReceiver? = null
@@ -139,8 +140,18 @@ class MainActivity : AppCompatActivity() {
                     tts.speak(error)
                     resetOrbToIdle()
                 }
-            }
+            },
+            onFreeText = { text -> runOnUiThread { askAssistant(text) } },
+            onLevel = { l -> runOnUiThread { orbFx.level(l) } }
         )
+
+        // El orbe se modula con la voz del asistente: late en cada palabra
+        assistant = AssistantEngine(this)
+        tts.callbacks = object : TTSModule.Callbacks {
+            override fun onSpeakStart() { runOnUiThread { orbFx.thinking(false); orbFx.start(gentle = true) } }
+            override fun onSpeakWord() { runOnUiThread { orbFx.kick() } }
+            override fun onSpeakDone() { runOnUiThread { if (orbState != "active") orbFx.stop() } }
+        }
 
         // 3. Tema, reloj y permisos
         applyTheme()
@@ -280,6 +291,7 @@ class MainActivity : AppCompatActivity() {
                 if (contact.isNotEmpty()) phoneActions.openSmsToContact(contact)
                 else phoneActions.openSms()
             }
+            "ask" -> askAssistant(params["q"].orEmpty())
             "cancel" -> {
                 sound.play(R.raw.cancelar)
                 tts.speak("Cancelando")
@@ -293,6 +305,43 @@ class MainActivity : AppCompatActivity() {
                 tts.speak("No entendí. Intenta de nuevo")
                 resetOrbToIdle()
             }
+        }
+    }
+
+    // ====================== ASISTENTE ======================
+    private fun askAssistant(q: String) {
+        if (q.isBlank()) return
+        VoiceHistory.add(this, "ask", mapOf("q" to q))
+        dashboard.refreshVoice()
+        val status = findViewById<android.widget.TextView>(R.id.status_text)
+        status.text = "“$q”"
+        orbFx.thinking(true)
+        assistant.handle(q) { reply ->
+            orbFx.thinking(false)
+            status.text = reply.text
+            tts.speak(reply.text)
+            runAssistantAct(reply.act)
+        }
+    }
+
+    private fun runAssistantAct(a: AssistantEngine.Act?) {
+        try {
+            when (a) {
+                is AssistantEngine.Act.OpenApp -> appLauncher.launchApp(AppRegistry.canonicalAliasFor(a.app))
+                is AssistantEngine.Act.Call -> if (a.contact.any { it.isDigit() }) phoneActions.dialNumber(a.contact) else phoneActions.searchContactAndDial(a.contact)
+                is AssistantEngine.Act.Message -> if (a.contact.isNotBlank()) phoneActions.openSmsToContact(a.contact) else phoneActions.openSms()
+                is AssistantEngine.Act.Timer -> startActivity(
+                    Intent(android.provider.AlarmClock.ACTION_SET_TIMER)
+                        .putExtra(android.provider.AlarmClock.EXTRA_LENGTH, a.minutes * 60)
+                        .putExtra(android.provider.AlarmClock.EXTRA_MESSAGE, "OASIS")
+                        .putExtra(android.provider.AlarmClock.EXTRA_SKIP_UI, true)
+                )
+                is AssistantEngine.Act.Alarms -> startActivity(Intent(android.provider.AlarmClock.ACTION_SHOW_ALARMS))
+                is AssistantEngine.Act.Restyle -> applyTheme()
+                null -> {}
+            }
+        } catch (e: Exception) {
+            toast.show("No pude hacer eso en este teléfono")
         }
     }
 
@@ -596,6 +645,7 @@ class MainActivity : AppCompatActivity() {
     override fun onDestroy() {
         super.onDestroy()
         clockHandler.removeCallbacks(clockRunnable)
+        if (::assistant.isInitialized) assistant.shutdown()
         packageReceiver?.let { try { unregisterReceiver(it) } catch (_: Exception) {} }
         dashboard.destroy()
         sound.release()

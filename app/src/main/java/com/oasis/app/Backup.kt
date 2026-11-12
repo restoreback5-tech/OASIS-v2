@@ -12,6 +12,7 @@ object Backup {
         val root = JSONObject().put("app", "OASIS").put("version", 1)
         val data = JSONObject()
         for ((k, v) in prefs(ctx).all) {
+            if (k == "ai_key") continue // la clave secreta nunca sale en el archivo
             val o = JSONObject()
             when (v) {
                 is Boolean -> o.put("t", "b").put("v", v)

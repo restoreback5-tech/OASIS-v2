@@ -1,0 +1,295 @@
+package com.oasis.app
+
+import android.content.Context
+import android.media.AudioManager
+import android.os.Handler
+import android.os.Looper
+import android.text.format.DateFormat
+import org.json.JSONArray
+import org.json.JSONObject
+import java.net.HttpURLConnection
+import java.net.URL
+import java.util.Calendar
+import java.util.Date
+import java.util.Locale
+import java.util.concurrent.Executors
+import kotlin.math.ceil
+
+/**
+ * Cerebro del orbe. Dos niveles:
+ *  1) Local (sin internet, instantáneo): hora, fecha, batería, RAM, almacenamiento, red, clima, agenda,
+ *     notas, temporizadores, volumen, temas, cuentas, saludos.
+ *  2) Opcional: IA en la nube (Claude, de Anthropic) con la clave del usuario, para preguntas libres.
+ */
+class AssistantEngine(private val ctx: Context) {
+
+    sealed class Act {
+        data class OpenApp(val app: String) : Act()
+        data class Call(val contact: String) : Act()
+        data class Message(val contact: String) : Act()
+        data class Timer(val minutes: Int) : Act()
+        object Alarms : Act()
+        object Restyle : Act()
+    }
+
+    data class Reply(val text: String, val act: Act? = null)
+
+    private val io = Executors.newSingleThreadExecutor()
+    private val main = Handler(Looper.getMainLooper())
+    private val history = ArrayList<Pair<String, String>>()   // ("user"|"assistant") a texto
+
+    private fun prefs() = ctx.getSharedPreferences("oasis_settings", Context.MODE_PRIVATE)
+
+    fun cloudEnabled(): Boolean = prefs().getBoolean("ai_enabled", false) && !prefs().getString("ai_key", "").isNullOrBlank()
+
+    /** Responde en el hilo principal. */
+    fun handle(raw: String, done: (Reply) -> Unit) {
+        io.execute {
+            val reply: Reply = try {
+                local(raw) ?: if (cloudEnabled()) cloud(raw) else Reply(FALLBACK)
+            } catch (e: Exception) {
+                Reply("No pude conectarme a internet para pensar eso. Intenta de nuevo.")
+            }
+            main.post { done(reply) }
+        }
+    }
+
+    fun shutdown() { io.shutdownNow() }
+
+    // ====================== CEREBRO LOCAL ======================
+    private fun has(n: String, vararg words: String) = words.any { TextMatch.containsWord(n, it) }
+    private fun hasPhrase(n: String, vararg phrases: String) = phrases.any { n.contains(it) }
+
+    private fun local(raw: String): Reply? {
+        val lower = raw.lowercase(Locale.getDefault()).trim()
+        val n = TextMatch.normalize(raw)
+
+        // ---- notas
+        NOTE.find(lower)?.let { m ->
+            val text = m.groupValues[2].trim()
+            if (text.isNotEmpty()) {
+                NotesStore.add(ctx, text.replaceFirstChar { it.uppercase() })
+                return Reply("Listo, anoté: $text")
+            }
+        }
+        if (has(n, "notas", "pendientes") && has(n, "mis", "lee", "leeme", "dime", "cuales", "que")) {
+            val open = NotesStore.list(ctx).filter { !it.done }.take(3)
+            return Reply(if (open.isEmpty()) "No tienes notas pendientes." else "Tus pendientes son: " + open.joinToString(". ") { it.text })
+        }
+
+        // ---- cuentas
+        mathAnswer(lower)?.let { return Reply(it) }
+
+        // ---- temporizador / alarma
+        if (hasPhrase(n, "temporizador", "cronometro", "cuenta regresiva", "avisame en", "despiertame en", "pon una alarma en")) {
+            val minutes = parseMinutes(n)
+            return if (minutes > 0) Reply("Listo, temporizador de $minutes ${if (minutes == 1) "minuto" else "minutos"}.", Act.Timer(minutes))
+            else Reply("¿De cuántos minutos?")
+        }
+        if (has(n, "alarma", "alarmas", "despertador")) return Reply("Abriendo tus alarmas.", Act.Alarms)
+
+        // ---- estado del teléfono
+        if (hasPhrase(n, "que hora", "dime la hora", "la hora")) return Reply(timeSpeech())
+        if (hasPhrase(n, "que dia", "que fecha", "fecha de hoy", "dia es hoy", "a cuantos estamos"))
+            return Reply("Hoy es " + java.text.SimpleDateFormat("EEEE d 'de' MMMM", Locale.getDefault()).format(Date()) + ".")
+        if (has(n, "bateria", "pila", "carga") && !has(n, "cargador")) {
+            val b = SystemStats.battery(ctx)
+            return Reply("Tienes ${b.pct}% de batería" + if (b.charging) " y se está cargando." else if (b.pct <= 15) ". Conviene cargarlo pronto." else ".")
+        }
+        if (has(n, "ram") || hasPhrase(n, "memoria ram")) {
+            val r = SystemStats.ram(ctx)
+            return Reply("Estás usando ${SystemStats.fmtGb(r.used)} de ${SystemStats.fmtGb(r.total)} de memoria RAM.")
+        }
+        if (has(n, "almacenamiento", "espacio") || hasPhrase(n, "memoria interna")) {
+            val s = SystemStats.storage()
+            return Reply("Te quedan ${SystemStats.fmtGb(s.total - s.used)} libres de ${SystemStats.fmtGb(s.total)}.")
+        }
+        if (has(n, "wifi", "internet", "conexion", "red")) {
+            val net = SystemStats.network(ctx)
+            return Reply(when {
+                net.type == "Sin conexión" -> "No tienes conexión a internet ahora mismo."
+                net.type == "Wi-Fi" && net.linkMbps > 0 -> "Estás en Wi-Fi a ${net.linkMbps} megabits por segundo."
+                else -> "Estás conectado por ${net.type.lowercase(Locale.getDefault())}."
+            })
+        }
+
+        // ---- clima y agenda
+        if (has(n, "clima", "temperatura", "llover", "lluvia", "tiempo") && !hasPhrase(n, "cuanto tiempo", "tiempo de pantalla")) {
+            if (WeatherRepo.city(ctx).isBlank()) return Reply("Aún no sé tu ciudad. En la página Hoy toca la tarjeta del clima para elegirla.")
+            val w = WeatherRepo.cached(ctx) ?: return Reply("Todavía no tengo el clima. Abre la página Hoy para actualizarlo.")
+            val desc = WeatherRepo.describe(w.code).second.lowercase(Locale.getDefault())
+            return Reply("En ${WeatherRepo.displayName(ctx)} hay ${w.temp} grados y está $desc. Máxima ${w.max}, mínima ${w.min}.")
+        }
+        if (has(n, "agenda", "calendario", "citas", "eventos", "cita") || hasPhrase(n, "que tengo hoy", "que tengo manana")) {
+            if (!TodayData.has(ctx, android.Manifest.permission.READ_CALENDAR))
+                return Reply("Necesito permiso para ver tu calendario. En la página Hoy toca la tarjeta Agenda.")
+            val ev = TodayData.events(ctx, 2, 3)
+            val tf = DateFormat.getTimeFormat(ctx)
+            return Reply(if (ev.isEmpty()) "No tienes nada programado para hoy ni mañana."
+            else "Tienes: " + ev.joinToString(". ") { (if (it.allDay) "Todo el día" else "A las " + tf.format(Date(it.begin))) + ", " + it.title })
+        }
+
+        // ---- volumen
+        if (has(n, "volumen") || has(n, "silencio", "mute")) {
+            val am = ctx.getSystemService(Context.AUDIO_SERVICE) as AudioManager
+            return try {
+                when {
+                    has(n, "silencio", "mute", "silencia") -> { am.setStreamVolume(AudioManager.STREAM_MUSIC, 0, AudioManager.FLAG_SHOW_UI); Reply("Silenciado.") }
+                    has(n, "maximo", "todo") -> { am.setStreamVolume(AudioManager.STREAM_MUSIC, am.getStreamMaxVolume(AudioManager.STREAM_MUSIC), AudioManager.FLAG_SHOW_UI); Reply("Volumen al máximo.") }
+                    has(n, "sube", "subir", "aumenta", "mas", "alto") -> { am.adjustStreamVolume(AudioManager.STREAM_MUSIC, AudioManager.ADJUST_RAISE, AudioManager.FLAG_SHOW_UI); Reply("Subí el volumen.") }
+                    has(n, "baja", "bajar", "menos", "reduce", "bajo") -> { am.adjustStreamVolume(AudioManager.STREAM_MUSIC, AudioManager.ADJUST_LOWER, AudioManager.FLAG_SHOW_UI); Reply("Bajé el volumen.") }
+                    else -> null
+                }
+            } catch (e: Exception) { Reply("No pude cambiar el volumen ahora.") }
+        }
+
+        // ---- temas
+        if (has(n, "tema", "modo", "colores")) {
+            val key = when {
+                has(n, "oscuro", "noche", "nocturno") -> "noche"
+                has(n, "claro", "dia", "amanecer") -> "amanecer"
+                else -> ThemePalette.KEYS.firstOrNull { n.contains(TextMatch.normalize(ThemePalette.nameOf(it)).substringBefore(' ')) }
+            }
+            if (key != null) {
+                prefs().edit().putString("selected_theme", key).apply()
+                return Reply("Listo, puse el tema ${ThemePalette.nameOf(key)}.", Act.Restyle)
+            }
+        }
+
+        // ---- conversación básica
+        if (hasPhrase(n, "quien eres", "como te llamas", "tu nombre")) return Reply("Soy OASIS, tu asistente. Puedo abrir apps, llamar, decirte la hora, la batería, el clima y mucho más.")
+        if (hasPhrase(n, "que puedes hacer", "que sabes hacer", "ayudame") || n == "ayuda")
+            return Reply("Puedo abrir aplicaciones, llamar, mandar mensajes, decirte la hora, la batería, el clima y tu agenda, apuntar notas, poner temporizadores, subir el volumen y cambiar el tema.")
+        if (has(n, "gracias")) return Reply("¡Con gusto!")
+        if (has(n, "hola", "buenas", "buenos", "hey")) return Reply(greeting())
+        if (has(n, "chiste")) return Reply(JOKES.random())
+        return null
+    }
+
+    private fun greeting(): String {
+        val h = Calendar.getInstance().get(Calendar.HOUR_OF_DAY)
+        return (if (h < 12) "¡Buenos días!" else if (h < 19) "¡Buenas tardes!" else "¡Buenas noches!") + " ¿En qué te ayudo?"
+    }
+
+    private fun timeSpeech(): String {
+        val c = Calendar.getInstance()
+        val h24 = c.get(Calendar.HOUR_OF_DAY)
+        val h12 = if (h24 % 12 == 0) 12 else h24 % 12
+        val m = c.get(Calendar.MINUTE)
+        val part = when { h24 < 12 -> "de la mañana"; h24 < 19 -> "de la tarde"; else -> "de la noche" }
+        val minutes = if (m == 0) "en punto" else if (m < 10) "con 0$m" else "con $m"
+        return (if (h12 == 1) "Es la una" else "Son las $h12") + " $minutes $part."
+    }
+
+    /** "cuánto es 12 por 3" -> "12 por 3 son 36". */
+    private fun mathAnswer(lower: String): String? {
+        var t = lower
+            .replace("cuánto es", "").replace("cuanto es", "").replace("cuánto son", "").replace("cuanto son", "")
+            .replace("cuánto da", "").replace("cuanto da", "")
+            .replace(" por ", "*").replace(" multiplicado por ", "*")
+            .replace(" más ", "+").replace(" mas ", "+")
+            .replace(" menos ", "-")
+            .replace(" entre ", "/").replace(" dividido entre ", "/").replace(" dividido por ", "/")
+            .replace(" elevado a ", "^")
+        t = t.replace("?", "").replace("¿", "").trim()
+        if (t.none { it.isDigit() }) return null
+        val v = Calc.eval(t) ?: return null
+        return "El resultado es " + Calc.format(v)
+    }
+
+    private fun parseMinutes(n: String): Int {
+        if (n.contains("media hora")) return 30
+        val words = mapOf("un" to 1, "uno" to 1, "una" to 1, "dos" to 2, "tres" to 3, "cuatro" to 4, "cinco" to 5, "seis" to 6,
+            "siete" to 7, "ocho" to 8, "nueve" to 9, "diez" to 10, "quince" to 15, "veinte" to 20, "treinta" to 30)
+        val m = Regex("(\\d+|un|uno|una|dos|tres|cuatro|cinco|seis|siete|ocho|nueve|diez|quince|veinte|treinta)\\s*(segundos?|minutos?|horas?)").find(n)
+            ?: return 0
+        val qty = m.groupValues[1].toIntOrNull() ?: words[m.groupValues[1]] ?: return 0
+        return when {
+            m.groupValues[2].startsWith("seg") -> ceil(qty / 60.0).toInt().coerceAtLeast(1)
+            m.groupValues[2].startsWith("hor") -> qty * 60
+            else -> qty
+        }
+    }
+
+    // ====================== IA EN LA NUBE (opcional) ======================
+    private fun cloud(raw: String): Reply {
+        val key = prefs().getString("ai_key", "") ?: ""
+        val model = prefs().getString("ai_model", DEFAULT_MODEL)?.ifBlank { DEFAULT_MODEL } ?: DEFAULT_MODEL
+        val now = java.text.SimpleDateFormat("EEEE d 'de' MMMM, HH:mm", Locale.getDefault()).format(Date())
+
+        history.add("user" to raw)
+        while (history.size > 8) history.removeAt(0)
+        val msgs = JSONArray()
+        history.forEach { (role, text) -> msgs.put(JSONObject().put("role", role).put("content", text)) }
+
+        val body = JSONObject()
+            .put("model", model)
+            .put("max_tokens", 300)
+            .put("system", SYSTEM + "\nAhora: $now.")
+            .put("messages", msgs)
+
+        val conn = URL("https://api.anthropic.com/v1/messages").openConnection() as HttpURLConnection
+        try {
+            conn.requestMethod = "POST"
+            conn.connectTimeout = 10000
+            conn.readTimeout = 25000
+            conn.doOutput = true
+            conn.setRequestProperty("content-type", "application/json")
+            conn.setRequestProperty("x-api-key", key)
+            conn.setRequestProperty("anthropic-version", "2023-06-01")
+            conn.outputStream.use { it.write(body.toString().toByteArray()) }
+            val code = conn.responseCode
+            if (code == 401 || code == 403) { history.removeLastOrNull(); return Reply("La clave de la IA no es válida. Revísala en Ajustes.") }
+            if (code == 429) { history.removeLastOrNull(); return Reply("La IA está muy ocupada. Intenta en un momento.") }
+            if (code !in 200..299) { history.removeLastOrNull(); return Reply("La IA no pudo responder ahora (error $code).") }
+            val text = JSONObject(conn.inputStream.bufferedReader().use { it.readText() })
+                .getJSONArray("content").getJSONObject(0).getString("text").trim()
+            val reply = parseCloud(text)
+            history.add("assistant" to reply.text)
+            return reply
+        } finally { conn.disconnect() }
+    }
+
+    /** Separa la frase hablada de una posible línea "ACCION: {json}". */
+    private fun parseCloud(text: String): Reply {
+        var act: Act? = null
+        val spoken = text.lines().filter { line ->
+            val l = line.trim()
+            if (l.startsWith("ACCION:")) {
+                try {
+                    val j = JSONObject(l.removePrefix("ACCION:").trim())
+                    act = when (j.optString("t")) {
+                        "abrir" -> Act.OpenApp(j.optString("app"))
+                        "llamar" -> Act.Call(j.optString("contacto"))
+                        "mensaje" -> Act.Message(j.optString("contacto"))
+                        "temporizador" -> Act.Timer(j.optInt("min", 0)).takeIf { it.minutes > 0 }
+                        else -> null
+                    }
+                } catch (_: Exception) {}
+                false
+            } else true
+        }.joinToString(" ").trim()
+        return Reply(spoken.ifBlank { "Listo." }, act)
+    }
+
+    companion object {
+        const val DEFAULT_MODEL = "claude-haiku-5-5"
+        const val FALLBACK = "No estoy segura de cómo ayudarte con eso. Prueba: abre WhatsApp, llama a mamá, ¿qué hora es?, ¿cuánta batería tengo?"
+
+        private val NOTE = Regex("^(anota|apunta|anótame|apúntame|recuérdame|recuerdame|nueva nota|crea una nota|agrega una nota|añade una nota)(?: que| de| para)?\\s+(.+)$")
+
+        private val JOKES = listOf(
+            "¿Qué le dice un jardinero a otro? Nos vemos en el rosal.",
+            "¿Por qué los pájaros vuelan hacia el sur? Porque caminando tardarían mucho.",
+            "¿Qué hace una abeja en el gimnasio? ¡Zum-ba!"
+        )
+
+        private const val SYSTEM = "Eres OASIS, el asistente de voz de un teléfono Android pensado para personas con poca experiencia con la tecnología. " +
+            "Responde SIEMPRE en español, con lenguaje sencillo y máximo 2 frases cortas, sin listas, sin markdown y sin emojis. " +
+            "Si el usuario te pide hacer algo en el teléfono, responde con una frase y añade al final UNA línea exacta con el formato " +
+            "ACCION: {\"t\":\"abrir\",\"app\":\"nombre\"} o ACCION: {\"t\":\"llamar\",\"contacto\":\"nombre\"} o " +
+            "ACCION: {\"t\":\"mensaje\",\"contacto\":\"nombre\"} o ACCION: {\"t\":\"temporizador\",\"min\":5}. " +
+            "No inventes datos del teléfono (batería, clima, agenda): esos los responde la app por su cuenta. " +
+            "Si no sabes algo, dilo con honestidad."
+    }
+}

@@ -82,13 +82,12 @@
             app:layout_constraintTop_toTopOf="parent" />
 
         <!-- Puntos de página -->
-        <LinearLayout
+        <com.oasis.app.PageIndicator
             android:id="@+id/page_dots"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:layout_marginBottom="8dp"
-            android:gravity="center"
-            android:orientation="horizontal"
+            android:layout_marginBottom="6dp"
+            android:importantForAccessibility="no"
             app:layout_constraintBottom_toTopOf="@id/swipe_handle"
             app:layout_constraintEnd_toEndOf="parent"
             app:layout_constraintStart_toStartOf="parent" />

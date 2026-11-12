@@ -16,6 +16,7 @@ object VoiceHistory {
     fun labelFor(command: String, params: Map<String, String>): String? = when (command) {
         "open_app" -> params["app"]?.takeIf { it.isNotBlank() && it != "desconocido" }?.let { "Abrir $it" }
         "call" -> params["contact"]?.takeIf { it.isNotBlank() }?.let { "Llamar a $it" }
+        "ask" -> params["q"]?.takeIf { it.isNotBlank() }?.let { "💬 " + it.take(40) }
         "message" -> params["contact"]?.takeIf { it.isNotBlank() }?.let { "Mensaje a $it" } ?: "Enviar mensaje"
         else -> null
     }

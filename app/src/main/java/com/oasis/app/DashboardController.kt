@@ -49,7 +49,7 @@ class DashboardController(
     private val prefs = act.getSharedPreferences("oasis_settings", AppCompatActivity.MODE_PRIVATE)
 
     private lateinit var pager: PageScroller
-    private lateinit var dots: LinearLayout
+    private lateinit var dots: PageIndicator
     private lateinit var pageToday: View
     private lateinit var pageSystem: View
     private lateinit var pageTools: View
@@ -86,8 +86,12 @@ class DashboardController(
         pageSystem = v(R.id.page_system)
         pageTools = v(R.id.page_tools)
         bindTools()
-        pager.onPageChanged = { updateDots(); refreshForPage(); playEntrance() }
-        pager.onScrollX = { x -> parallax(x) }
+        pager.onPageChanged = {
+            updateDots(); refreshForPage(); playEntrance()
+            // la barrita "desliza hacia arriba" solo tiene sentido en Inicio
+            v<View>(R.id.swipe_handle).animate().alpha(if (atHome && UiPrefs.swipeUp(act)) 1f else 0f).setDuration(200).start()
+        }
+        pager.onScrollX = { x -> parallax(x); if (pager.width > 0) dots.position = x / pager.width.toFloat() }
         listOf(R.id.card_battery, R.id.card_net, R.id.card_ram, R.id.card_rom, R.id.card_weather)
             .forEach { Fx.pressable(v(it), 0.97f) }
         Fx.pressable(v(R.id.btn_talk), 0.97f)
@@ -189,25 +193,10 @@ class DashboardController(
     // ====================== PUNTOS ======================
     private fun updateDots() {
         val n = pager.pageCount()
-        val d = act.resources.displayMetrics.density
+        dots.count = n
+        dots.color = fg
         dots.visibility = if (n <= 1) View.GONE else View.VISIBLE
-        if (dots.childCount != n) {
-            dots.removeAllViews()
-            for (i in 0 until n) {
-                val dot = View(act)
-                dot.layoutParams = LinearLayout.LayoutParams((8 * d).toInt(), (8 * d).toInt())
-                    .apply { marginStart = (4 * d).toInt(); marginEnd = (4 * d).toInt() }
-                dot.setBackgroundResource(R.drawable.bg_dot)
-                dots.addView(dot)
-            }
-        }
-        for (i in 0 until n) {
-            val dot = dots.getChildAt(i)
-            dot.backgroundTintList = ColorStateList.valueOf(fg)
-            val active = i == pager.page
-            dot.animate().alpha(if (active) 0.95f else 0.35f).setDuration(200).start()
-            Fx.animateWidth(dot, ((if (active) 22 else 8) * d).toInt())
-        }
+        if (pager.width > 0) dots.position = pager.scrollX / pager.width.toFloat() else dots.position = pager.page.toFloat()
     }
 
     // ====================== ANIMACIONES ======================

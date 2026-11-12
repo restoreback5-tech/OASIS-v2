@@ -14,7 +14,9 @@ class VoiceCommandModule(
     private val sound: SoundModule,
     private val onCommandDetected: (String, Map<String, String>) -> Unit,
     private val onListening: (Boolean) -> Unit,
-    private val onError: (String) -> Unit
+    private val onError: (String) -> Unit,
+    private val onFreeText: ((String) -> Unit)? = null,
+    private val onLevel: ((Float) -> Unit)? = null
 ) {
     private var speechRecognizer: SpeechRecognizer? = null
     private var isListening = false
@@ -36,7 +38,7 @@ class VoiceCommandModule(
 
                 override fun onBeginningOfSpeech() {}
 
-                override fun onRmsChanged(rmsdB: Float) {}
+                override fun onRmsChanged(rmsdB: Float) { onLevel?.invoke(((rmsdB + 2f) / 12f).coerceIn(0f, 1f)) }
 
                 override fun onBufferReceived(buffer: ByteArray?) {}
 
@@ -133,7 +135,9 @@ class VoiceCommandModule(
     private fun parseAndExecute(commandText: String) {
         val result = CommandParser.parse(commandText)
         if (result == null) {
-            onError("No entendí. Intenta: 'Abre una aplicación', 'Haz una llamada'")
+            // No es una orden fija: se la pasamos al asistente (cerebro local o IA)
+            if (onFreeText != null) onFreeText.invoke(commandText)
+            else onError("No entendí. Intenta: 'Abre una aplicación', 'Haz una llamada'")
             return
         }
         val params = result.params.toMutableMap()

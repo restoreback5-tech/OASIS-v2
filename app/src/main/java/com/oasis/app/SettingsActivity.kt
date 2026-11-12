@@ -171,6 +171,7 @@ class SettingsActivity : AppCompatActivity() {
 
         // Dashboard, sonido de bienvenida y cajón
         setupAppearance()
+        setupAssistant()
         bindSwitch(R.id.switch_glass_fx, UiPrefs.glassFx(this)) { UiPrefs.setGlassFx(this, it) }
         bindSwitch(R.id.switch_page_today, UiPrefs.pageToday(this)) { UiPrefs.setPageToday(this, it) }
         bindSwitch(R.id.switch_page_tools, UiPrefs.pageTools(this)) { UiPrefs.setPageTools(this, it) }
@@ -324,6 +325,48 @@ class SettingsActivity : AppCompatActivity() {
         findViewById<View>(R.id.btn_preset_glass).setOnClickListener { applyPreset("glass") }
         findViewById<View>(R.id.btn_backup).setOnClickListener { exportLauncher.launch("oasis-copia.json") }
         findViewById<View>(R.id.btn_restore).setOnClickListener { importLauncher.launch(arrayOf("application/json", "*/*")) }
+    }
+
+    private fun setupAssistant() {
+        fun refresh() {
+            val hasKey = !prefs.getString("ai_key", "").isNullOrBlank()
+            findViewById<MaterialButton>(R.id.btn_ai_key).text = "Clave de API: " + if (hasKey) "guardada ✓" else "sin clave"
+            findViewById<MaterialButton>(R.id.btn_ai_model).text = "Modelo: " + (prefs.getString("ai_model", AssistantEngine.DEFAULT_MODEL)?.ifBlank { AssistantEngine.DEFAULT_MODEL } ?: AssistantEngine.DEFAULT_MODEL)
+        }
+        refresh()
+        bindSwitch(R.id.switch_ai, prefs.getBoolean("ai_enabled", false)) {
+            prefs.edit().putBoolean("ai_enabled", it).apply()
+            if (it && prefs.getString("ai_key", "").isNullOrBlank())
+                android.widget.Toast.makeText(this, "Falta la clave de API para usar la IA en la nube", android.widget.Toast.LENGTH_LONG).show()
+        }
+        findViewById<View>(R.id.btn_ai_key).setOnClickListener {
+            val input = android.widget.EditText(this).apply {
+                hint = "sk-ant-…"
+                inputType = android.text.InputType.TYPE_CLASS_TEXT or android.text.InputType.TYPE_TEXT_VARIATION_PASSWORD
+                setPadding(dp(20), dp(16), dp(20), dp(8))
+            }
+            androidx.appcompat.app.AlertDialog.Builder(this)
+                .setTitle("Clave de API de Anthropic")
+                .setMessage("Se guarda solo en este teléfono y no se incluye en las copias de seguridad.")
+                .setView(input)
+                .setPositiveButton("Guardar") { _, _ -> prefs.edit().putString("ai_key", input.text.toString().trim()).apply(); refresh() }
+                .setNeutralButton("Borrar clave") { _, _ -> prefs.edit().remove("ai_key").apply(); refresh() }
+                .setNegativeButton("Cancelar", null)
+                .show()
+        }
+        findViewById<View>(R.id.btn_ai_model).setOnClickListener {
+            val input = android.widget.EditText(this).apply {
+                setText(prefs.getString("ai_model", AssistantEngine.DEFAULT_MODEL))
+                setPadding(dp(20), dp(16), dp(20), dp(8))
+            }
+            androidx.appcompat.app.AlertDialog.Builder(this)
+                .setTitle("Modelo de IA")
+                .setView(input)
+                .setPositiveButton("Guardar") { _, _ -> prefs.edit().putString("ai_model", input.text.toString().trim()).apply(); refresh() }
+                .setNeutralButton("Por defecto") { _, _ -> prefs.edit().remove("ai_model").apply(); refresh() }
+                .setNegativeButton("Cancelar", null)
+                .show()
+        }
     }
 
     private fun applyPreset(kind: String) {
@@ -568,7 +611,7 @@ class SettingsActivity : AppCompatActivity() {
         listOf<SwitchMaterial>(
             switchSounds, switchTtsEnabled, switchOverlay, switchHideClock,
             findViewById(R.id.switch_labels), findViewById(R.id.switch_swipe), findViewById(R.id.switch_clock24),
-            findViewById(R.id.switch_glass_fx), findViewById(R.id.switch_theme_auto), findViewById(R.id.switch_tilt), findViewById(R.id.switch_page_today), findViewById(R.id.switch_page_tools), findViewById(R.id.switch_page_system), findViewById(R.id.switch_startup_sound)
+            findViewById(R.id.switch_glass_fx), findViewById(R.id.switch_ai), findViewById(R.id.switch_theme_auto), findViewById(R.id.switch_tilt), findViewById(R.id.switch_page_today), findViewById(R.id.switch_page_tools), findViewById(R.id.switch_page_system), findViewById(R.id.switch_startup_sound)
         ).forEach {
             it.thumbTintList = thumb
             it.trackTintList = track

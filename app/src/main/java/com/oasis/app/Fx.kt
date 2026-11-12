@@ -108,22 +108,32 @@ object Fx {
     }
 }
 
-/** Orbe "líquido": al escuchar late de forma orgánica y emite ondas. */
+/** Orbe "líquido": late al escuchar, reacciona a tu voz, "piensa" girando y se modula con cada palabra que dice. */
 class OrbFx(private val orb: View, private val ring1: View, private val ring2: View) {
     private var wobble: ValueAnimator? = null
     private var waves: List<ValueAnimator> = emptyList()
+    private var spin: ValueAnimator? = null
+    private var extra = 0f          // empujón extra (voz del usuario o palabra del asistente)
+    private var boost = 1f
+    private var amp = 0.05f
 
-    fun start() {
+    private fun running() = wobble != null
+
+    /** Escuchando o hablando: late y emite ondas. [gentle] = más suave (cuando el asistente habla). */
+    fun start(gentle: Boolean = false) {
         if (!Fx.enabled(orb.context)) return
-        stop()
+        amp = if (gentle) 0.03f else 0.05f
+        boost = if (gentle) 0.7f else 1f
+        if (running()) return
         wobble = ValueAnimator.ofFloat(0f, (2 * PI).toFloat()).apply {
             duration = 1700
             repeatCount = ValueAnimator.INFINITE
             interpolator = android.view.animation.LinearInterpolator()
             addUpdateListener {
                 val t = it.animatedValue as Float
-                orb.scaleX = 1f + 0.05f * sin(t)
-                orb.scaleY = 1f + 0.05f * sin(t + (PI / 2).toFloat())
+                extra *= 0.86f
+                orb.scaleX = 1f + amp * sin(t) + extra
+                orb.scaleY = 1f + amp * sin(t + (PI / 2).toFloat()) + extra
             }
             start()
         }
@@ -137,17 +147,55 @@ class OrbFx(private val orb: View, private val ring1: View, private val ring2: V
                     val f = a.animatedValue as Float
                     ring.scaleX = 1f + 0.7f * f
                     ring.scaleY = 1f + 0.7f * f
-                    ring.alpha = 0.6f * (1f - f)
+                    ring.alpha = (0.6f * boost) * (1f - f)
                 }
                 start()
             }
         }
     }
 
+    /** Nivel de tu voz (0..1) mientras hablas: el orbe se infla con ella. */
+    fun level(l: Float) {
+        if (!running()) return
+        extra = max(extra, l.coerceIn(0f, 1f) * 0.09f)
+        boost = 0.8f + l * 0.6f
+    }
+
+    /** Una palabra del asistente: pequeño latido. */
+    fun kick() {
+        if (!running()) return
+        extra = 0.09f
+    }
+
+    /** Mientras la IA piensa, el orbe gira despacio y se aviva. */
+    fun thinking(on: Boolean) {
+        if (!on) {
+            spin?.cancel(); spin = null
+            orb.rotation = 0f; orb.alpha = 1f
+            return
+        }
+        if (!Fx.enabled(orb.context) || spin != null) return
+        spin = ValueAnimator.ofFloat(0f, 360f).apply {
+            duration = 2600
+            repeatCount = ValueAnimator.INFINITE
+            interpolator = android.view.animation.LinearInterpolator()
+            addUpdateListener {
+                val a = it.animatedValue as Float
+                orb.rotation = a
+                orb.alpha = 0.8f + 0.2f * sin(a * (PI / 180).toFloat() * 2f)
+            }
+            start()
+        }
+    }
+
+    private fun max(a: Float, b: Float) = if (a > b) a else b
+
     fun stop() {
         wobble?.cancel(); wobble = null
         waves.forEach { it.cancel() }; waves = emptyList()
+        extra = 0f
         orb.scaleX = 1f; orb.scaleY = 1f
         ring1.alpha = 0f; ring2.alpha = 0f
+        thinking(false)
     }
 }

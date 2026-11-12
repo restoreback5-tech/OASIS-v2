@@ -3,6 +3,7 @@ package com.oasis.app
 import android.content.Context
 import android.content.SharedPreferences
 import android.speech.tts.TextToSpeech
+import android.speech.tts.UtteranceProgressListener
 import android.util.Log
 import java.util.Locale
 
@@ -11,6 +12,24 @@ class TTSModule(ctx: Context) : TextToSpeech.OnInitListener {
     private var tts: TextToSpeech? = null
     private val prefs: SharedPreferences =
         ctx.getSharedPreferences("oasis_settings", Context.MODE_PRIVATE)
+
+    /** El orbe se modula con la voz: se avisa cuando empieza, en cada palabra y al terminar (hilo del motor de voz). */
+    interface Callbacks {
+        fun onSpeakStart()
+        fun onSpeakWord()
+        fun onSpeakDone()
+    }
+
+    @Volatile var callbacks: Callbacks? = null
+
+    private val progress = object : UtteranceProgressListener() {
+        override fun onStart(utteranceId: String?) { callbacks?.onSpeakStart() }
+        override fun onDone(utteranceId: String?) { callbacks?.onSpeakDone() }
+        @Deprecated("Deprecated in Java")
+        override fun onError(utteranceId: String?) { callbacks?.onSpeakDone() }
+        override fun onStop(utteranceId: String?, interrupted: Boolean) { callbacks?.onSpeakDone() }
+        override fun onRangeStart(utteranceId: String?, start: Int, end: Int, frame: Int) { callbacks?.onSpeakWord() }
+    }
 
     /** true cuando onInit() ya terminó con éxito */
     @Volatile
@@ -45,6 +64,8 @@ class TTSModule(ctx: Context) : TextToSpeech.OnInitListener {
                     Log.w("TTSModule", "Idioma no soportado, usando default")
                     engine.language = Locale.getDefault()
                 }
+
+                engine.setOnUtteranceProgressListener(progress)
 
                 // 2. Aplicar speed/pitch (los que el usuario ya haya guardado)
                 applySpeechRateAndPitch()
