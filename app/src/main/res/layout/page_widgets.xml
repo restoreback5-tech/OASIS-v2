@@ -25,12 +25,13 @@
             <TextView
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
-                android:text="Todo se mueve en vivo"
+                android:text="Todo se mueve en vivo · mantén presionado un widget para quitarlo"
                 android:textSize="14sp"
                 android:layout_marginBottom="14dp" />
 
         <!-- Atajos: rutinas y lectura con cámara -->
         <LinearLayout
+            android:id="@+id/w_cell_shortcuts"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:layout_marginBottom="12dp"
@@ -81,12 +82,14 @@ Leer con cámara"
 
         <!-- Reloj + batería -->
         <LinearLayout
+            android:id="@+id/w_row_clock"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:layout_marginBottom="12dp"
             android:orientation="horizontal">
 
             <LinearLayout
+                android:id="@+id/w_cell_clock"
                 android:layout_width="0dp"
                 android:layout_height="match_parent"
                 android:layout_marginEnd="6dp"
@@ -104,6 +107,7 @@ Leer con cámara"
             </LinearLayout>
 
             <LinearLayout
+                android:id="@+id/w_cell_battery"
                 android:layout_width="0dp"
                 android:layout_height="match_parent"
                 android:layout_marginStart="6dp"
@@ -164,6 +168,7 @@ Leer con cámara"
             </LinearLayout>
         </LinearLayout>
         <LinearLayout
+            android:id="@+id/w_cell_net"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:layout_marginBottom="12dp"
@@ -210,6 +215,7 @@ Leer con cámara"
             </LinearLayout>
         </LinearLayout>
         <LinearLayout
+            android:id="@+id/w_cell_month"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:layout_marginBottom="12dp"
@@ -232,6 +238,7 @@ Leer con cámara"
                 android:layout_marginTop="8dp" />
         </LinearLayout>
         <LinearLayout
+            android:id="@+id/w_cell_water"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:layout_marginBottom="12dp"
@@ -300,6 +307,7 @@ Leer con cámara"
             </LinearLayout>
         </LinearLayout>
         <LinearLayout
+            android:id="@+id/w_cell_music"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:layout_marginBottom="12dp"
@@ -379,6 +387,7 @@ Leer con cámara"
                 android:visibility="gone" />
         </LinearLayout>
         <LinearLayout
+            android:id="@+id/w_cell_android"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:layout_marginBottom="12dp"

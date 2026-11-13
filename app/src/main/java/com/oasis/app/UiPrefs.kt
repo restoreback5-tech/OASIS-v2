@@ -110,7 +110,7 @@ object UiPrefs {
         listOf(
             "icon_size", "icon_shape", "show_labels", "drawer_columns", "scrim_percent",
             "swipe_up", "clock_24h", "orb_size", "font_key", "icon_style", "icon_pack",
-            "glass_fx", "theme_auto", "accent_custom", "bg_effect", "tilt_fx", "page_fx", "gesture_double", "gesture_down", "drawer_style", "page_today", "page_tools", "page_system", "page_widgets", "simple_mode", "read_messages", "wake_word", "assistant_memory", "folders_json", "dock_call", "dock_message", "dock_contacts", "water_count", "water_day", "sound_startup"
+            "glass_fx", "theme_auto", "accent_custom", "bg_effect", "tilt_fx", "page_fx", "gesture_double", "gesture_down", "drawer_style", "page_today", "page_tools", "page_system", "page_widgets", "widgets_hidden", "simple_mode", "read_messages", "wake_word", "assistant_memory", "folders_json", "dock_call", "dock_message", "dock_contacts", "water_count", "water_day", "sound_startup"
         ).forEach { e.remove(it) }
         e.apply()
         FontManager.invalidate()

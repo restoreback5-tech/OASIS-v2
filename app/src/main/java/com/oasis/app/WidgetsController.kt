@@ -47,6 +47,39 @@ class WidgetsController(private val act: Activity) {
     private var accent = 0xFFF57C00.toInt()
     private var pendingId = -1
 
+    /** Widgets propios de OASIS que se pueden quitar y volver a poner. */
+    private val cells = listOf(
+        R.id.w_cell_shortcuts to "Atajos (buenos días, buenas noches, cámara)",
+        R.id.w_cell_clock to "Reloj",
+        R.id.w_cell_battery to "Batería",
+        R.id.w_card_weather to "Clima",
+        R.id.w_cell_net to "Red en vivo",
+        R.id.w_cell_month to "Calendario",
+        R.id.w_cell_water to "Agua",
+        R.id.w_cell_music to "Música"
+    )
+
+    private fun hiddenSet(): MutableSet<String> =
+        (prefs.getString("widgets_hidden", "") ?: "").split(",").filter { it.isNotBlank() }.toMutableSet()
+
+    private fun key(id: Int) = act.resources.getResourceEntryName(id)
+
+    private fun applyCells() {
+        val hidden = hiddenSet()
+        for ((id, _) in cells) v<View>(id).visibility = if (key(id) in hidden) View.GONE else View.VISIBLE
+        val rowVisible = v<View>(R.id.w_cell_clock).visibility == View.VISIBLE || v<View>(R.id.w_cell_battery).visibility == View.VISIBLE
+        v<View>(R.id.w_row_clock).visibility = if (rowVisible) View.VISIBLE else View.GONE
+    }
+
+    private fun hideCell(id: Int, name: String) {
+        AlertDialog.Builder(act).setTitle("¿Quitar «$name»?")
+            .setMessage("Puedes volver a ponerlo con «＋ Agregar un widget».")
+            .setPositiveButton("Quitar") { _, _ ->
+                prefs.edit().putString("widgets_hidden", hiddenSet().also { it.add(key(id)) }.joinToString(",")).apply()
+                applyCells()
+            }.setNegativeButton("No", null).show()
+    }
+
     private fun <T : View> v(id: Int): T = act.findViewById(id)
     private fun tv(id: Int): TextView = act.findViewById(id)
 
@@ -81,6 +114,8 @@ class WidgetsController(private val act: Activity) {
         v<View>(R.id.w_btn_night).setOnClickListener { (act as? MainActivity)?.runRoutine(true) }
         v<View>(R.id.w_btn_read).setOnClickListener { (act as? MainActivity)?.startReadAloud() }
         listOf(R.id.w_btn_morning, R.id.w_btn_night, R.id.w_btn_read).forEach { Fx.pressable(v(it), 0.95f) }
+        for ((id, name) in cells) v<View>(id).setOnLongClickListener { hideCell(id, name); true }
+        applyCells()
         updateWater()
         restoreHosted()
     }
@@ -197,7 +232,22 @@ class WidgetsController(private val act: Activity) {
         }
     }
 
+    /** Si hay widgets de OASIS quitados, primero se ofrece volver a ponerlos. */
     private fun pickWidget() {
+        val hidden = hiddenSet()
+        val back = cells.filter { key(it.first) in hidden }
+        if (back.isEmpty()) { pickAndroidWidget(); return }
+        val items = (back.map { "↩ Volver a poner: ${it.second}" } + "Widgets de Android…").toTypedArray()
+        AlertDialog.Builder(act).setTitle("Agregar un widget")
+            .setItems(items) { _, i ->
+                if (i < back.size) {
+                    prefs.edit().putString("widgets_hidden", hiddenSet().also { it.remove(key(back[i].first)) }.joinToString(",")).apply()
+                    applyCells()
+                } else pickAndroidWidget()
+            }.setNegativeButton("Cancelar", null).show()
+    }
+
+    private fun pickAndroidWidget() {
         val list = try { manager.installedProviders.sortedBy { it.loadLabel(act.packageManager).toString().lowercase() } } catch (_: Exception) { emptyList() }
         if (list.isEmpty()) { Toast.makeText(act, "Este teléfono no tiene widgets disponibles", Toast.LENGTH_LONG).show(); return }
         val names = list.map { it.loadLabel(act.packageManager).toString() }.toTypedArray()
