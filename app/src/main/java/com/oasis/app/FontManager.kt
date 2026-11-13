@@ -19,7 +19,6 @@ object FontManager {
 
     private val BUILT_IN = listOf(
         Option("googlesans", "Google Sans"),
-        Option("sfpro", "SF Pro"),
         Option("system", "Sistema"),
         Option("condensed", "Condensada"),
         Option("serif", "Serif"),
@@ -53,9 +52,6 @@ object FontManager {
         when (key) {
             "googlesans" -> ResourcesCompat.getFont(
                 ctx, if (strong) R.font.googlesans_medium else R.font.googlesans_regular
-            )
-            "sfpro" -> ResourcesCompat.getFont(
-                ctx, if (strong) R.font.sf_pro_display_medium else R.font.sf_pro_display_regular
             )
             "serif" -> Typeface.create("serif", if (strong) Typeface.BOLD else Typeface.NORMAL)
             "mono" -> Typeface.create("monospace", if (strong) Typeface.BOLD else Typeface.NORMAL)

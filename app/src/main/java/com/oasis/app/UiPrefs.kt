@@ -39,7 +39,7 @@ object UiPrefs {
     fun setOrbSize(ctx: Context, v: Int) = p(ctx).edit().putInt("orb_size", v).apply()
     fun orbDp(ctx: Context): Int = intArrayOf(150, 180, 220)[orbSize(ctx)]
 
-    // Fuente: "googlesans", "sfpro", "system", "serif", "mono", "condensed", "cursive" o "custom" (importada)
+    // Fuente: "googlesans", "system", "serif", "mono", "condensed", "cursive" o "custom" (importada)
     fun fontKey(ctx: Context): String = p(ctx).getString("font_key", "googlesans") ?: "googlesans"
     fun setFontKey(ctx: Context, v: String) = p(ctx).edit().putString("font_key", v).apply()
 
