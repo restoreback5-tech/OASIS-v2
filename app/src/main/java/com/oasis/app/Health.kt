@@ -58,10 +58,12 @@ object HabitStore {
     private val DEFAULTS = listOf("Tomar agua", "Caminar 30 min", "Dormir 8 horas", "Estirarme")
     private const val KEEP = 90
 
-    fun list(ctx: Context): List<String> = try {
+    fun list(ctx: Context): List<String> {
+    return try {
         val a = JSONArray(healthPrefs(ctx).getString("habits_json", null) ?: return DEFAULTS)
         (0 until a.length()).map { a.getString(it) }
     } catch (e: Exception) { DEFAULTS }
+}
 
     private fun save(ctx: Context, l: List<String>) = healthPrefs(ctx).edit().putString("habits_json", JSONArray(l).toString()).apply()
 
