@@ -93,7 +93,11 @@ class AppListAdapter(
                     when (item.itemId) {
                         1 -> onTogglePin?.invoke(cn)
                         2 -> startSafe(Intent(Settings.ACTION_APPLICATION_DETAILS_SETTINGS, Uri.parse("package:${cn.packageName}")))
-                        3 -> startSafe(Intent(Intent.ACTION_DELETE, Uri.parse("package:${cn.packageName}")))
+                        3 -> {
+                            val del = { startSafe(Intent(Intent.ACTION_DELETE, Uri.parse("package:${cn.packageName}"))) }
+                            val a = context as? android.app.Activity
+                            if (a != null) CaregiverPin.require(a, onOk = { del() }) else del()
+                        }
                         4 -> hide(cn.packageName)
                         5 -> FolderUi.pickFolderFor(context, cn) { onFolderChanged?.invoke() }
                     }

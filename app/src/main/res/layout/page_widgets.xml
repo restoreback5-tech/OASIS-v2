@@ -80,6 +80,170 @@ Leer con cámara"
                 android:textSize="14sp" />
         </LinearLayout>
 
+        <LinearLayout
+            android:id="@+id/w_cell_safety"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginBottom="12dp"
+            android:background="@drawable/bg_card"
+            android:orientation="vertical"
+            android:padding="16dp"
+            android:tag="card">
+
+            <TextView
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:letterSpacing="0.08"
+                android:tag="strong"
+                android:text="SEGURIDAD Y AYUDA"
+                android:textSize="12sp" />
+            <LinearLayout
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="8dp"
+                android:orientation="horizontal"
+                android:weightSum="3">
+                <TextView
+                    android:id="@+id/w_sos"
+                    android:layout_width="0dp"
+                    android:layout_height="wrap_content"
+                    android:layout_weight="1"
+                    android:background="@drawable/bg_card"
+                    android:gravity="center"
+                    android:paddingTop="14dp"
+                    android:paddingBottom="14dp"
+                    android:tag="card"
+                    android:text="🆘
+SOS"
+                    android:textSize="13sp" />
+                <TextView
+                    android:id="@+id/w_loc"
+                    android:layout_width="0dp"
+                    android:layout_height="wrap_content"
+                    android:layout_weight="1"
+                    android:layout_marginStart="6dp"
+                    android:background="@drawable/bg_card"
+                    android:gravity="center"
+                    android:paddingTop="14dp"
+                    android:paddingBottom="14dp"
+                    android:tag="card"
+                    android:text="📍
+Mi ubicación"
+                    android:textSize="13sp" />
+                <TextView
+                    android:id="@+id/w_home"
+                    android:layout_width="0dp"
+                    android:layout_height="wrap_content"
+                    android:layout_weight="1"
+                    android:layout_marginStart="6dp"
+                    android:background="@drawable/bg_card"
+                    android:gravity="center"
+                    android:paddingTop="14dp"
+                    android:paddingBottom="14dp"
+                    android:tag="card"
+                    android:text="🏠
+Llévame a casa"
+                    android:textSize="13sp" />
+            </LinearLayout>
+            <LinearLayout
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="8dp"
+                android:orientation="horizontal"
+                android:weightSum="3">
+                <TextView
+                    android:id="@+id/w_medical"
+                    android:layout_width="0dp"
+                    android:layout_height="wrap_content"
+                    android:layout_weight="1"
+                    android:background="@drawable/bg_card"
+                    android:gravity="center"
+                    android:paddingTop="14dp"
+                    android:paddingBottom="14dp"
+                    android:tag="card"
+                    android:text="🩺
+Datos médicos"
+                    android:textSize="13sp" />
+                <TextView
+                    android:id="@+id/w_breathe"
+                    android:layout_width="0dp"
+                    android:layout_height="wrap_content"
+                    android:layout_weight="1"
+                    android:layout_marginStart="6dp"
+                    android:background="@drawable/bg_card"
+                    android:gravity="center"
+                    android:paddingTop="14dp"
+                    android:paddingBottom="14dp"
+                    android:tag="card"
+                    android:text="🌬
+Respirar"
+                    android:textSize="13sp" />
+                <TextView
+                    android:id="@+id/w_torch"
+                    android:layout_width="0dp"
+                    android:layout_height="wrap_content"
+                    android:layout_weight="1"
+                    android:layout_marginStart="6dp"
+                    android:background="@drawable/bg_card"
+                    android:gravity="center"
+                    android:paddingTop="14dp"
+                    android:paddingBottom="14dp"
+                    android:tag="card"
+                    android:text="🔦
+Luz SOS"
+                    android:textSize="13sp" />
+            </LinearLayout>
+            <LinearLayout
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="8dp"
+                android:orientation="horizontal"
+                android:weightSum="3">
+                <TextView
+                    android:id="@+id/w_siren"
+                    android:layout_width="0dp"
+                    android:layout_height="wrap_content"
+                    android:layout_weight="1"
+                    android:background="@drawable/bg_card"
+                    android:gravity="center"
+                    android:paddingTop="14dp"
+                    android:paddingBottom="14dp"
+                    android:tag="card"
+                    android:text="🔊
+Sirena"
+                    android:textSize="13sp" />
+                <TextView
+                    android:id="@+id/w_contacts"
+                    android:layout_width="0dp"
+                    android:layout_height="wrap_content"
+                    android:layout_weight="1"
+                    android:layout_marginStart="6dp"
+                    android:background="@drawable/bg_card"
+                    android:gravity="center"
+                    android:paddingTop="14dp"
+                    android:paddingBottom="14dp"
+                    android:tag="card"
+                    android:text="👥
+Contactos SOS"
+                    android:textSize="13sp" />
+                <TextView
+                    android:id="@+id/w_pin"
+                    android:layout_width="0dp"
+                    android:layout_height="wrap_content"
+                    android:layout_weight="1"
+                    android:layout_marginStart="6dp"
+                    android:background="@drawable/bg_card"
+                    android:gravity="center"
+                    android:paddingTop="14dp"
+                    android:paddingBottom="14dp"
+                    android:tag="card"
+                    android:text="🔒
+PIN cuidador"
+                    android:textSize="13sp" />
+            </LinearLayout>
+
+        </LinearLayout>
+
         <!-- Reloj + batería -->
         <LinearLayout
             android:id="@+id/w_row_clock"
@@ -386,6 +550,303 @@ Leer con cámara"
                 android:layout_marginTop="10dp"
                 android:visibility="gone" />
         </LinearLayout>
+        <LinearLayout
+            android:id="@+id/w_cell_steps"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginBottom="12dp"
+            android:background="@drawable/bg_card"
+            android:orientation="vertical"
+            android:padding="16dp"
+            android:tag="card">
+
+            <LinearLayout
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:gravity="center_vertical"
+                android:orientation="horizontal">
+
+                <com.oasis.app.ProgressRing
+                    android:id="@+id/w_steps_ring"
+                    android:layout_width="110dp"
+                    android:layout_height="110dp" />
+
+                <LinearLayout
+                    android:layout_width="0dp"
+                    android:layout_height="wrap_content"
+                    android:layout_marginStart="12dp"
+                    android:layout_weight="1"
+                    android:orientation="vertical">
+
+            <TextView
+                android:id="@+id/w_tv_steps"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:tag="strong"
+                android:text="0 pasos"
+                android:textSize="22sp" />
+            <TextView
+                android:id="@+id/w_tv_steps_sub"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="Meta diaria · toca para cambiarla"
+                android:textSize="13sp" />
+                    <TextView
+                        android:id="@+id/w_steps_enable"
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:padding="6dp"
+                        android:tag="strong"
+                        android:text="Activar el contador"
+                        android:textSize="14sp"
+                        android:visibility="gone" />
+                </LinearLayout>
+            </LinearLayout>
+        </LinearLayout>
+
+        <LinearLayout
+            android:id="@+id/w_cell_habits"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginBottom="12dp"
+            android:background="@drawable/bg_card"
+            android:orientation="vertical"
+            android:padding="16dp"
+            android:tag="card">
+
+            <TextView
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:letterSpacing="0.08"
+                android:tag="strong"
+                android:text="HÁBITOS (toca para marcar hoy)"
+                android:textSize="12sp" />
+            <LinearLayout
+                android:id="@+id/w_habits_box"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="6dp"
+                android:orientation="vertical" />
+            <TextView
+                android:id="@+id/w_habit_add"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="6dp"
+                android:padding="8dp"
+                android:tag="strong"
+                android:text="＋ Nuevo hábito"
+                android:textSize="15sp" />
+
+        </LinearLayout>
+
+        <LinearLayout
+            android:id="@+id/w_cell_meds"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginBottom="12dp"
+            android:background="@drawable/bg_card"
+            android:orientation="vertical"
+            android:padding="16dp"
+            android:tag="card">
+
+            <TextView
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:letterSpacing="0.08"
+                android:tag="strong"
+                android:text="MEDICINAS"
+                android:textSize="12sp" />
+            <LinearLayout
+                android:id="@+id/w_meds_box"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="6dp"
+                android:orientation="vertical" />
+            <TextView
+                android:id="@+id/w_meds_hint"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="Te aviso a la hora; si no confirmas en 30 minutos, le aviso a tu primer contacto SOS."
+                android:textSize="12sp"
+                android:layout_marginTop="4dp" />
+            <TextView
+                android:id="@+id/w_med_add"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="6dp"
+                android:padding="8dp"
+                android:tag="strong"
+                android:text="＋ Agregar medicina"
+                android:textSize="15sp" />
+
+        </LinearLayout>
+
+        <LinearLayout
+            android:id="@+id/w_cell_list"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginBottom="12dp"
+            android:background="@drawable/bg_card"
+            android:orientation="vertical"
+            android:padding="16dp"
+            android:tag="card">
+
+            <TextView
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:letterSpacing="0.08"
+                android:tag="strong"
+                android:text="LISTA DEL SÚPER"
+                android:textSize="12sp" />
+            <LinearLayout
+                android:id="@+id/w_list_box"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="6dp"
+                android:orientation="vertical" />
+            <TextView
+                android:id="@+id/w_list_hint"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="Di: «agrega leche a la lista». Toca un artículo para quitarlo."
+                android:textSize="12sp"
+                android:layout_marginTop="4dp" />
+            <TextView
+                android:id="@+id/w_list_add"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="6dp"
+                android:padding="8dp"
+                android:tag="strong"
+                android:text="＋ Agregar artículo"
+                android:textSize="15sp" />
+
+        </LinearLayout>
+
+        <LinearLayout
+            android:id="@+id/w_cell_bday"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginBottom="12dp"
+            android:background="@drawable/bg_card"
+            android:orientation="vertical"
+            android:padding="16dp"
+            android:tag="card">
+
+            <TextView
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:letterSpacing="0.08"
+                android:tag="strong"
+                android:text="CUMPLEAÑOS"
+                android:textSize="12sp" />
+            <LinearLayout
+                android:id="@+id/w_bday_box"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="6dp"
+                android:orientation="vertical" />
+            <TextView
+                android:id="@+id/w_bday_empty"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="Nada en los próximos 45 días (o falta el permiso de contactos)."
+                android:textSize="13sp"
+                android:layout_marginTop="6dp"
+                android:visibility="gone" />
+
+        </LinearLayout>
+
+        <LinearLayout
+            android:id="@+id/w_cell_ai"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginBottom="12dp"
+            android:background="@drawable/bg_card"
+            android:orientation="vertical"
+            android:padding="16dp"
+            android:tag="card">
+
+            <TextView
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:letterSpacing="0.08"
+                android:tag="strong"
+                android:text="PRUEBA LA IA"
+                android:textSize="12sp" />
+
+            <ScrollView
+                android:layout_width="match_parent"
+                android:layout_height="190dp"
+                android:layout_marginTop="8dp"
+                android:fillViewport="true">
+
+                <TextView
+                    android:id="@+id/w_ai_log"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:text="Escribe algo y toca Enviar. Aquí se ve lo que responde la IA y qué acción pensó hacer (no la ejecuta)."
+                    android:textSize="14sp" />
+            </ScrollView>
+
+            <EditText
+                android:id="@+id/w_ai_input"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="8dp"
+                android:hint="Pregúntale algo…"
+                android:imeOptions="actionSend"
+                android:inputType="textCapSentences"
+                android:maxLines="3"
+                android:textSize="15sp" />
+            <LinearLayout
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="8dp"
+                android:orientation="horizontal"
+                android:weightSum="3">
+                <TextView
+                    android:id="@+id/w_ai_send"
+                    android:layout_width="0dp"
+                    android:layout_height="wrap_content"
+                    android:layout_weight="1"
+                    android:background="@drawable/bg_card"
+                    android:gravity="center"
+                    android:paddingTop="14dp"
+                    android:paddingBottom="14dp"
+                    android:tag="card"
+                    android:text="Enviar"
+                    android:textSize="13sp" />
+                <TextView
+                    android:id="@+id/w_ai_test"
+                    android:layout_width="0dp"
+                    android:layout_height="wrap_content"
+                    android:layout_weight="1"
+                    android:layout_marginStart="6dp"
+                    android:background="@drawable/bg_card"
+                    android:gravity="center"
+                    android:paddingTop="14dp"
+                    android:paddingBottom="14dp"
+                    android:tag="card"
+                    android:text="Probar conexión"
+                    android:textSize="13sp" />
+                <TextView
+                    android:id="@+id/w_ai_clear"
+                    android:layout_width="0dp"
+                    android:layout_height="wrap_content"
+                    android:layout_weight="1"
+                    android:layout_marginStart="6dp"
+                    android:background="@drawable/bg_card"
+                    android:gravity="center"
+                    android:paddingTop="14dp"
+                    android:paddingBottom="14dp"
+                    android:tag="card"
+                    android:text="Limpiar"
+                    android:textSize="13sp" />
+            </LinearLayout>
+
+        </LinearLayout>
+
         <LinearLayout
             android:id="@+id/w_cell_android"
             android:layout_width="match_parent"

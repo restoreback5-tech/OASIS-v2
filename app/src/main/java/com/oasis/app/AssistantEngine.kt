@@ -34,6 +34,12 @@ class AssistantEngine(private val ctx: Context) {
         data class System(val action: String) : Act()
         data class Routine(val night: Boolean) : Act()
         object ReadAloud : Act()
+        data class SendSms(val number: String, val name: String, val body: String) : Act()
+        object Sos : Act()
+        object ShareLocation : Act()
+        object GoHome : Act()
+        object Breathe : Act()
+        object Medical : Act()
     }
 
     data class Reply(val text: String, val act: Act? = null)
@@ -41,6 +47,9 @@ class AssistantEngine(private val ctx: Context) {
     private val io = Executors.newSingleThreadExecutor()
     private val main = Handler(Looper.getMainLooper())
     private val history = ArrayList<Pair<String, String>>()   // ("user"|"assistant") a texto
+    private var pendingSms: Triple<String, String, String>? = null    // (nombre, número, texto) esperando "sí"/"no"
+    private var pendingRiddle: Pair<String, String>? = null           // (adivinanza, respuesta)
+    private var riddleTries = 0
 
     private fun prefs() = ctx.getSharedPreferences("oasis_settings", Context.MODE_PRIVATE)
 
@@ -72,6 +81,36 @@ class AssistantEngine(private val ctx: Context) {
         val lower = raw.lowercase(Locale.getDefault()).trim()
         val n = TextMatch.normalize(raw)
 
+        // ---- confirmación de un mensaje dictado ("¿Lo envío?")
+        pendingSms?.let { p ->
+            pendingSms = null
+            if (has(n, "si", "envialo", "enviar", "mandalo", "manda", "dale", "claro", "ok", "correcto", "adelante"))
+                return Reply("Enviando tu mensaje.", Act.SendSms(p.second, p.first, p.third))
+            if (has(n, "no", "cancela", "cancelar", "espera", "alto")) return Reply("Listo, no lo envié.")
+        }
+
+        // ---- adivinanza en curso
+        pendingRiddle?.let { r ->
+            val answer = TextMatch.normalize(r.second)
+            if (hasPhrase(n, "no se", "me rindo", "respuesta", "dimela")) { pendingRiddle = null; return Reply("La respuesta es: ${r.second}.") }
+            if (answer.split(' ').any { w -> w.length > 2 && TextMatch.containsWord(n, w) }) { pendingRiddle = null; return Reply("¡Correcto! Era ${r.second}.") }
+            riddleTries++
+            if (riddleTries >= 3) { pendingRiddle = null; return Reply("No era esa. La respuesta es: ${r.second}.") }
+            return Reply("Mmm, no es esa. Intenta otra vez, o di: no sé.")
+        }
+
+        // ---- dictar un mensaje: "mándale a mamá que ya llegué"
+        DICTATE.find(lower)?.let { m ->
+            val who = m.groupValues[1].trim()
+            val body = m.groupValues[2].trim()
+            if (body.isNotEmpty()) {
+                val num = if (who.any { it.isDigit() }) who.filter { it.isDigit() || it == '+' } else contactNumber(who)
+                    ?: return Reply("No encontré a $who en tus contactos.")
+                pendingSms = Triple(who.replaceFirstChar { it.uppercase() }, num, body.replaceFirstChar { it.uppercase() })
+                return Reply("Voy a mandarle a $who: $body. ¿Lo envío?")
+            }
+        }
+
         // ---- memoria: "recuerda que mi hijo se llama Luis"
         MEM_SAVE.find(lower)?.let { m ->
             val fact = m.groupValues[2].trim()
@@ -92,6 +131,50 @@ class AssistantEngine(private val ctx: Context) {
             val mm = if (a.minute == 0) "" else ":" + a.minute.toString().padStart(2, '0')
             return Reply("Listo, te aviso a las $h12$mm $part" + (if (a.label.isNotBlank()) ": ${a.label}." else "."), a)
         }
+
+        // ---- seguridad y bienestar
+        if (has(n, "sos", "auxilio", "emergencia") || hasPhrase(n, "ayuda urgente", "pide ayuda", "estoy en peligro"))
+            return Reply("Voy a pedirte confirmación para avisar a tus contactos.", Act.Sos)
+        if (hasPhrase(n, "comparte mi ubicacion", "manda mi ubicacion", "mandar mi ubicacion", "envia mi ubicacion", "enviar mi ubicacion"))
+            return Reply("Compartiendo tu ubicación.", Act.ShareLocation)
+        if (hasPhrase(n, "llevame a casa", "como llego a casa", "ruta a casa", "quiero ir a casa", "volver a casa"))
+            return Reply("Abriendo la ruta a tu casa.", Act.GoHome)
+        if (hasPhrase(n, "respirar", "respiracion", "estoy nervioso", "estoy ansioso", "ansiedad", "calmame", "relajarme"))
+            return Reply("Respiremos juntos, con calma.", Act.Breathe)
+        if (hasPhrase(n, "mis datos medicos", "datos medicos", "ficha medica"))
+            return Reply("Estos son tus datos médicos.", Act.Medical)
+        if (hasPhrase(n, "cuantos pasos", "mis pasos"))
+            return Reply("Llevas ${StepCounter.lastKnown(ctx)} pasos hoy. Tu meta es ${StepCounter.goal(ctx)}.")
+        if (hasPhrase(n, "mis medicinas", "que medicinas", "que pastillas", "mis pastillas")) {
+            val meds = MedStore.list(ctx)
+            return Reply(if (meds.isEmpty()) "No tienes medicinas registradas. Agrégalas en la página Widgets."
+            else "Hoy tienes: " + meds.joinToString(". ") { "${it.name} a las ${it.hour}:${"%02d".format(it.minute)}" + if (MedStore.isTakenToday(ctx, it.id)) ", ya tomada" else "" })
+        }
+        if (hasPhrase(n, "cumpleanos")) {
+            val b = Birthdays.upcoming(ctx, 3)
+            return Reply(if (b.isEmpty()) "No veo cumpleaños en los próximos días. Revisa que tus contactos tengan fecha de cumpleaños y el permiso de contactos." else b.joinToString(". ") { Birthdays.describe(it) })
+        }
+        if (has(n, "adivinanza", "acertijo")) {
+            val r = RIDDLES.random()
+            pendingRiddle = r; riddleTries = 0
+            return Reply(r.first + " ¿Qué es?")
+        }
+        if (!cloudEnabled() && (hasPhrase(n, "cuento", "cuentame una historia") || hasPhrase(n, "como se dice", "traduce")))
+            return Reply("Para eso necesito la IA activada en Ajustes, en Asistente con IA.")
+
+        // ---- lista del súper
+        LIST_ADD.find(lower)?.let { m ->
+            m.groupValues[1].split(Regex(",| y ")).map { it.trim() }.filter { it.isNotEmpty() }.forEach { ListStore.add(ctx, it) }
+            return Reply("Listo, agregué ${m.groupValues[1].trim()} a la lista.")
+        }
+        LIST_REMOVE.find(lower)?.let { m ->
+            return Reply(if (ListStore.remove(ctx, m.groupValues[1])) "Listo, lo quité de la lista." else "No encontré eso en la lista.")
+        }
+        if (hasPhrase(n, "que hay en la lista", "lee la lista", "mi lista", "lista del super", "lista de compras")) {
+            val l = ListStore.items(ctx)
+            return Reply(if (l.isEmpty()) "Tu lista está vacía." else "En tu lista hay: " + l.joinToString(", "))
+        }
+        if (hasPhrase(n, "borra la lista", "vacia la lista", "limpia la lista")) { ListStore.clear(ctx); return Reply("Listo, vacié la lista.") }
 
         // ---- notas
         NOTE.find(lower)?.let { m ->
@@ -338,7 +421,7 @@ class AssistantEngine(private val ctx: Context) {
             .put("model", model)
             .put("stream", false)
             .put("messages", msgs)
-            .put("options", JSONObject().put("num_predict", 200))
+            .put("options", JSONObject().put("num_predict", if (raw.contains("cuento", true)) 400 else 200))
 
         val conn = try { URL("$base/api/chat").openConnection() as HttpURLConnection } catch (e: Exception) {
             history.removeLastOrNull(); return Reply("La URL del servidor no es válida. Revísala en Ajustes.")
@@ -362,6 +445,47 @@ class AssistantEngine(private val ctx: Context) {
             history.removeLastOrNull()
             return Reply("No encontré el servidor en $base. Revisa que ollama serve esté corriendo.")
         } finally { conn.disconnect() }
+    }
+
+    /** Prueba de conexión con el servidor de IA (la usa la tarjeta «Prueba la IA»). */
+    fun ping(done: (String) -> Unit) {
+        if (!cloudEnabled()) { done("La IA está apagada. Actívala en Ajustes → Asistente con IA."); return }
+        io.execute {
+            val base = serverUrl()
+            val model = model()
+            val t0 = android.os.SystemClock.elapsedRealtime()
+            val msg = try {
+                val conn = URL("$base/api/chat").openConnection() as HttpURLConnection
+                try {
+                    conn.requestMethod = "POST"
+                    conn.connectTimeout = 15_000
+                    conn.readTimeout = 120_000
+                    conn.doOutput = true
+                    conn.setRequestProperty("Content-Type", "application/json")
+                    val body = JSONObject().put("model", model).put("stream", false)
+                        .put("messages", JSONArray().put(JSONObject().put("role", "user").put("content", "Responde solo con la palabra: listo")))
+                        .put("options", JSONObject().put("num_predict", 10))
+                    conn.outputStream.use { it.write(body.toString().toByteArray()) }
+                    val code = conn.responseCode
+                    when {
+                        code == 404 -> "⚠ El servidor no tiene el modelo $model. En la computadora ejecuta: ollama pull $model"
+                        code !in 200..299 -> "⚠ El servidor respondió con error $code."
+                        else -> {
+                            val txt = JSONObject(conn.inputStream.bufferedReader().use { it.readText() }).getJSONObject("message").getString("content").trim()
+                            val secs = (android.os.SystemClock.elapsedRealtime() - t0) / 1000.0
+                            "✅ Conectado a $base · modelo $model · ${"%.1f".format(secs)} s · respondió: $txt"
+                        }
+                    }
+                } finally { conn.disconnect() }
+            } catch (e: java.net.SocketTimeoutException) {
+                "⚠ Tardó demasiado. La primera carga del modelo puede tardar; intenta otra vez."
+            } catch (e: java.io.IOException) {
+                "⚠ No encontré el servidor en $base. ¿Está corriendo ollama serve y es correcta la URL? (${e.javaClass.simpleName})"
+            } catch (e: Exception) {
+                "⚠ Error: ${e.message}"
+            }
+            main.post { done(msg) }
+        }
     }
 
     private fun memoryNote(): String {
@@ -399,6 +523,19 @@ class AssistantEngine(private val ctx: Context) {
         const val DEFAULT_MODEL = "qwen2.5:3b"
         const val FALLBACK = "No estoy segura de cómo ayudarte con eso. Prueba: abre WhatsApp, llama a mamá, ¿qué hora es?, ¿cuánta batería tengo?"
 
+        private val DICTATE = Regex("^(?:manda(?:le)?|env[ií]a(?:le)?|escr[ií]be(?:le)?)\\s+(?:un\\s+)?(?:mensaje|sms|whatsapp)?\\s*(?:a|para)\\s+(.+?)\\s*(?::|,|\\bque diga\\b|\\bdiciendo\\b|\\bque dice\\b|\\bque\\b)\\s+(.+)$")
+        private val LIST_ADD = Regex("^(?:agrega|agregar|añade|añadir|pon|anota|apunta)\\s+(.+?)\\s+(?:a|en)\\s+(?:la\\s+)?lista(?:\\s+de(?:l)?\\s+(?:super|súper|mercado|compras))?$")
+        private val LIST_REMOVE = Regex("^(?:quita|borra|elimina|saca)\\s+(.+?)\\s+de\\s+la\\s+lista")
+        private val RIDDLES = listOf(
+            "Blanco por dentro, verde por fuera. Si quieres que te lo diga, espera." to "la pera",
+            "Oro parece, plata no es." to "el plátano",
+            "Tengo agujas pero no sé coser, doy la hora sin ser reloj de pared." to "el reloj",
+            "Vuelo sin alas, silbo sin boca, azoto sin manos y nadie me toca." to "el viento",
+            "Cuanto más le quitas, más grande se hace." to "el agujero",
+            "Tiene cuatro patas pero no camina, y en ella te sientas." to "la silla",
+            "Una señora muy aseñorada, siempre va en coche y siempre mojada." to "la lengua",
+            "Redondo como un queso, tengo luz y no tengo fuego, de noche me ves en el cielo." to "la luna"
+        )
         private val MEM_SAVE = Regex("^(recuerda|acuérdate|acuerdate|ten en cuenta|no olvides)(?: que)?\\s+(.+)$")
         private val NUMBER_OF = Regex("n[uú]mero (?:de|tiene)\\s+(.+?)\\??$")
         private val ALARM_AT = Regex("(?:recuerdame|avisame|ponme una alarma|pon una alarma|despiertame|alarma)\\s+(?:para\\s+)?a las (\\d{1,2})(?::(\\d{2}))?(?: y (media|cuarto)| con (\\d{1,2}))?\\s*(de la manana|de la tarde|de la noche|am|pm)?\\s*(.*)$")

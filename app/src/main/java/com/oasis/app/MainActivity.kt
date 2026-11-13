@@ -58,6 +58,10 @@ class MainActivity : AppCompatActivity() {
     private lateinit var dock: DockEditor
     private lateinit var readAloud: ReadAloud
     private var wake: WakeWord? = null
+    private var fall: FallDetector? = null
+    private var convoActive = false
+    private var convoPending = false
+    private var convoTurns = 0
     @Volatile private var speaking = false
     private var tilt: TiltParallax? = null
     private var packageReceiver: BroadcastReceiver? = null
@@ -146,6 +150,7 @@ class MainActivity : AppCompatActivity() {
                 }
             },
             onError = { error ->
+                convoActive = false
                 runOnUiThread {
                     toast.show(error)
                     tts.speak(error)
@@ -161,7 +166,18 @@ class MainActivity : AppCompatActivity() {
         tts.callbacks = object : TTSModule.Callbacks {
             override fun onSpeakStart() { speaking = true; runOnUiThread { orbFx.thinking(false); orbFx.start(gentle = true) } }
             override fun onSpeakWord() { runOnUiThread { orbFx.kick() } }
-            override fun onSpeakDone() { speaking = false; runOnUiThread { if (orbState != "active") orbFx.stop() } }
+            override fun onSpeakDone() {
+                speaking = false
+                runOnUiThread {
+                    if (orbState != "active") orbFx.stop()
+                    // Modo conversación: tras contestar, vuelve a escuchar sin tocar el orbe
+                    if (convoPending && convoActive) {
+                        convoPending = false
+                        wake?.pauseFor(15000)
+                        orbView.postDelayed({ if (convoActive && !speaking && orbState != "active") voice.startListening() }, 800)
+                    }
+                }
+            }
         }
 
         // 3. Tema, reloj y permisos
@@ -328,6 +344,18 @@ class MainActivity : AppCompatActivity() {
     // ====================== ASISTENTE ======================
     private fun askAssistant(q: String) {
         if (q.isBlank()) return
+        if (convoActive) {
+            convoTurns++
+            val n = TextMatch.normalize(q)
+            val bye = listOf("adios", "hasta luego", "gracias", "terminar", "basta", "nada mas", "ya no", "silencio").any { n.contains(it) }
+            if (bye || convoTurns > 8) {
+                convoActive = false
+                val msg = "Aquí estaré cuando me necesites."
+                findViewById<android.widget.TextView>(R.id.status_text).text = msg
+                tts.speak(msg)
+                return
+            }
+        }
         VoiceHistory.add(this, "ask", mapOf("q" to q))
         dashboard.refreshVoice()
         val status = findViewById<android.widget.TextView>(R.id.status_text)
@@ -336,6 +364,7 @@ class MainActivity : AppCompatActivity() {
         assistant.handle(q) { reply ->
             orbFx.thinking(false)
             status.text = reply.text
+            convoPending = convoActive
             tts.speak(reply.text)
             runAssistantAct(reply.act)
         }
@@ -365,6 +394,19 @@ class MainActivity : AppCompatActivity() {
                 is AssistantEngine.Act.System -> startActivity(Intent(a.action).addFlags(Intent.FLAG_ACTIVITY_NEW_TASK))
                 is AssistantEngine.Act.Routine -> runRoutine(a.night)
                 is AssistantEngine.Act.ReadAloud -> startReadAloud()
+                is AssistantEngine.Act.SendSms -> {
+                    if (Safety.ensureSms(this)) {
+                        val ok = Safety.sendSms(this, a.number, a.body)
+                        val msg = if (ok) "Mensaje enviado a ${a.name}." else "No pude enviar el mensaje."
+                        findViewById<android.widget.TextView>(R.id.status_text).text = msg
+                        tts.speak(msg)
+                    } else tts.speak("Permite enviar mensajes y vuelve a pedírmelo.")
+                }
+                is AssistantEngine.Act.Sos -> SafetyUi.runSos(this) { dial(it) }
+                is AssistantEngine.Act.ShareLocation -> SafetyUi.shareLocation(this)
+                is AssistantEngine.Act.GoHome -> SafetyUi.goHome(this)
+                is AssistantEngine.Act.Breathe -> Breathing.show(this) { tts.speak(it) }
+                is AssistantEngine.Act.Medical -> SafetyUi.showMedical(this)
                 null -> {}
             }
         } catch (e: Exception) {
@@ -391,10 +433,26 @@ class MainActivity : AppCompatActivity() {
         readAloud.start()
     }
 
+    // Pequeñas puertas para otras pantallas (tarjetas de Widgets)
+    fun assistantEngine() = assistant
+    fun say(text: String) = tts.speak(text)
+    fun dial(number: String) = phoneActions.dialNumber(number)
+
     /** Un solo punto para empezar a escuchar: pausa «Hola Oasis» para que no compitan por el micrófono. */
     private fun startVoice() {
         wake?.pauseFor(9000)
+        convoActive = UiPrefs.convoMode(this)
+        convoTurns = 0
         voice.startListening()
+    }
+
+    /** Detector de caídas (solo con OASIS abierta) y aviso de batería baja al cuidador. */
+    private fun syncSafety() {
+        if (UiPrefs.fallDetect(this)) {
+            if (fall == null) fall = FallDetector(this) { runOnUiThread { SafetyUi.fallCountdown(this) { dial(it) } } }
+            fall?.start()
+        } else fall?.stop()
+        Safety.checkBattery(this)
     }
 
     private fun syncWakeWord() {
@@ -718,6 +776,7 @@ class MainActivity : AppCompatActivity() {
         super.onRequestPermissionsResult(requestCode, permissions, grantResults)
         dashboard.onPermissionResult(requestCode)
         if (requestCode == 203) refreshHomeFavs()
+        if (requestCode in 204..207) dashboard.widgets.wellness.onPermissionResult(requestCode)
         if (requestCode == 100) {
             val granted = grantResults.isNotEmpty() &&
                     grantResults[0] == PackageManager.PERMISSION_GRANTED
@@ -739,6 +798,7 @@ class MainActivity : AppCompatActivity() {
         dock.refresh()
         refreshHomeFavs()
         syncWakeWord()
+        syncSafety()
         OasisNotificationListener.onChange = { runOnUiThread { if (::pinnedAdapter.isInitialized) pinnedAdapter.notifyDataSetChanged() } }
         liveBg.start()
         if (UiPrefs.tilt(this) && Fx.enabled(this)) {
@@ -755,6 +815,7 @@ class MainActivity : AppCompatActivity() {
         super.onPause()
         if (::dashboard.isInitialized) dashboard.onPause()
         wake?.stop()
+        fall?.stop()
         OasisNotificationListener.onChange = null
         liveBg.stop()
         tilt?.stop(); tilt = null

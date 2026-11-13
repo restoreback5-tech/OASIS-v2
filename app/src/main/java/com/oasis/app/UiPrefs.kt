@@ -99,6 +99,12 @@ object UiPrefs {
     fun setReadMessages(ctx: Context, v: Boolean) = p(ctx).edit().putBoolean("read_messages", v).apply()
     fun wakeWord(ctx: Context): Boolean = p(ctx).getBoolean("wake_word", false)
     fun setWakeWord(ctx: Context, v: Boolean) = p(ctx).edit().putBoolean("wake_word", v).apply()
+    fun fallDetect(ctx: Context): Boolean = p(ctx).getBoolean("fall_detect", false)
+    fun setFallDetect(ctx: Context, v: Boolean) = p(ctx).edit().putBoolean("fall_detect", v).apply()
+    fun battAlert(ctx: Context): Boolean = p(ctx).getBoolean("batt_alert", false)
+    fun setBattAlert(ctx: Context, v: Boolean) = p(ctx).edit().putBoolean("batt_alert", v).apply()
+    fun convoMode(ctx: Context): Boolean = p(ctx).getBoolean("convo_mode", false)
+    fun setConvoMode(ctx: Context, v: Boolean) = p(ctx).edit().putBoolean("convo_mode", v).apply()
     fun pageWidgets(ctx: Context): Boolean = p(ctx).getBoolean("page_widgets", true)
     fun setPageWidgets(ctx: Context, v: Boolean) = p(ctx).edit().putBoolean("page_widgets", v).apply()
     fun pageSystem(ctx: Context): Boolean = p(ctx).getBoolean("page_system", true)
@@ -110,7 +116,7 @@ object UiPrefs {
         listOf(
             "icon_size", "icon_shape", "show_labels", "drawer_columns", "scrim_percent",
             "swipe_up", "clock_24h", "orb_size", "font_key", "icon_style", "icon_pack",
-            "glass_fx", "theme_auto", "accent_custom", "bg_effect", "tilt_fx", "page_fx", "gesture_double", "gesture_down", "drawer_style", "page_today", "page_tools", "page_system", "page_widgets", "widgets_hidden", "simple_mode", "read_messages", "wake_word", "assistant_memory", "folders_json", "dock_call", "dock_message", "dock_contacts", "water_count", "water_day", "sound_startup"
+            "glass_fx", "theme_auto", "accent_custom", "bg_effect", "tilt_fx", "page_fx", "gesture_double", "gesture_down", "drawer_style", "page_today", "page_tools", "page_system", "page_widgets", "widgets_hidden", "simple_mode", "fall_detect", "batt_alert", "convo_mode", "sos_contacts", "home_address", "meds_json", "habits_json", "list_super", "steps_goal", "med_name", "med_blood", "med_allergies", "med_conditions", "med_meds", "med_notes", "read_messages", "wake_word", "assistant_memory", "folders_json", "dock_call", "dock_message", "dock_contacts", "water_count", "water_day", "sound_startup"
         ).forEach { e.remove(it) }
         e.apply()
         FontManager.invalidate()

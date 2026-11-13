@@ -34,6 +34,7 @@ class WidgetsController(private val act: Activity) {
         private const val GOAL = 8
     }
 
+    val wellness = WellnessController(act as androidx.appcompat.app.AppCompatActivity)
     private val handler = Handler(Looper.getMainLooper())
     private val io = Executors.newSingleThreadExecutor()
     private val prefs = act.getSharedPreferences("oasis_settings", Activity.MODE_PRIVATE)
@@ -57,7 +58,7 @@ class WidgetsController(private val act: Activity) {
         R.id.w_cell_month to "Calendario",
         R.id.w_cell_water to "Agua",
         R.id.w_cell_music to "Música"
-    )
+    ) + WellnessController.CELLS
 
     private fun hiddenSet(): MutableSet<String> =
         (prefs.getString("widgets_hidden", "") ?: "").split(",").filter { it.isNotBlank() }.toMutableSet()
@@ -116,6 +117,7 @@ class WidgetsController(private val act: Activity) {
         listOf(R.id.w_btn_morning, R.id.w_btn_night, R.id.w_btn_read).forEach { Fx.pressable(v(it), 0.95f) }
         for ((id, name) in cells) v<View>(id).setOnLongClickListener { hideCell(id, name); true }
         applyCells()
+        wellness.bind()
         updateWater()
         restoreHosted()
     }
@@ -124,6 +126,7 @@ class WidgetsController(private val act: Activity) {
         if (running) return
         running = true
         try { host.startListening() } catch (_: Exception) {}
+        wellness.onResume()
         updateWater()
         handler.post(loop)
         updateWeather()
@@ -133,6 +136,7 @@ class WidgetsController(private val act: Activity) {
         running = false
         handler.removeCallbacks(loop)
         try { host.stopListening() } catch (_: Exception) {}
+        wellness.onPause()
     }
 
     fun destroy() { onPause(); io.shutdownNow() }
@@ -145,6 +149,7 @@ class WidgetsController(private val act: Activity) {
         v<WaterView>(R.id.w_water).ink = fg
         v<SparklineView>(R.id.w_spark).lineDown = accent
         v<WeatherAnimView>(R.id.w_weather).ink = fg
+        wellness.restyle(fg, accent)
     }
 
     // ---------- batería ----------

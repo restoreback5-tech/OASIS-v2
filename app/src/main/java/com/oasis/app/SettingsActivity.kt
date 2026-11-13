@@ -104,6 +104,12 @@ class SettingsActivity : AppCompatActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         setContentView(R.layout.activity_settings)
+        // Si hay PIN de cuidador, Ajustes queda oculto hasta escribirlo
+        if (CaregiverPin.isSet(this) && !CaregiverPin.unlockedNow()) {
+            val root = findViewById<View>(R.id.settings_root)
+            root.visibility = View.INVISIBLE
+            CaregiverPin.require(this, onOk = { root.visibility = View.VISIBLE }, onCancel = { finish() })
+        }
 
         prefs = getSharedPreferences("oasis_settings", MODE_PRIVATE)
         ttsModule = TTSModule(this)
@@ -861,6 +867,17 @@ class SettingsActivity : AppCompatActivity() {
         }
         findViewById<View>(R.id.btn_dnd_access).setOnClickListener {
             try { startActivity(Intent(Settings.ACTION_NOTIFICATION_POLICY_ACCESS_SETTINGS)) } catch (_: Exception) {}
+        }
+        bindSwitch(R.id.switch_fall, UiPrefs.fallDetect(this)) { UiPrefs.setFallDetect(this, it) }
+        bindSwitch(R.id.switch_batt, UiPrefs.battAlert(this)) { UiPrefs.setBattAlert(this, it) }
+        bindSwitch(R.id.switch_convo, UiPrefs.convoMode(this)) { UiPrefs.setConvoMode(this, it) }
+        findViewById<View>(R.id.btn_sos_contacts).setOnClickListener { SafetyUi.editContacts(this) }
+        findViewById<View>(R.id.btn_medical).setOnClickListener { SafetyUi.editMedical(this) }
+        findViewById<View>(R.id.btn_home_addr).setOnClickListener { SafetyUi.editHome(this) }
+        findViewById<View>(R.id.btn_set_pin).setOnClickListener { SafetyUi.setPinFlow(this) }
+        findViewById<View>(R.id.btn_clear_pin).setOnClickListener {
+            if (!CaregiverPin.isSet(this)) Toast.makeText(this, "No hay PIN activo", Toast.LENGTH_SHORT).show()
+            else CaregiverPin.require(this, onOk = { CaregiverPin.clear(this); Toast.makeText(this, "PIN quitado", Toast.LENGTH_SHORT).show() })
         }
         findViewById<View>(R.id.btn_clear_memory).setOnClickListener {
             MemoryStore.clear(this)
