@@ -1,0 +1,363 @@
+<?xml version="1.0" encoding="utf-8"?>
+<ScrollView xmlns:android="http://schemas.android.com/apk/res/android"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:clipToPadding="false"
+    android:overScrollMode="never"
+    android:paddingStart="16dp"
+    android:paddingTop="20dp"
+    android:paddingEnd="16dp"
+    android:paddingBottom="12dp"
+    android:scrollbars="none">
+
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:orientation="vertical">
+
+            <TextView
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:tag="strong"
+                android:text="Widgets"
+                android:textSize="32sp"
+                android:fontFamily="sans-serif-medium" />
+            <TextView
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="Todo se mueve en vivo"
+                android:textSize="14sp"
+                android:layout_marginBottom="14dp" />
+
+        <!-- Reloj + batería -->
+        <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginBottom="12dp"
+            android:orientation="horizontal">
+
+            <LinearLayout
+                android:layout_width="0dp"
+                android:layout_height="match_parent"
+                android:layout_marginEnd="6dp"
+                android:layout_weight="1"
+                android:background="@drawable/bg_card"
+                android:gravity="center"
+                android:orientation="vertical"
+                android:padding="12dp"
+                android:tag="card">
+
+                <com.oasis.app.AnalogClockView
+                    android:id="@+id/w_clock"
+                    android:layout_width="130dp"
+                    android:layout_height="130dp" />
+            </LinearLayout>
+
+            <LinearLayout
+                android:layout_width="0dp"
+                android:layout_height="match_parent"
+                android:layout_marginStart="6dp"
+                android:layout_weight="1"
+                android:background="@drawable/bg_card"
+                android:gravity="center"
+                android:orientation="vertical"
+                android:padding="12dp"
+                android:tag="card">
+
+                <com.oasis.app.RingView
+                    android:id="@+id/w_ring"
+                    android:layout_width="130dp"
+                    android:layout_height="130dp" />
+            </LinearLayout>
+        </LinearLayout>
+
+        <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginBottom="12dp"
+            android:background="@drawable/bg_card"
+            android:orientation="vertical"
+            android:padding="16dp"
+            android:tag="card"
+            android:id="@+id/w_card_weather">
+            <LinearLayout
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:gravity="center_vertical"
+                android:orientation="horizontal">
+
+                <com.oasis.app.WeatherAnimView
+                    android:id="@+id/w_weather"
+                    android:layout_width="110dp"
+                    android:layout_height="96dp" />
+
+                <LinearLayout
+                    android:layout_width="0dp"
+                    android:layout_height="wrap_content"
+                    android:layout_marginStart="12dp"
+                    android:layout_weight="1"
+                    android:orientation="vertical">
+            <TextView
+                android:id="@+id/w_tv_temp"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:tag="strong"
+                android:text="--°"
+                android:textSize="38sp" />
+            <TextView
+                android:id="@+id/w_tv_wsub"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="Toca para elegir tu ciudad"
+                android:textSize="14sp" />
+                </LinearLayout>
+            </LinearLayout>
+        </LinearLayout>
+        <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginBottom="12dp"
+            android:background="@drawable/bg_card"
+            android:orientation="vertical"
+            android:padding="16dp"
+            android:tag="card">
+            <TextView
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:tag="strong"
+                android:text="RED EN VIVO"
+                android:textSize="12sp"
+                android:letterSpacing="0.08" />
+            <com.oasis.app.SparklineView
+                android:id="@+id/w_spark"
+                android:layout_width="match_parent"
+                android:layout_height="84dp"
+                android:layout_marginTop="8dp" />
+
+            <LinearLayout
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="6dp"
+                android:orientation="horizontal">
+            <TextView
+                android:id="@+id/w_tv_down"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:tag="strong"
+                android:text="↓ 0 B/s"
+                android:textSize="15sp"
+                android:layout_weight="0" />
+                <View
+                    android:layout_width="0dp"
+                    android:layout_height="1dp"
+                    android:layout_weight="1" />
+            <TextView
+                android:id="@+id/w_tv_up"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="↑ 0 B/s"
+                android:textSize="15sp" />
+            </LinearLayout>
+        </LinearLayout>
+        <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginBottom="12dp"
+            android:background="@drawable/bg_card"
+            android:orientation="vertical"
+            android:padding="16dp"
+            android:tag="card">
+            <TextView
+                android:id="@+id/w_tv_month"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:tag="strong"
+                android:text="Mes"
+                android:textSize="18sp"
+                android:fontFamily="sans-serif-medium" />
+            <com.oasis.app.MonthView
+                android:id="@+id/w_month"
+                android:layout_width="match_parent"
+                android:layout_height="220dp"
+                android:layout_marginTop="8dp" />
+        </LinearLayout>
+        <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginBottom="12dp"
+            android:background="@drawable/bg_card"
+            android:orientation="vertical"
+            android:padding="16dp"
+            android:tag="card">
+            <LinearLayout
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:gravity="center_vertical"
+                android:orientation="horizontal">
+
+                <com.oasis.app.WaterView
+                    android:id="@+id/w_water"
+                    android:layout_width="90dp"
+                    android:layout_height="110dp" />
+
+                <LinearLayout
+                    android:layout_width="0dp"
+                    android:layout_height="wrap_content"
+                    android:layout_marginStart="12dp"
+                    android:layout_weight="1"
+                    android:orientation="vertical">
+            <TextView
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:tag="strong"
+                android:text="AGUA DE HOY"
+                android:textSize="12sp"
+                        android:letterSpacing="0.08" />
+            <TextView
+                android:id="@+id/w_tv_water"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:tag="strong"
+                android:text="0 de 8 vasos"
+                android:textSize="20sp" />
+                    <LinearLayout
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:layout_marginTop="6dp"
+                        android:orientation="horizontal">
+            <TextView
+                android:id="@+id/w_water_sub"
+                android:layout_width="48dp"
+                android:layout_height="48dp"
+                android:layout_marginStart="6dp"
+                android:background="@drawable/bg_icon_button"
+                android:gravity="center"
+                android:tag="strong"
+                android:text="−"
+                android:textSize="20sp" />
+            <TextView
+                android:id="@+id/w_water_add"
+                android:layout_width="48dp"
+                android:layout_height="48dp"
+                android:layout_marginStart="6dp"
+                android:background="@drawable/bg_icon_button"
+                android:gravity="center"
+                android:tag="strong"
+                android:text="+"
+                android:textSize="20sp" />
+                    </LinearLayout>
+                </LinearLayout>
+            </LinearLayout>
+        </LinearLayout>
+        <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginBottom="12dp"
+            android:background="@drawable/bg_card"
+            android:orientation="vertical"
+            android:padding="16dp"
+            android:tag="card">
+            <TextView
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:tag="strong"
+                android:text="AHORA SUENA"
+                android:textSize="12sp"
+                android:letterSpacing="0.08" />
+            <TextView
+                android:id="@+id/w_np_title"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:tag="strong"
+                android:text="Nada reproduciéndose"
+                android:textSize="18sp"
+                android:layout_marginTop="6dp"
+                android:ellipsize="end"
+                android:maxLines="1" />
+            <TextView
+                android:id="@+id/w_np_artist"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="Abre tu música y aparecerá aquí"
+                android:textSize="14sp"
+                android:ellipsize="end"
+                android:maxLines="1" />
+            <LinearLayout
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="10dp"
+                android:gravity="center"
+                android:orientation="horizontal">
+            <TextView
+                android:id="@+id/w_np_prev"
+                android:layout_width="48dp"
+                android:layout_height="48dp"
+                android:layout_marginStart="6dp"
+                android:background="@drawable/bg_icon_button"
+                android:gravity="center"
+                android:tag="strong"
+                android:text="⏮"
+                android:textSize="20sp" />
+            <TextView
+                android:id="@+id/w_np_play"
+                android:layout_width="48dp"
+                android:layout_height="48dp"
+                android:layout_marginStart="6dp"
+                android:background="@drawable/bg_icon_button"
+                android:gravity="center"
+                android:tag="strong"
+                android:text="⏯"
+                android:textSize="20sp" />
+            <TextView
+                android:id="@+id/w_np_next"
+                android:layout_width="48dp"
+                android:layout_height="48dp"
+                android:layout_marginStart="6dp"
+                android:background="@drawable/bg_icon_button"
+                android:gravity="center"
+                android:tag="strong"
+                android:text="⏭"
+                android:textSize="20sp" />
+            </LinearLayout>
+            <TextView
+                android:id="@+id/w_np_perm"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="Para controlar la música, toca aquí y permite a OASIS leer notificaciones"
+                android:textSize="13sp"
+                android:layout_marginTop="10dp"
+                android:visibility="gone" />
+        </LinearLayout>
+        <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginBottom="12dp"
+            android:background="@drawable/bg_card"
+            android:orientation="vertical"
+            android:padding="16dp"
+            android:tag="card">
+            <TextView
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:tag="strong"
+                android:text="WIDGETS DE ANDROID"
+                android:textSize="12sp"
+                android:letterSpacing="0.08" />
+            <LinearLayout
+                android:id="@+id/w_hosted"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="8dp"
+                android:orientation="vertical" />
+            <TextView
+                android:id="@+id/w_add_widget"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:tag="strong"
+                android:text="＋ Agregar un widget"
+                android:textSize="16sp"
+                android:layout_marginTop="8dp"
+                android:padding="8dp" />
+        </LinearLayout>
+    </LinearLayout>
+</ScrollView>

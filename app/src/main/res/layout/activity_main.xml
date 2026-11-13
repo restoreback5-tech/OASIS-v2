@@ -54,6 +54,12 @@
                     android:layout_height="match_parent" />
 
                 <include
+                    android:id="@+id/page_widgets"
+                    layout="@layout/page_widgets"
+                    android:layout_width="360dp"
+                    android:layout_height="match_parent" />
+
+                <include
                     android:id="@+id/page_tools"
                     layout="@layout/page_tools"
                     android:layout_width="360dp"

@@ -53,6 +53,8 @@ class DashboardController(
     private lateinit var pageToday: View
     private lateinit var pageSystem: View
     private lateinit var pageTools: View
+    private lateinit var pageWidgets: View
+    val widgets = WidgetsController(act)
 
     private var alive = true
     private var running = false
@@ -85,6 +87,8 @@ class DashboardController(
         pageToday = v(R.id.page_today)
         pageSystem = v(R.id.page_system)
         pageTools = v(R.id.page_tools)
+        pageWidgets = v(R.id.page_widgets)
+        widgets.bind()
         bindTools()
         pager.onPageChanged = {
             updateDots(); refreshForPage(); playEntrance()
@@ -148,12 +152,14 @@ class DashboardController(
     fun onPause() {
         running = false
         handler.removeCallbacks(loop)
+        widgets.onPause()
     }
 
     fun destroy() {
         alive = false
         onPause()
         io.shutdownNow()
+        widgets.destroy()
     }
 
     /** Muestra u oculta páginas según Ajustes y reconstruye los puntos. */
@@ -161,6 +167,7 @@ class DashboardController(
         pageToday.visibility = if (prefs.getBoolean("page_today", true)) View.VISIBLE else View.GONE
         pageSystem.visibility = if (prefs.getBoolean("page_system", true)) View.VISIBLE else View.GONE
         pageTools.visibility = if (prefs.getBoolean("page_tools", true)) View.VISIBLE else View.GONE
+        pageWidgets.visibility = if (prefs.getBoolean("page_widgets", true)) View.VISIBLE else View.GONE
         pager.relayoutPages()
         if (pager.page >= pager.pageCount()) pager.goTo(0, false)
         updateDots()
@@ -183,10 +190,12 @@ class DashboardController(
     }
 
     private fun refreshForPage() {
+        if (currentPageView()?.id != R.id.page_widgets) widgets.onPause()
         when (currentPageView()?.id) {
             R.id.page_today -> { refreshWeather(false); refreshToday(); refreshVoice() }
             R.id.page_system -> { updateQuickStats(); refreshNetApps() }
             R.id.page_tools -> refreshTools()
+            R.id.page_widgets -> widgets.onResume()
         }
     }
 
@@ -274,6 +283,8 @@ class DashboardController(
         style(v(R.id.page_today))
         style(v(R.id.page_system))
         style(v(R.id.page_tools))
+        style(v(R.id.page_widgets))
+        widgets.restyle(fg, accent)
         updateDots()
         // las filas dinámicas ya creadas se repintan
         listOf(R.id.ll_agenda, R.id.ll_favs, R.id.ll_voice, R.id.ll_netapps, R.id.ll_notes, R.id.ll_screen).forEach { style(v(it)) }

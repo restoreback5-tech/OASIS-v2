@@ -6,7 +6,11 @@ import android.content.res.ColorStateList
 import android.net.Uri
 import android.os.Build
 import android.os.Bundle
+import android.graphics.drawable.GradientDrawable
 import android.provider.Settings
+import android.text.Editable
+import android.text.TextWatcher
+import android.widget.EditText
 import android.util.Log
 import android.view.View
 import android.view.ViewGroup
@@ -172,9 +176,11 @@ class SettingsActivity : AppCompatActivity() {
         // Dashboard, sonido de bienvenida y cajón
         setupAppearance()
         setupAssistant()
+        setupOrganizer()
         bindSwitch(R.id.switch_glass_fx, UiPrefs.glassFx(this)) { UiPrefs.setGlassFx(this, it) }
         bindSwitch(R.id.switch_page_today, UiPrefs.pageToday(this)) { UiPrefs.setPageToday(this, it) }
         bindSwitch(R.id.switch_page_tools, UiPrefs.pageTools(this)) { UiPrefs.setPageTools(this, it) }
+        bindSwitch(R.id.switch_page_widgets, UiPrefs.pageWidgets(this)) { UiPrefs.setPageWidgets(this, it) }
         bindSwitch(R.id.switch_page_system, UiPrefs.pageSystem(this)) { UiPrefs.setPageSystem(this, it) }
         bindSwitch(R.id.switch_startup_sound, UiPrefs.startupSound(this)) { UiPrefs.setStartupSound(this, it) }
         bindGroup(intArrayOf(R.id.drawer_0, R.id.drawer_1, R.id.drawer_2), UiPrefs.drawerStyle(this)) { UiPrefs.setDrawerStyle(this, it) }
@@ -611,7 +617,7 @@ class SettingsActivity : AppCompatActivity() {
         listOf<SwitchMaterial>(
             switchSounds, switchTtsEnabled, switchOverlay, switchHideClock,
             findViewById(R.id.switch_labels), findViewById(R.id.switch_swipe), findViewById(R.id.switch_clock24),
-            findViewById(R.id.switch_glass_fx), findViewById(R.id.switch_ai), findViewById(R.id.switch_theme_auto), findViewById(R.id.switch_tilt), findViewById(R.id.switch_page_today), findViewById(R.id.switch_page_tools), findViewById(R.id.switch_page_system), findViewById(R.id.switch_startup_sound)
+            findViewById(R.id.switch_glass_fx), findViewById(R.id.switch_ai), findViewById(R.id.switch_theme_auto), findViewById(R.id.switch_tilt), findViewById(R.id.switch_page_today), findViewById(R.id.switch_page_tools), findViewById(R.id.switch_page_system), findViewById(R.id.switch_page_widgets), findViewById(R.id.switch_startup_sound)
         ).forEach {
             it.thumbTintList = thumb
             it.trackTintList = track
@@ -834,5 +840,74 @@ class SettingsActivity : AppCompatActivity() {
         super.onDestroy()
         ttsModule.shutdown()
         sound.release()
+    }
+
+    // ====================== ORGANIZACIÓN: categorías + búsqueda ======================
+    private var orgCategory = 0
+    private var orgQuery = ""
+
+    private fun setupOrganizer() {
+        val cats = listOf(
+            "Todo" to emptyList<Int>(),
+            "Apariencia" to listOf(R.id.card_theme, R.id.card_icons, R.id.card_font, R.id.card_look),
+            "Inicio" to listOf(R.id.card_launcher, R.id.card_home, R.id.card_dashboard),
+            "Voz e IA" to listOf(R.id.card_voice, R.id.card_ai),
+            "Herramientas" to listOf(R.id.card_tools, R.id.card_toggles),
+            "Más" to listOf(R.id.card_more)
+        )
+        val chips = findViewById<LinearLayout>(R.id.settings_chips)
+        val pal = ThemePalette.current(this)
+        val d = resources.displayMetrics.density
+        fun paint() {
+            for (i in 0 until chips.childCount) {
+                val c = chips.getChildAt(i) as TextView
+                val on = i == orgCategory
+                c.background = GradientDrawable().apply {
+                    cornerRadius = 40f * d
+                    if (on) setColor(pal.accent) else { setColor(0x00000000); setStroke((1.5f * d).toInt(), (pal.textSecondary and 0x00FFFFFF) or 0x66000000) }
+                }
+                c.setTextColor(if (on) 0xFFFFFFFF.toInt() else pal.text)
+            }
+        }
+        cats.forEachIndexed { i, (name, _) ->
+            val c = TextView(this).apply {
+                text = name; textSize = 15f
+                setPadding((16 * d).toInt(), (9 * d).toInt(), (16 * d).toInt(), (9 * d).toInt())
+                Fx.pressable(this, 0.94f)
+                setOnClickListener { orgCategory = i; paint(); applyOrganizer(cats.map { it.second }) }
+            }
+            chips.addView(c, LinearLayout.LayoutParams(ViewGroup.LayoutParams.WRAP_CONTENT, ViewGroup.LayoutParams.WRAP_CONTENT).apply { marginEnd = (8 * d).toInt() })
+        }
+        paint()
+        findViewById<EditText>(R.id.settings_search).addTextChangedListener(object : TextWatcher {
+            override fun beforeTextChanged(s: CharSequence?, st: Int, c: Int, a: Int) {}
+            override fun onTextChanged(s: CharSequence?, st: Int, b: Int, c: Int) {}
+            override fun afterTextChanged(s: Editable?) { orgQuery = s?.toString()?.trim()?.lowercase() ?: ""; applyOrganizer(cats.map { it.second }) }
+        })
+    }
+
+    private fun cardText(v: View, sb: StringBuilder) {
+        if (v is TextView) sb.append(v.text).append(' ').append(v.hint ?: "").append(' ')
+        if (v is ViewGroup) for (i in 0 until v.childCount) cardText(v.getChildAt(i), sb)
+    }
+
+    private fun applyOrganizer(groups: List<List<Int>>) {
+        val all = groups.flatten()
+        var shown = 0
+        for (id in all) {
+            val card = findViewById<View>(id)
+            val inCat = orgCategory == 0 || groups[orgCategory].contains(id)
+            val inQuery = orgQuery.isEmpty() || StringBuilder().also { cardText(card, it) }.toString().lowercase().contains(orgQuery)
+            val show = inCat && inQuery
+            if (show) {
+                shown++
+                if (card.visibility != View.VISIBLE) {
+                    card.alpha = 0f; card.translationY = 24f
+                    card.visibility = View.VISIBLE
+                    card.animate().alpha(1f).translationY(0f).setDuration(260).start()
+                }
+            } else card.visibility = View.GONE
+        }
+        findViewById<View>(R.id.settings_empty).visibility = if (shown == 0) View.VISIBLE else View.GONE
     }
 }
