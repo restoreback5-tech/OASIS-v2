@@ -9,14 +9,28 @@
     android:paddingTop="6dp"
     android:paddingBottom="6dp">
 
-    <TextView
-        android:id="@+id/tile_initial"
+    <FrameLayout
+        android:id="@+id/tile_frame"
         android:layout_width="52dp"
-        android:layout_height="52dp"
-        android:background="@drawable/bg_dot"
-        android:gravity="center"
-        android:tag="strong"
-        android:textSize="22sp" />
+        android:layout_height="52dp">
+
+        <TextView
+            android:id="@+id/tile_initial"
+            android:layout_width="match_parent"
+            android:layout_height="match_parent"
+            android:background="@drawable/bg_dot"
+            android:gravity="center"
+            android:tag="strong"
+            android:textSize="22sp" />
+
+        <ImageView
+            android:id="@+id/tile_photo"
+            android:layout_width="match_parent"
+            android:layout_height="match_parent"
+            android:importantForAccessibility="no"
+            android:scaleType="centerCrop"
+            android:visibility="gone" />
+    </FrameLayout>
 
     <TextView
         android:id="@+id/tile_name"

@@ -176,6 +176,7 @@ class SettingsActivity : AppCompatActivity() {
         // Dashboard, sonido de bienvenida y cajón
         setupAppearance()
         setupAssistant()
+        setupAccess()
         setupOrganizer()
         bindSwitch(R.id.switch_glass_fx, UiPrefs.glassFx(this)) { UiPrefs.setGlassFx(this, it) }
         bindSwitch(R.id.switch_page_today, UiPrefs.pageToday(this)) { UiPrefs.setPageToday(this, it) }
@@ -842,6 +843,31 @@ class SettingsActivity : AppCompatActivity() {
         sound.release()
     }
 
+    // ====================== ACCESIBILIDAD Y AYUDA ======================
+    private fun setupAccess() {
+        bindSwitch(R.id.switch_simple, UiPrefs.simpleMode(this)) { UiPrefs.setSimpleMode(this, it) }
+        bindSwitch(R.id.switch_read_messages, UiPrefs.readMessages(this)) {
+            UiPrefs.setReadMessages(this, it)
+            if (it && !OasisNotificationListener.isEnabled(this))
+                Toast.makeText(this, "Falta permitir el acceso a notificaciones (botón de abajo)", Toast.LENGTH_LONG).show()
+        }
+        bindSwitch(R.id.switch_wake, UiPrefs.wakeWord(this)) {
+            UiPrefs.setWakeWord(this, it)
+            if (it && androidx.core.content.ContextCompat.checkSelfPermission(this, android.Manifest.permission.RECORD_AUDIO) != android.content.pm.PackageManager.PERMISSION_GRANTED)
+                Toast.makeText(this, "Falta el permiso del micrófono", Toast.LENGTH_LONG).show()
+        }
+        findViewById<View>(R.id.btn_notif_access).setOnClickListener {
+            try { startActivity(Intent(Settings.ACTION_NOTIFICATION_LISTENER_SETTINGS)) } catch (_: Exception) {}
+        }
+        findViewById<View>(R.id.btn_dnd_access).setOnClickListener {
+            try { startActivity(Intent(Settings.ACTION_NOTIFICATION_POLICY_ACCESS_SETTINGS)) } catch (_: Exception) {}
+        }
+        findViewById<View>(R.id.btn_clear_memory).setOnClickListener {
+            MemoryStore.clear(this)
+            Toast.makeText(this, "Listo, el asistente olvidó todo", Toast.LENGTH_SHORT).show()
+        }
+    }
+
     // ====================== ORGANIZACIÓN: categorías + búsqueda ======================
     private var orgCategory = 0
     private var orgQuery = ""
@@ -851,7 +877,7 @@ class SettingsActivity : AppCompatActivity() {
             "Todo" to emptyList<Int>(),
             "Apariencia" to listOf(R.id.card_theme, R.id.card_icons, R.id.card_font, R.id.card_look),
             "Inicio" to listOf(R.id.card_launcher, R.id.card_home, R.id.card_dashboard),
-            "Voz e IA" to listOf(R.id.card_voice, R.id.card_ai),
+            "Voz e IA" to listOf(R.id.card_voice, R.id.card_ai, R.id.card_access),
             "Herramientas" to listOf(R.id.card_tools, R.id.card_toggles),
             "Más" to listOf(R.id.card_more)
         )

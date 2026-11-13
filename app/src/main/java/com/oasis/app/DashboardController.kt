@@ -164,10 +164,12 @@ class DashboardController(
 
     /** Muestra u oculta páginas según Ajustes y reconstruye los puntos. */
     fun applyPagePrefs() {
-        pageToday.visibility = if (prefs.getBoolean("page_today", true)) View.VISIBLE else View.GONE
-        pageSystem.visibility = if (prefs.getBoolean("page_system", true)) View.VISIBLE else View.GONE
-        pageTools.visibility = if (prefs.getBoolean("page_tools", true)) View.VISIBLE else View.GONE
-        pageWidgets.visibility = if (prefs.getBoolean("page_widgets", true)) View.VISIBLE else View.GONE
+        val simple = UiPrefs.simpleMode(act)
+        fun show(key: String) = if (!simple && prefs.getBoolean(key, true)) View.VISIBLE else View.GONE
+        pageToday.visibility = show("page_today")
+        pageSystem.visibility = show("page_system")
+        pageTools.visibility = show("page_tools")
+        pageWidgets.visibility = show("page_widgets")
         pager.relayoutPages()
         if (pager.page >= pager.pageCount()) pager.goTo(0, false)
         updateDots()
@@ -481,15 +483,7 @@ class DashboardController(
     private fun favRow(items: List<TodayData.Fav>): LinearLayout {
         val row = LinearLayout(act).apply { orientation = LinearLayout.HORIZONTAL }
         items.forEach { f ->
-            val t = act.layoutInflater.inflate(R.layout.tile_contact, row, false)
-            val initial = t.findViewById<TextView>(R.id.tile_initial)
-            initial.text = f.name.trim().take(1).uppercase()
-            initial.backgroundTintList = ColorStateList.valueOf((accent and 0x00FFFFFF) or 0x55000000)
-            t.findViewById<TextView>(R.id.tile_name).text = f.name.substringBefore(' ')
-            t.contentDescription = "Llamar a ${f.name}"
-            t.setOnClickListener { phone.dialNumber(f.number, f.name) }
-            t.setOnLongClickListener { phone.openSmsToContact(f.name); true }
-            Fx.pressable(t, 0.9f)
+            val t = ContactTiles.build(act, row, f, 52, accent, phone)
             style(t)
             FontManager.apply(act, t)
             row.addView(t)

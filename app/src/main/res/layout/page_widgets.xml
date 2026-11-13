@@ -29,6 +29,56 @@
                 android:textSize="14sp"
                 android:layout_marginBottom="14dp" />
 
+        <!-- Atajos: rutinas y lectura con cámara -->
+        <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginBottom="12dp"
+            android:orientation="horizontal"
+            android:weightSum="3">
+
+            <TextView
+                android:id="@+id/w_btn_morning"
+                android:layout_width="0dp"
+                android:layout_height="wrap_content"
+                android:layout_weight="1"
+                android:background="@drawable/bg_card"
+                android:gravity="center"
+                android:padding="14dp"
+                android:tag="card"
+                android:text="☀️
+Buenos días"
+                android:textSize="14sp" />
+
+            <TextView
+                android:id="@+id/w_btn_night"
+                android:layout_marginStart="6dp"
+                android:layout_marginEnd="6dp"
+                android:layout_width="0dp"
+                android:layout_height="wrap_content"
+                android:layout_weight="1"
+                android:background="@drawable/bg_card"
+                android:gravity="center"
+                android:padding="14dp"
+                android:tag="card"
+                android:text="🌙
+Buenas noches"
+                android:textSize="14sp" />
+
+            <TextView
+                android:id="@+id/w_btn_read"
+                android:layout_width="0dp"
+                android:layout_height="wrap_content"
+                android:layout_weight="1"
+                android:background="@drawable/bg_card"
+                android:gravity="center"
+                android:padding="14dp"
+                android:tag="card"
+                android:text="📖
+Leer con cámara"
+                android:textSize="14sp" />
+        </LinearLayout>
+
         <!-- Reloj + batería -->
         <LinearLayout
             android:layout_width="match_parent"

@@ -21,6 +21,7 @@ import android.view.GestureDetector
 import android.view.MotionEvent
 import android.view.View
 import android.widget.ImageView
+import android.widget.LinearLayout
 import android.widget.TextView
 import androidx.activity.OnBackPressedCallback
 import androidx.activity.result.contract.ActivityResultContracts
@@ -54,6 +55,10 @@ class MainActivity : AppCompatActivity() {
     private lateinit var orbFx: OrbFx
     private lateinit var assistant: AssistantEngine
     private lateinit var liveBg: LiveBackground
+    private lateinit var dock: DockEditor
+    private lateinit var readAloud: ReadAloud
+    private var wake: WakeWord? = null
+    @Volatile private var speaking = false
     private var tilt: TiltParallax? = null
     private var packageReceiver: BroadcastReceiver? = null
 
@@ -112,11 +117,17 @@ class MainActivity : AppCompatActivity() {
         dashboard = DashboardController(
             act = this,
             phone = phoneActions,
-            onTalk = { sound.play(R.raw.touch); voice.startListening() },
+            onTalk = { sound.play(R.raw.touch); startVoice() },
             onReplay = { command, params -> handleVoiceCommand(command, params) },
             onFlash = { appLauncher.launchApp("linterna") }
         )
         dashboard.bind()
+        dock = DockEditor(this, appLauncher)
+        readAloud = ReadAloud(
+            act = this,
+            onStatus = { msg -> runOnUiThread { findViewById<TextView>(R.id.status_text).text = msg; tts.speak(msg) } },
+            onText = { text -> runOnUiThread { findViewById<TextView>(R.id.status_text).text = text; tts.speak(text) } }
+        )
 
         voice = VoiceCommandModule(
             context = this,
@@ -148,9 +159,9 @@ class MainActivity : AppCompatActivity() {
         // El orbe se modula con la voz del asistente: late en cada palabra
         assistant = AssistantEngine(this)
         tts.callbacks = object : TTSModule.Callbacks {
-            override fun onSpeakStart() { runOnUiThread { orbFx.thinking(false); orbFx.start(gentle = true) } }
+            override fun onSpeakStart() { speaking = true; runOnUiThread { orbFx.thinking(false); orbFx.start(gentle = true) } }
             override fun onSpeakWord() { runOnUiThread { orbFx.kick() } }
-            override fun onSpeakDone() { runOnUiThread { if (orbState != "active") orbFx.stop() } }
+            override fun onSpeakDone() { speaking = false; runOnUiThread { if (orbState != "active") orbFx.stop() } }
         }
 
         // 3. Tema, reloj y permisos
@@ -180,16 +191,21 @@ class MainActivity : AppCompatActivity() {
         // 7. Click en el Orbe
         orbView.setOnClickListener {
             sound.play(R.raw.touch)
-            voice.startListening()
+            startVoice()
         }
 
         // 7b. Comportamiento de launcher
         setupLauncherBehavior()
 
         // 8. Botones principales
-        setupBtn(R.id.btn_call, "Llamar") { phoneActions.openDialer() }
-        setupBtn(R.id.btn_message, "Enviar mensaje") { phoneActions.openSms() }
-        setupBtn(R.id.btn_contacts, "Contactos") { phoneActions.openContacts() }
+        setupBtn(R.id.btn_call, "Llamar") { dock.launchOr(R.id.btn_call) { phoneActions.openDialer() } }
+        setupBtn(R.id.btn_message, "Enviar mensaje") { dock.launchOr(R.id.btn_message) { phoneActions.openSms() } }
+        setupBtn(R.id.btn_contacts, "Contactos") { dock.launchOr(R.id.btn_contacts) { phoneActions.openContacts() } }
+        // Dock editable: mantén presionado un botón para elegir otra app
+        listOf(R.id.btn_call, R.id.btn_message, R.id.btn_contacts).forEach { id ->
+            findViewById<View>(id).setOnLongClickListener { sound.play(R.raw.touch); dock.edit(id); true }
+        }
+        dock.refresh()
         setupBtn(R.id.btn_apps, "Apps") { appLauncher.showAllApps() }
 
         // 8b. Rebote al tocar
@@ -211,8 +227,9 @@ class MainActivity : AppCompatActivity() {
         findViewById<View?>(id)?.setOnClickListener { v ->
             sound.play(R.raw.touch)
             pulseAnimation(v)
-            toast.show(text)
-            tts.speak(text)
+            val say = (v.contentDescription ?: text).toString()
+            toast.show(say)
+            tts.speak(say)
             action()
         }
     }
@@ -338,11 +355,92 @@ class MainActivity : AppCompatActivity() {
                 )
                 is AssistantEngine.Act.Alarms -> startActivity(Intent(android.provider.AlarmClock.ACTION_SHOW_ALARMS))
                 is AssistantEngine.Act.Restyle -> applyTheme()
+                is AssistantEngine.Act.AlarmAt -> startActivity(
+                    Intent(android.provider.AlarmClock.ACTION_SET_ALARM)
+                        .putExtra(android.provider.AlarmClock.EXTRA_HOUR, a.hour)
+                        .putExtra(android.provider.AlarmClock.EXTRA_MINUTES, a.minute)
+                        .putExtra(android.provider.AlarmClock.EXTRA_MESSAGE, a.label.ifBlank { "OASIS" })
+                        .putExtra(android.provider.AlarmClock.EXTRA_SKIP_UI, true)
+                )
+                is AssistantEngine.Act.System -> startActivity(Intent(a.action).addFlags(Intent.FLAG_ACTIVITY_NEW_TASK))
+                is AssistantEngine.Act.Routine -> runRoutine(a.night)
+                is AssistantEngine.Act.ReadAloud -> startReadAloud()
                 null -> {}
             }
         } catch (e: Exception) {
             toast.show("No pude hacer eso en este teléfono")
         }
+    }
+
+    // ====================== RUTINAS, CÁMARA, "HOLA OASIS" ======================
+    /** Buenos días / buenas noches: el orbe resume el día (o la noche) en voz alta. */
+    fun runRoutine(night: Boolean) {
+        val status = findViewById<TextView>(R.id.status_text)
+        orbFx.thinking(true)
+        Routines.run(this, night) { text ->
+            orbFx.thinking(false)
+            status.text = text
+            tts.speak(text)
+        }
+    }
+
+    /** Foto de un texto (cartel, receta, medicina) y el orbe lo lee en voz alta. */
+    fun startReadAloud() {
+        sound.play(R.raw.touch)
+        wake?.pauseFor(20000)
+        readAloud.start()
+    }
+
+    /** Un solo punto para empezar a escuchar: pausa «Hola Oasis» para que no compitan por el micrófono. */
+    private fun startVoice() {
+        wake?.pauseFor(9000)
+        voice.startListening()
+    }
+
+    private fun syncWakeWord() {
+        val micOk = ContextCompat.checkSelfPermission(this, Manifest.permission.RECORD_AUDIO) == PackageManager.PERMISSION_GRANTED
+        if (UiPrefs.wakeWord(this) && micOk) {
+            if (wake == null) {
+                wake = WakeWord(
+                    ctx = this,
+                    isBusy = { orbState == "active" || speaking },
+                    onWake = { sound.play(R.raw.touch); voice.startListening() }
+                )
+            }
+            wake?.start()
+        } else {
+            wake?.stop()
+        }
+    }
+
+    // ====================== MODO SIMPLE ======================
+    /** Modo simple: contactos favoritos con foto, grandes, directo en la pantalla de inicio. */
+    private fun refreshHomeFavs() {
+        val box = findViewById<LinearLayout>(R.id.home_favs)
+        if (!UiPrefs.simpleMode(this)) { box.visibility = View.GONE; return }
+        if (!TodayData.has(this, Manifest.permission.READ_CONTACTS)) {
+            box.visibility = View.GONE
+            if (!prefs.getBoolean("asked_contacts_simple", false)) {
+                prefs.edit().putBoolean("asked_contacts_simple", true).apply()
+                androidx.core.app.ActivityCompat.requestPermissions(this, arrayOf(Manifest.permission.READ_CONTACTS), 203)
+            }
+            return
+        }
+        Thread {
+            val favs = TodayData.favorites(this, 4)
+            runOnUiThread {
+                val pal = ThemePalette.current(this)
+                box.removeAllViews()
+                favs.forEach { f ->
+                    val t = ContactTiles.build(this, box, f, 72, pal.accent, phoneActions) { tts.speak(it) }
+                    t.findViewById<TextView>(R.id.tile_initial).setTextColor(pal.text)
+                    t.findViewById<TextView>(R.id.tile_name).setTextColor(pal.text)
+                    FontManager.apply(this, t)
+                    box.addView(t)
+                }
+                box.visibility = if (favs.isEmpty()) View.GONE else View.VISIBLE
+            }
+        }.start()
     }
 
     // ====================== LAUNCHER ======================
@@ -457,8 +555,15 @@ class MainActivity : AppCompatActivity() {
     private fun setupPinnedApps() {
         pinnedAdapter = PinnedAdapter(
             context = this,
+            onFolder = { name ->
+                sound.play(R.raw.touch)
+                FolderUi.open(this, name, { cn -> appLauncher.launchComponent(cn) }, { refreshPinned() })
+            },
             onLaunch = { cn: ComponentName ->
                 sound.play(R.raw.touch)
+                if (UiPrefs.simpleMode(this)) {
+                    try { tts.speak(packageManager.getActivityInfo(cn, 0).loadLabel(packageManager).toString()) } catch (_: Exception) {}
+                }
                 if (!appLauncher.launchComponent(cn)) {
                     tts.speak("No pude abrir la aplicación")
                     refreshPinned()
@@ -612,6 +717,7 @@ class MainActivity : AppCompatActivity() {
     ) {
         super.onRequestPermissionsResult(requestCode, permissions, grantResults)
         dashboard.onPermissionResult(requestCode)
+        if (requestCode == 203) refreshHomeFavs()
         if (requestCode == 100) {
             val granted = grantResults.isNotEmpty() &&
                     grantResults[0] == PackageManager.PERMISSION_GRANTED
@@ -630,6 +736,10 @@ class MainActivity : AppCompatActivity() {
         tts.updateSpeechSettings()
         dashboard.applyPagePrefs()
         dashboard.onResume()
+        dock.refresh()
+        refreshHomeFavs()
+        syncWakeWord()
+        OasisNotificationListener.onChange = { runOnUiThread { if (::pinnedAdapter.isInitialized) pinnedAdapter.notifyDataSetChanged() } }
         liveBg.start()
         if (UiPrefs.tilt(this) && Fx.enabled(this)) {
             val d = resources.displayMetrics.density
@@ -644,6 +754,8 @@ class MainActivity : AppCompatActivity() {
     override fun onPause() {
         super.onPause()
         if (::dashboard.isInitialized) dashboard.onPause()
+        wake?.stop()
+        OasisNotificationListener.onChange = null
         liveBg.stop()
         tilt?.stop(); tilt = null
     }
@@ -654,6 +766,7 @@ class MainActivity : AppCompatActivity() {
         if (::assistant.isInitialized) assistant.shutdown()
         packageReceiver?.let { try { unregisterReceiver(it) } catch (_: Exception) {} }
         dashboard.destroy()
+        if (::readAloud.isInitialized) readAloud.destroy()
         sound.release()
         tts.shutdown()
         voice.destroy()

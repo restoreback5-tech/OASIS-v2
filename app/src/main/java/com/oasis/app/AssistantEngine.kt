@@ -30,6 +30,10 @@ class AssistantEngine(private val ctx: Context) {
         data class Timer(val minutes: Int) : Act()
         object Alarms : Act()
         object Restyle : Act()
+        data class AlarmAt(val hour: Int, val minute: Int, val label: String) : Act()
+        data class System(val action: String) : Act()
+        data class Routine(val night: Boolean) : Act()
+        object ReadAloud : Act()
     }
 
     data class Reply(val text: String, val act: Act? = null)
@@ -68,6 +72,27 @@ class AssistantEngine(private val ctx: Context) {
         val lower = raw.lowercase(Locale.getDefault()).trim()
         val n = TextMatch.normalize(raw)
 
+        // ---- memoria: "recuerda que mi hijo se llama Luis"
+        MEM_SAVE.find(lower)?.let { m ->
+            val fact = m.groupValues[2].trim()
+            if (fact.isNotEmpty()) { MemoryStore.add(ctx, fact); return Reply("Está bien, lo recordaré: $fact.") }
+        }
+        if (hasPhrase(n, "que recuerdas", "que sabes de mi", "que te dije", "que te he dicho")) {
+            val l = MemoryStore.list(ctx)
+            return Reply(if (l.isEmpty()) "Todavía no me has pedido recordar nada. Dime: recuerda que, y lo que quieras." else "Me pediste recordar: " + l.takeLast(5).joinToString(". "))
+        }
+        if (hasPhrase(n, "olvida todo", "borra tu memoria", "olvida lo que te dije", "olvidalo todo")) {
+            MemoryStore.clear(ctx); return Reply("Listo, olvidé todo lo que me pediste recordar.")
+        }
+
+        // ---- recordatorio / alarma a una hora: "recuérdame a las 5 tomar la pastilla"
+        parseAlarmAt(n)?.let { a ->
+            val h12 = if (a.hour % 12 == 0) 12 else a.hour % 12
+            val part = when { a.hour < 12 -> "de la mañana"; a.hour < 19 -> "de la tarde"; else -> "de la noche" }
+            val mm = if (a.minute == 0) "" else ":" + a.minute.toString().padStart(2, '0')
+            return Reply("Listo, te aviso a las $h12$mm $part" + (if (a.label.isNotBlank()) ": ${a.label}." else "."), a)
+        }
+
         // ---- notas
         NOTE.find(lower)?.let { m ->
             val text = m.groupValues[2].trim()
@@ -83,6 +108,45 @@ class AssistantEngine(private val ctx: Context) {
 
         // ---- cuentas
         mathAnswer(lower)?.let { return Reply(it) }
+
+        // ---- leer mensajes recibidos
+        if (hasPhrase(n, "lee mis mensajes", "leeme los mensajes", "lee los mensajes", "mensajes nuevos", "tengo mensajes", "que mensajes", "leeme mis mensajes")) {
+            if (!OasisNotificationListener.isEnabled(ctx)) return Reply("Para leer tus mensajes, permite a OASIS el acceso a notificaciones en Ajustes.")
+            val m = Inbox.recent(3)
+            return Reply(if (m.isEmpty()) "No tienes mensajes nuevos." else m.joinToString(". ") { "${it.who} dice: ${it.text.take(160)}" })
+        }
+
+        // ---- leer en voz alta con la cámara
+        if (hasPhrase(n, "lee esto", "leer en voz alta", "lee el texto", "lee este papel", "leeme esto", "lee lo que dice", "que dice aqui"))
+            return Reply("Apunta la cámara al texto.", Act.ReadAloud)
+
+        // ---- linterna
+        if (has(n, "linterna", "lampara")) return Reply("Listo.", Act.OpenApp("linterna"))
+
+        // ---- ajustes del teléfono por voz
+        if (has(n, "enciende", "apaga", "activa", "desactiva", "prende", "conecta", "desconecta", "abre", "pon", "cambia", "ajusta")) {
+            val setting: Pair<String, String>? = when {
+                has(n, "wifi") -> (if (android.os.Build.VERSION.SDK_INT >= 29) android.provider.Settings.Panel.ACTION_INTERNET_CONNECTIVITY else android.provider.Settings.ACTION_WIFI_SETTINGS) to "los controles de Wi-Fi"
+                has(n, "bluetooth") -> android.provider.Settings.ACTION_BLUETOOTH_SETTINGS to "el Bluetooth"
+                hasPhrase(n, "modo avion") -> android.provider.Settings.ACTION_AIRPLANE_MODE_SETTINGS to "el modo avión"
+                hasPhrase(n, "no molestar", "silencio del telefono") -> android.provider.Settings.ACTION_SOUND_SETTINGS to "los sonidos"
+                has(n, "brillo", "pantalla") && !has(n, "tiempo") -> android.provider.Settings.ACTION_DISPLAY_SETTINGS to "la pantalla"
+                has(n, "ubicacion", "gps") -> android.provider.Settings.ACTION_LOCATION_SOURCE_SETTINGS to "la ubicación"
+                else -> null
+            }
+            if (setting != null) return Reply("Abriendo ${setting.second}.", Act.System(setting.first))
+        }
+
+        // ---- número de un contacto
+        NUMBER_OF.find(lower)?.let { m ->
+            val who = m.groupValues[1].trim()
+            val num = contactNumber(who) ?: return Reply("No encontré el número de $who. Revisa el permiso de contactos.")
+            return Reply("El número de $who es " + num.filter { it.isDigit() }.toList().joinToString(" "))
+        }
+
+        // ---- rutinas
+        if (hasPhrase(n, "rutina de la manana", "rutina de la noche") || (n.split(' ').size <= 3 && hasPhrase(n, "buenos dias", "buenas noches")))
+            return Reply("Un momento.", Act.Routine(night = n.contains("noche")))
 
         // ---- temporizador / alarma
         if (hasPhrase(n, "temporizador", "cronometro", "cuenta regresiva", "avisame en", "despiertame en", "pon una alarma en")) {
@@ -163,11 +227,52 @@ class AssistantEngine(private val ctx: Context) {
         // ---- conversación básica
         if (hasPhrase(n, "quien eres", "como te llamas", "tu nombre")) return Reply("Soy OASIS, tu asistente. Puedo abrir apps, llamar, decirte la hora, la batería, el clima y mucho más.")
         if (hasPhrase(n, "que puedes hacer", "que sabes hacer", "ayudame") || n == "ayuda")
-            return Reply("Puedo abrir aplicaciones, llamar, mandar mensajes, decirte la hora, la batería, el clima y tu agenda, apuntar notas, poner temporizadores, subir el volumen y cambiar el tema.")
+            return Reply("Puedo abrir aplicaciones, llamar, mandar mensajes, leerte tus mensajes y los textos que me muestres con la cámara, decirte la hora, la batería, el clima y tu agenda, poner alarmas y recordatorios, encender la linterna, recordar datos que me pidas y hacer tu rutina de buenos días.")
         if (has(n, "gracias")) return Reply("¡Con gusto!")
         if (has(n, "hola", "buenas", "buenos", "hey")) return Reply(greeting())
         if (has(n, "chiste")) return Reply(JOKES.random())
+
+        // ---- preguntas sobre lo que me pidieron recordar
+        if (Regex("^(cual|como|donde|quien|que|cuando|cuanto)\\b").containsMatchIn(n)) {
+            MemoryStore.lookup(ctx, raw)?.let { return Reply("Me dijiste: $it.") }
+        }
         return null
+    }
+
+    /** "recuérdame a las 5 y media tomar la pastilla" -> AlarmAt(17, 30, "tomar la pastilla"). Elige la próxima ocurrencia. */
+    private fun parseAlarmAt(n: String): Act.AlarmAt? {
+        val m = ALARM_AT.find(n) ?: return null
+        var h = m.groupValues[1].toIntOrNull() ?: return null
+        if (h > 23) return null
+        var min = m.groupValues[2].toIntOrNull() ?: 0
+        when (m.groupValues[3]) { "media" -> min = 30; "cuarto" -> min = 15 }
+        m.groupValues[4].toIntOrNull()?.let { min = it }
+        if (min > 59) return null
+        val part = m.groupValues[5]
+        val label = m.groupValues[6].trim().removePrefix("para ").removePrefix("que ").trim()
+        if (h < 12 && (part.contains("tarde") || part.contains("noche") || part == "pm")) h += 12
+        else if (h == 12 && part.contains("manana")) h = 0
+        else if (h in 1..12 && part.isEmpty()) {
+            // sin "de la mañana/tarde": la próxima vez que ocurra esa hora
+            val now = Calendar.getInstance()
+            val nowMin = now.get(Calendar.HOUR_OF_DAY) * 60 + now.get(Calendar.MINUTE)
+            val a = (h % 12) * 60 + min
+            val p = a + 720
+            h = if (a > nowMin) h % 12 else if (p > nowMin) (h % 12) + 12 else h % 12
+        }
+        return Act.AlarmAt(h % 24, min, label.replaceFirstChar { it.uppercase() })
+    }
+
+    private fun contactNumber(name: String): String? {
+        if (!TodayData.has(ctx, android.Manifest.permission.READ_CONTACTS)) return null
+        return try {
+            ctx.contentResolver.query(
+                android.provider.ContactsContract.CommonDataKinds.Phone.CONTENT_URI,
+                arrayOf(android.provider.ContactsContract.CommonDataKinds.Phone.NUMBER),
+                android.provider.ContactsContract.CommonDataKinds.Phone.DISPLAY_NAME + " LIKE ?",
+                arrayOf("%$name%"), null
+            )?.use { c -> if (c.moveToFirst()) c.getString(0) else null }
+        } catch (e: Exception) { null }
     }
 
     private fun greeting(): String {
@@ -227,7 +332,7 @@ class AssistantEngine(private val ctx: Context) {
 
         history.add("user" to raw)
         while (history.size > 8) history.removeAt(0)
-        val msgs = JSONArray().put(JSONObject().put("role", "system").put("content", SYSTEM + "\nAhora: $now."))
+        val msgs = JSONArray().put(JSONObject().put("role", "system").put("content", SYSTEM + memoryNote() + "\nAhora: $now."))
         history.forEach { (role, text) -> msgs.put(JSONObject().put("role", role).put("content", text)) }
         val body = JSONObject()
             .put("model", model)
@@ -259,6 +364,11 @@ class AssistantEngine(private val ctx: Context) {
         } finally { conn.disconnect() }
     }
 
+    private fun memoryNote(): String {
+        val l = MemoryStore.list(ctx)
+        return if (l.isEmpty()) "" else "\nDatos que el usuario te pidió recordar: " + l.takeLast(15).joinToString("; ") + "."
+    }
+
     /** Separa la frase hablada de una posible línea "ACCION: {json}". */
     private fun parseCloud(text: String): Reply {
         var act: Act? = null
@@ -272,6 +382,9 @@ class AssistantEngine(private val ctx: Context) {
                         "llamar" -> Act.Call(j.optString("contacto"))
                         "mensaje" -> Act.Message(j.optString("contacto"))
                         "temporizador" -> Act.Timer(j.optInt("min", 0)).takeIf { it.minutes > 0 }
+                        "linterna" -> Act.OpenApp("linterna")
+                        "leer" -> Act.ReadAloud
+                        "alarma" -> Act.AlarmAt(j.optInt("hora", 0).coerceIn(0, 23), j.optInt("min", 0).coerceIn(0, 59), j.optString("texto"))
                         else -> null
                     }
                 } catch (_: Exception) {}
@@ -286,6 +399,9 @@ class AssistantEngine(private val ctx: Context) {
         const val DEFAULT_MODEL = "qwen2.5:3b"
         const val FALLBACK = "No estoy segura de cómo ayudarte con eso. Prueba: abre WhatsApp, llama a mamá, ¿qué hora es?, ¿cuánta batería tengo?"
 
+        private val MEM_SAVE = Regex("^(recuerda|acuérdate|acuerdate|ten en cuenta|no olvides)(?: que)?\\s+(.+)$")
+        private val NUMBER_OF = Regex("n[uú]mero (?:de|tiene)\\s+(.+?)\\??$")
+        private val ALARM_AT = Regex("(?:recuerdame|avisame|ponme una alarma|pon una alarma|despiertame|alarma)\\s+(?:para\\s+)?a las (\\d{1,2})(?::(\\d{2}))?(?: y (media|cuarto)| con (\\d{1,2}))?\\s*(de la manana|de la tarde|de la noche|am|pm)?\\s*(.*)$")
         private val NOTE = Regex("^(anota|apunta|anótame|apúntame|recuérdame|recuerdame|nueva nota|crea una nota|agrega una nota|añade una nota)(?: que| de| para)?\\s+(.+)$")
 
         private val JOKES = listOf(
@@ -298,7 +414,8 @@ class AssistantEngine(private val ctx: Context) {
             "Responde SIEMPRE en español, con lenguaje sencillo y máximo 2 frases cortas, sin listas, sin markdown y sin emojis. " +
             "Si el usuario te pide hacer algo en el teléfono, responde con una frase y añade al final UNA línea exacta con el formato " +
             "ACCION: {\"t\":\"abrir\",\"app\":\"nombre\"} o ACCION: {\"t\":\"llamar\",\"contacto\":\"nombre\"} o " +
-            "ACCION: {\"t\":\"mensaje\",\"contacto\":\"nombre\"} o ACCION: {\"t\":\"temporizador\",\"min\":5}. " +
+            "ACCION: {\"t\":\"mensaje\",\"contacto\":\"nombre\"} o ACCION: {\"t\":\"temporizador\",\"min\":5} o ACCION: {\"t\":\"linterna\"} o ACCION: {\"t\":\"leer\"} (leer un texto con la cámara) o " +
+            "ACCION: {\"t\":\"alarma\",\"hora\":17,\"min\":30,\"texto\":\"tomar la pastilla\"}. " +
             "No inventes datos del teléfono (batería, clima, agenda): esos los responde la app por su cuenta. " +
             "Si no sabes algo, dilo con honestidad."
     }

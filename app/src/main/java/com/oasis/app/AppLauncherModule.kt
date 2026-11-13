@@ -267,7 +267,8 @@ class AppLauncherModule(
                 isPinned = { PinnedApps.isPinned(context, it) },
                 onTogglePin = { togglePin(it) },
                 onLaunched = { dialog.dismiss() },
-                labelColor = colors.text
+                labelColor = colors.text,
+                onFolderChanged = { onPinsChanged?.invoke() }
             )
 
             view.findViewById<RecyclerView>(R.id.rv_apps).apply {

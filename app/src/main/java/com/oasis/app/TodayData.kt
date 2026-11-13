@@ -11,7 +11,7 @@ import androidx.core.content.ContextCompat
 /** Agenda y contactos favoritos para la página "Hoy". Llamar fuera del hilo principal. */
 object TodayData {
     data class Event(val title: String, val begin: Long, val end: Long, val allDay: Boolean)
-    data class Fav(val name: String, val number: String)
+    data class Fav(val name: String, val number: String, val photo: android.graphics.Bitmap? = null)
 
     fun has(ctx: Context, perm: String) =
         ContextCompat.checkSelfPermission(ctx, perm) == PackageManager.PERMISSION_GRANTED
@@ -48,17 +48,25 @@ object TodayData {
             val out = LinkedHashMap<String, Fav>()
             ctx.contentResolver.query(
                 ContactsContract.CommonDataKinds.Phone.CONTENT_URI,
-                arrayOf(ContactsContract.CommonDataKinds.Phone.DISPLAY_NAME, ContactsContract.CommonDataKinds.Phone.NUMBER),
+                arrayOf(ContactsContract.CommonDataKinds.Phone.DISPLAY_NAME, ContactsContract.CommonDataKinds.Phone.NUMBER, ContactsContract.CommonDataKinds.Phone.PHOTO_THUMBNAIL_URI),
                 ContactsContract.CommonDataKinds.Phone.STARRED + "=1", null,
                 ContactsContract.CommonDataKinds.Phone.DISPLAY_NAME + " ASC"
             )?.use { c ->
                 while (c.moveToNext() && out.size < limit) {
                     val name = c.getString(0) ?: continue
                     val num = c.getString(1) ?: continue
-                    if (name !in out) out[name] = Fav(name, num)
+                    if (name !in out) out[name] = Fav(name, num, loadPhoto(ctx, c.getString(2)))
                 }
             }
             out.values.toList()
         } catch (e: Exception) { emptyList() }
+    }
+
+    /** Foto del contacto (miniatura), o null si no tiene. */
+    private fun loadPhoto(ctx: Context, uri: String?): android.graphics.Bitmap? {
+        if (uri.isNullOrEmpty()) return null
+        return try {
+            ctx.contentResolver.openInputStream(android.net.Uri.parse(uri))?.use { android.graphics.BitmapFactory.decodeStream(it) }
+        } catch (e: Exception) { null }
     }
 }

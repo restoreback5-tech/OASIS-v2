@@ -16,10 +16,11 @@ import androidx.recyclerview.widget.RecyclerView
 class PinnedAdapter(
     private val context: Context,
     private val onLaunch: (ComponentName) -> Unit,
-    private val onRemove: (ComponentName) -> Unit
+    private val onRemove: (ComponentName) -> Unit,
+    private val onFolder: (String) -> Unit = {}
 ) : RecyclerView.Adapter<PinnedAdapter.VH>() {
 
-    private class Item(val component: ComponentName, val label: String, val icon: Drawable)
+    private class Item(val component: ComponentName?, val label: String, val icon: Drawable?, val folder: String? = null)
 
     private var items: List<Item> = emptyList()
     private var iconPx = 0
@@ -31,6 +32,7 @@ class PinnedAdapter(
     class VH(view: View) : RecyclerView.ViewHolder(view) {
         val icon: ImageView = view.findViewById(R.id.iv_pinned_icon)
         val name: TextView = view.findViewById(R.id.tv_pinned_name)
+        val badge: TextView = view.findViewById(R.id.tv_pinned_badge)
     }
 
     /** Relee las apps fijadas (descarta las desinstaladas). Devuelve cuántas hay. */
@@ -45,8 +47,9 @@ class PinnedAdapter(
                 null
             }
         }
-        if (valid.size != stored.size) PinnedApps.save(context, valid.map { it.component })
-        items = valid
+        if (valid.size != stored.size) PinnedApps.save(context, valid.mapNotNull { it.component })
+        val folders = Folders.all(context).map { Item(null, it.name, androidx.core.content.ContextCompat.getDrawable(context, R.drawable.ic_folder), it.name) }
+        items = valid + folders
         // Se releen aquí para que los cambios de Ajustes se vean al volver al inicio
         iconPx = (UiPrefs.homeIconDp(context) * context.resources.displayMetrics.density).toInt()
         showLabels = UiPrefs.showLabels(context)
@@ -72,13 +75,24 @@ class PinnedAdapter(
         holder.name.visibility = if (showLabels) View.VISIBLE else View.GONE
         holder.icon.layoutParams = holder.icon.layoutParams.apply { width = iconPx; height = iconPx }
         holder.name.typeface = FontManager.typeface(context, false)
-        holder.icon.setImageDrawable(IconProvider.load(context, item.component, item.icon, iconPx))
+        val cn = item.component
+        if (cn == null || item.icon == null) {
+            holder.icon.setImageDrawable(item.icon)
+            holder.badge.visibility = View.GONE
+            holder.itemView.setOnClickListener { onFolder(item.folder.orEmpty()) }
+            holder.itemView.setOnLongClickListener { onFolder(item.folder.orEmpty()); true }
+            return
+        }
+        holder.icon.setImageDrawable(IconProvider.load(context, cn, item.icon, iconPx))
+        val n = OasisNotificationListener.counts[cn.packageName] ?: 0
+        holder.badge.visibility = if (n > 0) View.VISIBLE else View.GONE
+        holder.badge.text = if (n > 99) "99+" else n.toString()
 
-        holder.itemView.setOnClickListener { onLaunch(item.component) }
+        holder.itemView.setOnClickListener { onLaunch(cn) }
         holder.itemView.setOnLongClickListener { v ->
             PopupMenu(context, v).apply {
                 menu.add("Quitar de inicio")
-                setOnMenuItemClickListener { onRemove(item.component); true }
+                setOnMenuItemClickListener { onRemove(cn); true }
             }.show()
             true
         }

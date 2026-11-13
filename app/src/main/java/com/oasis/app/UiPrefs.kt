@@ -10,14 +10,14 @@ object UiPrefs {
     // Tamaño de iconos: 0 pequeño, 1 mediano, 2 grande
     fun iconSize(ctx: Context): Int = p(ctx).getInt("icon_size", 1).coerceIn(0, 2)
     fun setIconSize(ctx: Context, v: Int) = p(ctx).edit().putInt("icon_size", v).apply()
-    fun homeIconDp(ctx: Context): Int = intArrayOf(44, 52, 64)[iconSize(ctx)]
-    fun drawerIconDp(ctx: Context): Int = intArrayOf(48, 56, 68)[iconSize(ctx)]
+    fun homeIconDp(ctx: Context): Int = if (simpleMode(ctx)) 68 else intArrayOf(44, 52, 64)[iconSize(ctx)]
+    fun drawerIconDp(ctx: Context): Int = if (simpleMode(ctx)) 72 else intArrayOf(48, 56, 68)[iconSize(ctx)]
 
     // Forma de iconos: 0 original, 1 círculo, 2 cuadrado redondeado
     fun iconShape(ctx: Context): Int = p(ctx).getInt("icon_shape", 0).coerceIn(0, 2)
     fun setIconShape(ctx: Context, v: Int) = p(ctx).edit().putInt("icon_shape", v).apply()
 
-    fun showLabels(ctx: Context): Boolean = p(ctx).getBoolean("show_labels", true)
+    fun showLabels(ctx: Context): Boolean = simpleMode(ctx) || p(ctx).getBoolean("show_labels", true)
     fun setShowLabels(ctx: Context, v: Boolean) = p(ctx).edit().putBoolean("show_labels", v).apply()
 
     // Columnas del cajón de apps: 3, 4 o 5
@@ -92,6 +92,13 @@ object UiPrefs {
     fun setPageToday(ctx: Context, v: Boolean) = p(ctx).edit().putBoolean("page_today", v).apply()
     fun pageTools(ctx: Context): Boolean = p(ctx).getBoolean("page_tools", true)
     fun setPageTools(ctx: Context, v: Boolean) = p(ctx).edit().putBoolean("page_tools", v).apply()
+    // Modo simple: solo la pantalla de inicio, iconos grandes con nombre, contactos con foto y voz que anuncia cada toque
+    fun simpleMode(ctx: Context): Boolean = p(ctx).getBoolean("simple_mode", false)
+    fun setSimpleMode(ctx: Context, v: Boolean) = p(ctx).edit().putBoolean("simple_mode", v).apply()
+    fun readMessages(ctx: Context): Boolean = p(ctx).getBoolean("read_messages", false)
+    fun setReadMessages(ctx: Context, v: Boolean) = p(ctx).edit().putBoolean("read_messages", v).apply()
+    fun wakeWord(ctx: Context): Boolean = p(ctx).getBoolean("wake_word", false)
+    fun setWakeWord(ctx: Context, v: Boolean) = p(ctx).edit().putBoolean("wake_word", v).apply()
     fun pageWidgets(ctx: Context): Boolean = p(ctx).getBoolean("page_widgets", true)
     fun setPageWidgets(ctx: Context, v: Boolean) = p(ctx).edit().putBoolean("page_widgets", v).apply()
     fun pageSystem(ctx: Context): Boolean = p(ctx).getBoolean("page_system", true)
@@ -103,7 +110,7 @@ object UiPrefs {
         listOf(
             "icon_size", "icon_shape", "show_labels", "drawer_columns", "scrim_percent",
             "swipe_up", "clock_24h", "orb_size", "font_key", "icon_style", "icon_pack",
-            "glass_fx", "theme_auto", "accent_custom", "bg_effect", "tilt_fx", "page_fx", "gesture_double", "gesture_down", "drawer_style", "page_today", "page_tools", "page_system", "page_widgets", "water_count", "water_day", "sound_startup"
+            "glass_fx", "theme_auto", "accent_custom", "bg_effect", "tilt_fx", "page_fx", "gesture_double", "gesture_down", "drawer_style", "page_today", "page_tools", "page_system", "page_widgets", "simple_mode", "read_messages", "wake_word", "assistant_memory", "folders_json", "dock_call", "dock_message", "dock_contacts", "water_count", "water_day", "sound_startup"
         ).forEach { e.remove(it) }
         e.apply()
         FontManager.invalidate()

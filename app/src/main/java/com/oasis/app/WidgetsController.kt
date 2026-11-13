@@ -77,6 +77,10 @@ class WidgetsController(private val act: Activity) {
             try { act.startActivity(Intent(Settings.ACTION_NOTIFICATION_LISTENER_SETTINGS)) } catch (_: Exception) {}
         }
         v<View>(R.id.w_add_widget).setOnClickListener { pickWidget() }
+        v<View>(R.id.w_btn_morning).setOnClickListener { (act as? MainActivity)?.runRoutine(false) }
+        v<View>(R.id.w_btn_night).setOnClickListener { (act as? MainActivity)?.runRoutine(true) }
+        v<View>(R.id.w_btn_read).setOnClickListener { (act as? MainActivity)?.startReadAloud() }
+        listOf(R.id.w_btn_morning, R.id.w_btn_night, R.id.w_btn_read).forEach { Fx.pressable(v(it), 0.95f) }
         updateWater()
         restoreHosted()
     }

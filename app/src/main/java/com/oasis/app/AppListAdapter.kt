@@ -23,7 +23,8 @@ class AppListAdapter(
     private val isPinned: (ComponentName) -> Boolean = { false },
     private val onTogglePin: ((ComponentName) -> Unit)? = null,
     private val onLaunched: () -> Unit = {},
-    private val labelColor: Int = 0xFF1C1C1E.toInt()
+    private val labelColor: Int = 0xFF1C1C1E.toInt(),
+    private val onFolderChanged: (() -> Unit)? = null
 ) : RecyclerView.Adapter<AppListAdapter.AppViewHolder>() {
 
     private class Entry(val info: ResolveInfo, val label: String)
@@ -40,6 +41,7 @@ class AppListAdapter(
     class AppViewHolder(view: View) : RecyclerView.ViewHolder(view) {
         val icon: ImageView = view.findViewById(R.id.iv_app_icon)
         val name: TextView = view.findViewById(R.id.tv_app_name)
+        val badge: TextView = view.findViewById(R.id.tv_app_badge)
     }
 
     fun filter(query: String) {
@@ -74,6 +76,9 @@ class AppListAdapter(
                 entry.info.loadIcon(packageManager), iconPx
             )
         )
+        val count = OasisNotificationListener.counts[ai.packageName] ?: 0
+        holder.badge.visibility = if (count > 0) View.VISIBLE else View.GONE
+        holder.badge.text = if (count > 99) "99+" else count.toString()
         holder.itemView.setOnClickListener { launch(entry) }
         holder.itemView.setOnLongClickListener { v ->
             val ai2 = entry.info.activityInfo
@@ -83,12 +88,14 @@ class AppListAdapter(
                 menu.add(0, 2, 1, "Información de la app")
                 menu.add(0, 3, 2, "Desinstalar")
                 menu.add(0, 4, 3, "Ocultar del cajón")
+                if (onFolderChanged != null) menu.add(0, 5, 4, "Guardar en una carpeta")
                 setOnMenuItemClickListener { item ->
                     when (item.itemId) {
                         1 -> onTogglePin?.invoke(cn)
                         2 -> startSafe(Intent(Settings.ACTION_APPLICATION_DETAILS_SETTINGS, Uri.parse("package:${cn.packageName}")))
                         3 -> startSafe(Intent(Intent.ACTION_DELETE, Uri.parse("package:${cn.packageName}")))
                         4 -> hide(cn.packageName)
+                        5 -> FolderUi.pickFolderFor(context, cn) { onFolderChanged?.invoke() }
                     }
                     true
                 }
