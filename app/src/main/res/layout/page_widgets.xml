@@ -10,10 +10,10 @@
     android:paddingBottom="12dp"
     android:scrollbars="none">
 
-    <LinearLayout
+    <com.oasis.app.CellFlow
+        android:id="@+id/w_flow"
         android:layout_width="match_parent"
-        android:layout_height="wrap_content"
-        android:orientation="vertical">
+        android:layout_height="wrap_content">
 
             <TextView
                 android:layout_width="wrap_content"
@@ -25,9 +25,33 @@
             <TextView
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
-                android:text="Todo se mueve en vivo · mantén presionado un widget para quitarlo"
+                android:text="Mantén presionado un widget y arrástralo para moverlo. Si lo sueltas sin mover, puedes cambiar su tamaño o quitarlo."
                 android:textSize="14sp"
-                android:layout_marginBottom="14dp" />
+                android:layout_marginBottom="12dp" />
+
+        <TextView
+            android:id="@+id/w_gallery"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:gravity="center"
+            android:layout_marginBottom="14dp"
+            android:background="@drawable/bg_card"
+            android:paddingHorizontal="18dp"
+            android:paddingVertical="12dp"
+            android:tag="card"
+            android:text="＋ Agregar widget"
+            android:textSize="16sp" />
+
+        <TextView
+            android:id="@+id/w_empty"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginBottom="12dp"
+            android:gravity="center"
+            android:padding="24dp"
+            android:text="Aquí aparecerán los widgets que elijas.\nToca «＋ Agregar widget» para empezar."
+            android:textSize="14sp"
+            android:visibility="gone" />
 
         <!-- Atajos: rutinas y lectura con cámara -->
         <LinearLayout
@@ -244,20 +268,12 @@ PIN cuidador"
 
         </LinearLayout>
 
-        <!-- Reloj + batería -->
-        <LinearLayout
-            android:id="@+id/w_row_clock"
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:layout_marginBottom="12dp"
-            android:orientation="horizontal">
-
+        <!-- Reloj -->
             <LinearLayout
                 android:id="@+id/w_cell_clock"
-                android:layout_width="0dp"
-                android:layout_height="match_parent"
-                android:layout_marginEnd="6dp"
-                android:layout_weight="1"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginBottom="12dp"
                 android:background="@drawable/bg_card"
                 android:gravity="center"
                 android:orientation="vertical"
@@ -272,10 +288,9 @@ PIN cuidador"
 
             <LinearLayout
                 android:id="@+id/w_cell_battery"
-                android:layout_width="0dp"
-                android:layout_height="match_parent"
-                android:layout_marginStart="6dp"
-                android:layout_weight="1"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginBottom="12dp"
                 android:background="@drawable/bg_card"
                 android:gravity="center"
                 android:orientation="vertical"
@@ -287,7 +302,6 @@ PIN cuidador"
                     android:layout_width="130dp"
                     android:layout_height="130dp" />
             </LinearLayout>
-        </LinearLayout>
 
         <LinearLayout
             android:layout_width="match_parent"
@@ -874,10 +888,10 @@ PIN cuidador"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
                 android:tag="strong"
-                android:text="＋ Agregar un widget"
+                android:text="＋ Agregar un widget de Android"
                 android:textSize="16sp"
                 android:layout_marginTop="8dp"
                 android:padding="8dp" />
         </LinearLayout>
-    </LinearLayout>
+    </com.oasis.app.CellFlow>
 </ScrollView>

@@ -74,10 +74,18 @@
                 android:scaleType="fitXY"
                 android:src="@drawable/orb_ring" />
 
+            <com.oasis.app.VoiceFxView
+                android:id="@+id/voice_fx"
+                android:layout_width="250dp"
+                android:layout_height="180dp"
+                android:layout_gravity="center"
+                android:visibility="gone" />
+
             <ImageView
                 android:id="@+id/orb_view"
                 android:layout_width="180dp"
                 android:layout_height="180dp"
+                android:layout_gravity="center"
                 android:contentDescription="Toca para hablar"
                 android:src="@drawable/orb_center" />
         </FrameLayout>
@@ -143,7 +151,7 @@
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:gravity="center"
-            android:text="Desliza hacia arriba, mantén presionada una app y fíjala aquí"
+            android:text="Toca aquí para elegir las apps de tu inicio"
             android:textSize="12sp"
             android:visibility="gone" />
     </FrameLayout>

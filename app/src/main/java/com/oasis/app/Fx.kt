@@ -117,10 +117,14 @@ class OrbFx(private val orb: View, private val ring1: View, private val ring2: V
     private var boost = 1f
     private var amp = 0.05f
 
+    /** Animación alternativa (ondas, barras, anillo). Recibe los mismos estados que el orbe. */
+    var alt: VoiceFxView? = null
+
     private fun running() = wobble != null
 
     /** Escuchando o hablando: late y emite ondas. [gentle] = más suave (cuando el asistente habla). */
     fun start(gentle: Boolean = false) {
+        alt?.state = if (gentle) VoiceFxView.SPEAK else VoiceFxView.LISTEN
         if (!Fx.enabled(orb.context)) return
         amp = if (gentle) 0.03f else 0.05f
         boost = if (gentle) 0.7f else 1f
@@ -156,6 +160,7 @@ class OrbFx(private val orb: View, private val ring1: View, private val ring2: V
 
     /** Nivel de tu voz (0..1) mientras hablas: el orbe se infla con ella. */
     fun level(l: Float) {
+        alt?.level(l)
         if (!running()) return
         extra = max(extra, l.coerceIn(0f, 1f) * 0.09f)
         boost = 0.8f + l * 0.6f
@@ -163,12 +168,14 @@ class OrbFx(private val orb: View, private val ring1: View, private val ring2: V
 
     /** Una palabra del asistente: pequeño latido. */
     fun kick() {
+        alt?.kick()
         if (!running()) return
         extra = 0.09f
     }
 
     /** Mientras la IA piensa, el orbe gira despacio y se aviva. */
     fun thinking(on: Boolean) {
+        alt?.let { if (on) it.state = VoiceFxView.THINK else if (it.state == VoiceFxView.THINK) it.state = VoiceFxView.IDLE }
         if (!on) {
             spin?.cancel(); spin = null
             orb.rotation = 0f; orb.alpha = 1f
@@ -196,6 +203,7 @@ class OrbFx(private val orb: View, private val ring1: View, private val ring2: V
         extra = 0f
         orb.scaleX = 1f; orb.scaleY = 1f
         ring1.alpha = 0f; ring2.alpha = 0f
+        alt?.state = VoiceFxView.IDLE
         thinking(false)
     }
 }

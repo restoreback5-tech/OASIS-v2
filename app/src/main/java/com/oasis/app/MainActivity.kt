@@ -107,6 +107,7 @@ class MainActivity : AppCompatActivity() {
         liveBg = findViewById(R.id.live_bg)
         orbView = findViewById(R.id.orb_view)
         orbFx = OrbFx(orbView, findViewById(R.id.orb_ring_1), findViewById(R.id.orb_ring_2))
+        orbFx.alt = findViewById(R.id.voice_fx)
         orbBreatheAnim = android.view.animation.AnimationUtils.loadAnimation(this, R.anim.orb_breathe)
         orbFastAnim = android.view.animation.AnimationUtils.loadAnimation(this, R.anim.orb_fast_pulse)
         setOrbToListening()
@@ -636,6 +637,10 @@ class MainActivity : AppCompatActivity() {
             layoutManager = GridLayoutManager(this@MainActivity, 4)
             adapter = pinnedAdapter
         }
+        // Elegir las apps de inicio con una lista: toca el aviso o mantén presionada esa zona
+        val pick = { sound.play(R.raw.touch); HomePicker.show(this) { refreshPinned() } }
+        findViewById<View>(R.id.tv_pinned_hint).setOnClickListener { pick() }
+        findViewById<View>(R.id.pinned_area).setOnLongClickListener { pick(); true }
         appLauncher.onPinsChanged = { refreshPinned() }
         refreshPinned()
     }
@@ -692,6 +697,7 @@ class MainActivity : AppCompatActivity() {
             val ringTint = ColorStateList.valueOf(p.accent)
             findViewById<ImageView>(R.id.orb_ring_1).imageTintList = ringTint
             findViewById<ImageView>(R.id.orb_ring_2).imageTintList = ringTint
+            findViewById<VoiceFxView>(R.id.voice_fx).color = p.accent
 
             WindowCompat.getInsetsController(window, window.decorView).apply {
                 isAppearanceLightStatusBars = darkText
@@ -740,11 +746,29 @@ class MainActivity : AppCompatActivity() {
                 orbView.layoutParams = lp
             }
         }
+        applyVoiceStyle(px)
         val labels = if (UiPrefs.showLabels(this)) View.VISIBLE else View.GONE
         listOf(R.id.lbl_call, R.id.lbl_message, R.id.lbl_contacts, R.id.lbl_apps)
             .forEach { tv(it)?.visibility = labels }
         findViewById<View>(R.id.swipe_handle).visibility =
             if (UiPrefs.swipeUp(this)) View.VISIBLE else View.INVISIBLE
+    }
+
+    /** Orbe, ondas, barras o anillo según el ajuste. El orbe sigue ahí (invisible) como botón. */
+    private fun applyVoiceStyle(orbPx: Int) {
+        val s = UiPrefs.voiceStyle(this)
+        val fx = findViewById<VoiceFxView>(R.id.voice_fx)
+        fx.style = s
+        val wide = s == VoiceFxView.STYLE_WAVES || s == VoiceFxView.STYLE_BARS
+        val w = if (wide) (orbPx * 1.4f).toInt() else orbPx
+        if (fx.layoutParams.width != w || fx.layoutParams.height != orbPx) {
+            fx.layoutParams = fx.layoutParams.also { it.width = w; it.height = orbPx }
+        }
+        fx.visibility = if (s == 0) View.GONE else View.VISIBLE
+        orbView.imageAlpha = if (s == 0) 255 else 0
+        val rv = if (s == 0) View.VISIBLE else View.GONE
+        findViewById<View>(R.id.orb_ring_1).visibility = rv
+        findViewById<View>(R.id.orb_ring_2).visibility = rv
     }
 
     private fun applyClockVisibility() {

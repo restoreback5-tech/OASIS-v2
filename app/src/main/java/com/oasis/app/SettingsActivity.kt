@@ -173,6 +173,16 @@ class SettingsActivity : AppCompatActivity() {
         bindGroup(intArrayOf(R.id.shape_0, R.id.shape_1, R.id.shape_2), UiPrefs.iconShape(this)) { UiPrefs.setIconShape(this, it) }
         bindGroup(intArrayOf(R.id.cols_0, R.id.cols_1, R.id.cols_2), UiPrefs.drawerColumns(this) - 3) { UiPrefs.setDrawerColumns(this, it + 3) }
         bindGroup(intArrayOf(R.id.orb_0, R.id.orb_1, R.id.orb_2), UiPrefs.orbSize(this)) { UiPrefs.setOrbSize(this, it) }
+        // Animación de voz con vista previa en vivo (recorre escuchar / pensar / hablar)
+        findViewById<VoiceFxView>(R.id.vfx_preview).apply {
+            demo = true
+            color = ThemePalette.current(this@SettingsActivity).accent
+            style = UiPrefs.voiceStyle(this@SettingsActivity)
+        }
+        bindGroup(intArrayOf(R.id.vfx_0, R.id.vfx_1, R.id.vfx_2, R.id.vfx_3), UiPrefs.voiceStyle(this)) {
+            UiPrefs.setVoiceStyle(this, it)
+            findViewById<VoiceFxView>(R.id.vfx_preview).style = it
+        }
 
         // Interruptores
         bindSwitch(R.id.switch_labels, UiPrefs.showLabels(this)) { UiPrefs.setShowLabels(this, it) }

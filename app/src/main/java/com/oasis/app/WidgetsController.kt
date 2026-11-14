@@ -48,7 +48,7 @@ class WidgetsController(private val act: Activity) {
     private var accent = 0xFFF57C00.toInt()
     private var pendingId = -1
 
-    /** Widgets propios de OASIS que se pueden quitar y volver a poner. */
+    /** Widgets propios de OASIS: se agregan desde la galería y se pueden mover, cambiar de tamaño y quitar. */
     private val cells = listOf(
         R.id.w_cell_shortcuts to "Atajos (buenos días, buenas noches, cámara)",
         R.id.w_cell_clock to "Reloj",
@@ -60,26 +60,8 @@ class WidgetsController(private val act: Activity) {
         R.id.w_cell_music to "Música"
     ) + WellnessController.CELLS
 
-    private fun hiddenSet(): MutableSet<String> =
-        (prefs.getString("widgets_hidden", "") ?: "").split(",").filter { it.isNotBlank() }.toMutableSet()
-
-    private fun key(id: Int) = act.resources.getResourceEntryName(id)
-
-    private fun applyCells() {
-        val hidden = hiddenSet()
-        for ((id, _) in cells) v<View>(id).visibility = if (key(id) in hidden) View.GONE else View.VISIBLE
-        val rowVisible = v<View>(R.id.w_cell_clock).visibility == View.VISIBLE || v<View>(R.id.w_cell_battery).visibility == View.VISIBLE
-        v<View>(R.id.w_row_clock).visibility = if (rowVisible) View.VISIBLE else View.GONE
-    }
-
-    private fun hideCell(id: Int, name: String) {
-        AlertDialog.Builder(act).setTitle("¿Quitar «$name»?")
-            .setMessage("Puedes volver a ponerlo con «＋ Agregar un widget».")
-            .setPositiveButton("Quitar") { _, _ ->
-                prefs.edit().putString("widgets_hidden", hiddenSet().also { it.add(key(id)) }.joinToString(",")).apply()
-                applyCells()
-            }.setNegativeButton("No", null).show()
-    }
+    /** Orden, tamaño, arrastre y galería de las tarjetas propias. */
+    private var board: WidgetBoard? = null
 
     private fun <T : View> v(id: Int): T = act.findViewById(id)
     private fun tv(id: Int): TextView = act.findViewById(id)
@@ -110,14 +92,15 @@ class WidgetsController(private val act: Activity) {
         v<View>(R.id.w_np_perm).setOnClickListener {
             try { act.startActivity(Intent(Settings.ACTION_NOTIFICATION_LISTENER_SETTINGS)) } catch (_: Exception) {}
         }
-        v<View>(R.id.w_add_widget).setOnClickListener { pickWidget() }
+        v<View>(R.id.w_add_widget).setOnClickListener { pickAndroidWidget() }
+        v<View>(R.id.w_gallery).setOnClickListener { board?.showGallery() }
+        Fx.pressable(v(R.id.w_gallery), 0.96f)
         v<View>(R.id.w_btn_morning).setOnClickListener { (act as? MainActivity)?.runRoutine(false) }
         v<View>(R.id.w_btn_night).setOnClickListener { (act as? MainActivity)?.runRoutine(true) }
         v<View>(R.id.w_btn_read).setOnClickListener { (act as? MainActivity)?.startReadAloud() }
         listOf(R.id.w_btn_morning, R.id.w_btn_night, R.id.w_btn_read).forEach { Fx.pressable(v(it), 0.95f) }
-        for ((id, name) in cells) v<View>(id).setOnLongClickListener { hideCell(id, name); true }
-        applyCells()
         wellness.bind()
+        board = WidgetBoard(act, v(R.id.w_flow), cells) { pickAndroidWidget() }
         updateWater()
         restoreHosted()
     }
@@ -235,21 +218,6 @@ class WidgetsController(private val act: Activity) {
             if (info == null) { saveIds(savedIds().also { it.remove(id) }); continue }
             addHostView(id, info)
         }
-    }
-
-    /** Si hay widgets de OASIS quitados, primero se ofrece volver a ponerlos. */
-    private fun pickWidget() {
-        val hidden = hiddenSet()
-        val back = cells.filter { key(it.first) in hidden }
-        if (back.isEmpty()) { pickAndroidWidget(); return }
-        val items = (back.map { "↩ Volver a poner: ${it.second}" } + "Widgets de Android…").toTypedArray()
-        AlertDialog.Builder(act).setTitle("Agregar un widget")
-            .setItems(items) { _, i ->
-                if (i < back.size) {
-                    prefs.edit().putString("widgets_hidden", hiddenSet().also { it.remove(key(back[i].first)) }.joinToString(",")).apply()
-                    applyCells()
-                } else pickAndroidWidget()
-            }.setNegativeButton("Cancelar", null).show()
     }
 
     private fun pickAndroidWidget() {
